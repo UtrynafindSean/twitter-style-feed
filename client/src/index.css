@@ -374,3 +374,19 @@ button {
   text-decoration: none;
   font-size: 14px;
 }
+.trend {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 0;
+}
+
+.trend span,
+.trend small {
+  color: #536471;
+  font-size: 13px;
+}
+
+.trend strong {
+  font-size: 15px;
+}
