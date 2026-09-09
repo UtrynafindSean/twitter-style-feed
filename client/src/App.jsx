@@ -2,16 +2,14 @@ import { useState, useEffect } from "react";
 
 function App() {
   // =========================
-  // AUTHENTICATION
+  // AUTH
   // =========================
-
   const [currentUser, setCurrentUser] = useState(() => {
     const savedUser = localStorage.getItem("currentUser");
     return savedUser ? JSON.parse(savedUser) : null;
   });
 
   const [authMode, setAuthMode] = useState("signin");
-
   const [authName, setAuthName] = useState("");
   const [authUsername, setAuthUsername] = useState("");
   const [authEmail, setAuthEmail] = useState("");
@@ -19,9 +17,21 @@ function App() {
   const [authMessage, setAuthMessage] = useState("");
 
   // =========================
-  // FEED STATES
+  // NAVIGATION
   // =========================
+  const [view, setView] = useState("home");
 
+  // =========================
+  // PROFILE
+  // =========================
+  const [showEditProfile, setShowEditProfile] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editUsername, setEditUsername] = useState("");
+  const [profileMessage, setProfileMessage] = useState("");
+
+  // =========================
+  // FEED
+  // =========================
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(24);
 
@@ -50,9 +60,8 @@ function App() {
   const [followedUsers, setFollowedUsers] = useState([]);
 
   // =========================
-  // SAVE DATA
+  // LOCAL STORAGE
   // =========================
-
   useEffect(() => {
     localStorage.setItem("posts", JSON.stringify(posts));
   }, [posts]);
@@ -70,9 +79,15 @@ function App() {
   }, [currentUser]);
 
   // =========================
-  // AUTH FUNCTIONS
+  // SEARCH
   // =========================
+  const filteredPosts = posts.filter((post) =>
+    post.text.toLowerCase().includes(searchText.toLowerCase()),
+  );
 
+  // =========================
+  // SIGN UP
+  // =========================
   const handleSignUp = (e) => {
     e.preventDefault();
 
@@ -134,6 +149,9 @@ function App() {
     setAuthMessage("");
   };
 
+  // =========================
+  // SIGN IN
+  // =========================
   const handleSignIn = (e) => {
     e.preventDefault();
 
@@ -165,65 +183,64 @@ function App() {
     setAuthMessage("");
   };
 
+  // =========================
+  // SIGN OUT
+  // =========================
   const handleSignOut = () => {
     setCurrentUser(null);
+    setView("home");
   };
-
-  // =========================
-  // SEARCH
-  // =========================
-
-  const filteredPosts = posts.filter((post) =>
-    post.text.toLowerCase().includes(searchText.toLowerCase()),
-  );
 
   // =========================
   // CREATE POST
   // =========================
-
   const handlePost = () => {
     if (postText.trim() === "") return;
 
     const newPost = {
       id: Date.now(),
-      text: postText,
+      text: postText.trim(),
+
       authorName: currentUser.name,
       authorUsername: currentUser.username,
+
       liked: false,
       likeCount: 0,
+
       reposted: false,
       repostCount: 0,
+
       bookmarked: false,
     };
 
-    setPosts([newPost, ...posts]);
+    setPosts((currentPosts) => [newPost, ...currentPosts]);
     setPostText("");
   };
 
   // =========================
   // COMMENTS
   // =========================
-
   const handleComment = (postId) => {
     if (commentText.trim() === "") return;
 
     const newComment = {
       id: Date.now(),
-      postId: postId,
-      text: commentText,
+      postId,
+
+      text: commentText.trim(),
+
       authorName: currentUser.name,
       authorUsername: currentUser.username,
     };
 
-    setComments([...comments, newComment]);
+    setComments((currentComments) => [...currentComments, newComment]);
+
     setCommentText("");
-    setActivePost(null);
   };
 
   // =========================
   // DELETE POST
   // =========================
-
   const handleDeletePost = (postId) => {
     setPosts((currentPosts) =>
       currentPosts.filter((post) => post.id !== postId),
@@ -237,9 +254,8 @@ function App() {
   };
 
   // =========================
-  // ORIGINAL SAMPLE LIKE
+  // LIKE SAMPLE POST
   // =========================
-
   const handleLike = () => {
     setLiked(!liked);
 
@@ -247,9 +263,8 @@ function App() {
   };
 
   // =========================
-  // USER POST LIKE
+  // LIKE USER POST
   // =========================
-
   const handlePostLike = (postId) => {
     setPosts((currentPosts) =>
       currentPosts.map((post) => {
@@ -260,7 +275,9 @@ function App() {
 
         return {
           ...post,
+
           liked: !currentlyLiked,
+
           likeCount: currentlyLiked
             ? Math.max(0, currentCount - 1)
             : currentCount + 1,
@@ -270,9 +287,8 @@ function App() {
   };
 
   // =========================
-  // ORIGINAL SAMPLE REPOST
+  // REPOST SAMPLE POST
   // =========================
-
   const handleRepost = () => {
     setReposted(!reposted);
 
@@ -280,21 +296,21 @@ function App() {
   };
 
   // =========================
-  // USER POST REPOST
+  // REPOST USER POST
   // =========================
-
   const handlePostRepost = (postId) => {
     setPosts((currentPosts) =>
       currentPosts.map((post) => {
         if (post.id !== postId) return post;
 
         const currentlyReposted = post.reposted || false;
-
         const currentCount = post.repostCount || 0;
 
         return {
           ...post,
+
           reposted: !currentlyReposted,
+
           repostCount: currentlyReposted
             ? Math.max(0, currentCount - 1)
             : currentCount + 1,
@@ -306,7 +322,6 @@ function App() {
   // =========================
   // BOOKMARK
   // =========================
-
   const handleBookmark = (postId) => {
     setPosts((currentPosts) =>
       currentPosts.map((post) => {
@@ -323,7 +338,6 @@ function App() {
   // =========================
   // FOLLOW
   // =========================
-
   const handleFollow = (username) => {
     if (followedUsers.includes(username)) {
       setFollowedUsers(followedUsers.filter((user) => user !== username));
@@ -332,10 +346,95 @@ function App() {
     }
   };
 
-  // ==================================================
-  // SIGN IN / SIGN UP SCREEN
-  // ==================================================
+  // =========================
+  // OPEN EDIT PROFILE
+  // =========================
+  const openEditProfile = () => {
+    setEditName(currentUser.name);
+    setEditUsername(currentUser.username);
+    setProfileMessage("");
+    setShowEditProfile(true);
+  };
 
+  // =========================
+  // SAVE PROFILE
+  // =========================
+  const handleSaveProfile = () => {
+    if (!editName.trim() || !editUsername.trim()) {
+      setProfileMessage("Name and username cannot be empty.");
+      return;
+    }
+
+    const savedUsers = localStorage.getItem("users");
+    const users = savedUsers ? JSON.parse(savedUsers) : [];
+
+    const usernameExists = users.some(
+      (user) =>
+        user.id !== currentUser.id &&
+        user.username.toLowerCase() === editUsername.trim().toLowerCase(),
+    );
+
+    if (usernameExists) {
+      setProfileMessage("That username is already taken.");
+      return;
+    }
+
+    const oldUsername = currentUser.username;
+
+    const updatedUser = {
+      ...currentUser,
+
+      name: editName.trim(),
+      username: editUsername.trim(),
+    };
+
+    // Update users
+    const updatedUsers = users.map((user) =>
+      user.id === currentUser.id ? updatedUser : user,
+    );
+
+    localStorage.setItem("users", JSON.stringify(updatedUsers));
+
+    // Update current user
+    setCurrentUser(updatedUser);
+
+    // Update user's posts
+    setPosts((currentPosts) =>
+      currentPosts.map((post) => {
+        if (post.authorUsername !== oldUsername) {
+          return post;
+        }
+
+        return {
+          ...post,
+          authorName: updatedUser.name,
+          authorUsername: updatedUser.username,
+        };
+      }),
+    );
+
+    // Update user's comments
+    setComments((currentComments) =>
+      currentComments.map((comment) => {
+        if (comment.authorUsername !== oldUsername) {
+          return comment;
+        }
+
+        return {
+          ...comment,
+          authorName: updatedUser.name,
+          authorUsername: updatedUser.username,
+        };
+      }),
+    );
+
+    setShowEditProfile(false);
+    setProfileMessage("");
+  };
+
+  // =========================
+  // AUTH SCREEN
+  // =========================
   if (!currentUser) {
     return (
       <div className="auth-page">
@@ -444,24 +543,523 @@ function App() {
     );
   }
 
-  // ==================================================
-  // MAIN APP
-  // ==================================================
+  // =========================
+  // PROFILE PAGE
+  // =========================
+  if (view === "profile") {
+    const userPostCount = posts.filter(
+      (post) => post.authorUsername === currentUser.username,
+    ).length;
 
+    return (
+      <div className="app">
+        {/* LEFT SIDEBAR */}
+        <aside className="sidebar">
+          <h1 className="logo">𝕏</h1>
+
+          <nav>
+            <a
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                setView("home");
+              }}
+            >
+              Home
+            </a>
+
+            <a href="#">Explore</a>
+
+            <a href="#">Notifications</a>
+
+            <a href="#">Messages</a>
+
+            <a href="#">Bookmarks</a>
+
+            <a
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                setView("profile");
+              }}
+            >
+              Profile
+            </a>
+          </nav>
+
+          <button
+            className="post-button"
+            onClick={() => {
+              setView("home");
+
+              setTimeout(() => {
+                document.querySelector(".compose textarea")?.focus();
+              }, 100);
+            }}
+          >
+            Post
+          </button>
+
+          <div className="sidebar-user">
+            <div className="small-avatar">
+              {currentUser.name.charAt(0).toUpperCase()}
+            </div>
+
+            <div>
+              <strong>{currentUser.name}</strong>
+              <span>@{currentUser.username}</span>
+            </div>
+
+            <button className="signout-button" onClick={handleSignOut}>
+              ↪
+            </button>
+          </div>
+        </aside>
+
+        {/* PROFILE CONTENT */}
+        <main className="feed">
+          <header className="feed-header">
+            <h2>Profile</h2>
+          </header>
+
+          <section
+            style={{
+              padding: "40px 25px",
+              borderBottom: "1px solid #eee",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "25px",
+              }}
+            >
+              <div
+                className="avatar"
+                style={{
+                  width: "80px",
+                  height: "80px",
+                  fontSize: "32px",
+                }}
+              >
+                {currentUser.name.charAt(0).toUpperCase()}
+              </div>
+
+              <button
+                onClick={openEditProfile}
+                style={{
+                  padding: "10px 18px",
+                  borderRadius: "20px",
+                  border: "1px solid #222",
+                  background: "white",
+                  fontWeight: "bold",
+                  cursor: "pointer",
+                }}
+              >
+                Edit Profile
+              </button>
+            </div>
+
+            <h1 style={{ marginBottom: "5px" }}>{currentUser.name}</h1>
+
+            <p
+              style={{
+                color: "#666",
+                marginTop: "0",
+              }}
+            >
+              @{currentUser.username}
+            </p>
+
+            <p
+              style={{
+                marginTop: "20px",
+              }}
+            >
+              {currentUser.email}
+            </p>
+
+            <div
+              style={{
+                display: "flex",
+                gap: "30px",
+                marginTop: "25px",
+              }}
+            >
+              <div>
+                <strong>{userPostCount}</strong> <span>Posts</span>
+              </div>
+
+              <div>
+                <strong>{followedUsers.length}</strong> <span>Following</span>
+              </div>
+            </div>
+          </section>
+
+          {/* USER POSTS */}
+          <section className="posts">
+            {userPostCount === 0 ? (
+              <div
+                style={{
+                  padding: "50px 20px",
+                  textAlign: "center",
+                }}
+              >
+                <h3>No posts yet</h3>
+
+                <p>Your posts will appear here.</p>
+
+                <button
+                  onClick={() => setView("home")}
+                  style={{
+                    marginTop: "15px",
+                    padding: "10px 20px",
+                    borderRadius: "20px",
+                    border: "none",
+                    background: "#000",
+                    color: "#fff",
+                    cursor: "pointer",
+                  }}
+                >
+                  Create a post
+                </button>
+              </div>
+            ) : (
+              filteredPosts
+                .filter((post) => post.authorUsername === currentUser.username)
+                .map((post) => (
+                  <article className="post" key={post.id}>
+                    <div className="avatar">
+                      {post.authorName.charAt(0).toUpperCase()}
+                    </div>
+
+                    <div className="post-content">
+                      <div className="post-author">
+                        <strong>{post.authorName}</strong>
+
+                        <span>@{post.authorUsername} · now</span>
+
+                        <button
+                          className="more-button"
+                          onClick={() => handleDeletePost(post.id)}
+                        >
+                          🗑️
+                        </button>
+                      </div>
+
+                      <p>{post.text}</p>
+
+                      <div className="post-actions">
+                        <button
+                          onClick={() =>
+                            setActivePost(
+                              activePost === post.id ? null : post.id,
+                            )
+                          }
+                        >
+                          💬{" "}
+                          <span>
+                            {
+                              comments.filter(
+                                (comment) => comment.postId === post.id,
+                              ).length
+                            }
+                          </span>
+                        </button>
+
+                        <button onClick={() => handlePostRepost(post.id)}>
+                          🔁 <span>{post.repostCount || 0}</span>
+                        </button>
+
+                        <button
+                          className={post.liked ? "liked" : ""}
+                          onClick={() => handlePostLike(post.id)}
+                        >
+                          {post.liked ? "❤️" : "♡"}{" "}
+                          <span>{post.likeCount || 0}</span>
+                        </button>
+
+                        <button onClick={() => handleBookmark(post.id)}>
+                          {post.bookmarked ? "🔖" : "♡"}
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                ))
+            )}
+          </section>
+        </main>
+
+        {/* RIGHT SIDEBAR */}
+        <aside className="right-sidebar">
+          <div className="sidebar-card">
+            <h3>Your Profile</h3>
+
+            <div className="follow-user">
+              <div className="small-avatar">
+                {currentUser.name.charAt(0).toUpperCase()}
+              </div>
+
+              <div className="follow-info">
+                <strong>{currentUser.name}</strong>
+
+                <span>@{currentUser.username}</span>
+              </div>
+            </div>
+
+            <button
+              onClick={openEditProfile}
+              style={{
+                width: "100%",
+                marginTop: "15px",
+                padding: "10px",
+                borderRadius: "20px",
+                border: "1px solid #ccc",
+                background: "white",
+                cursor: "pointer",
+              }}
+            >
+              Edit Profile
+            </button>
+          </div>
+        </aside>
+
+        {/* EDIT PROFILE MODAL */}
+        {showEditProfile && (
+          <div
+            style={{
+              position: "fixed",
+              inset: "0",
+              background: "rgba(0,0,0,0.5)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: "1000",
+            }}
+          >
+            <div
+              style={{
+                background: "white",
+                width: "90%",
+                maxWidth: "500px",
+                borderRadius: "20px",
+                padding: "25px",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <h2>Edit Profile</h2>
+
+                <button
+                  onClick={() => setShowEditProfile(false)}
+                  style={{
+                    border: "none",
+                    background: "transparent",
+                    fontSize: "22px",
+                    cursor: "pointer",
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+
+              <label
+                style={{
+                  display: "block",
+                  marginTop: "20px",
+                  marginBottom: "8px",
+                  fontWeight: "bold",
+                }}
+              >
+                Name
+              </label>
+
+              <input
+                type="text"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  borderRadius: "10px",
+                  border: "1px solid #ccc",
+                  boxSizing: "border-box",
+                }}
+              />
+
+              <label
+                style={{
+                  display: "block",
+                  marginTop: "20px",
+                  marginBottom: "8px",
+                  fontWeight: "bold",
+                }}
+              >
+                Username
+              </label>
+
+              <input
+                type="text"
+                value={editUsername}
+                onChange={(e) => setEditUsername(e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  borderRadius: "10px",
+                  border: "1px solid #ccc",
+                  boxSizing: "border-box",
+                }}
+              />
+
+              <label
+                style={{
+                  display: "block",
+                  marginTop: "20px",
+                  marginBottom: "8px",
+                  fontWeight: "bold",
+                }}
+              >
+                Email
+              </label>
+
+              <input
+                type="email"
+                value={currentUser.email}
+                disabled
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  borderRadius: "10px",
+                  border: "1px solid #ccc",
+                  boxSizing: "border-box",
+                  background: "#f5f5f5",
+                }}
+              />
+
+              {profileMessage && (
+                <p
+                  style={{
+                    color: "red",
+                    marginTop: "15px",
+                  }}
+                >
+                  {profileMessage}
+                </p>
+              )}
+
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  gap: "10px",
+                  marginTop: "25px",
+                }}
+              >
+                <button
+                  onClick={() => setShowEditProfile(false)}
+                  style={{
+                    padding: "10px 18px",
+                    borderRadius: "20px",
+                    border: "1px solid #ccc",
+                    background: "white",
+                    cursor: "pointer",
+                  }}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  onClick={handleSaveProfile}
+                  style={{
+                    padding: "10px 20px",
+                    borderRadius: "20px",
+                    border: "none",
+                    background: "#000",
+                    color: "white",
+                    fontWeight: "bold",
+                    cursor: "pointer",
+                  }}
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <nav className="mobile-nav">
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              setView("home");
+            }}
+          >
+            ⌂
+          </a>
+
+          <a href="#">⌕</a>
+          <a href="#">＋</a>
+          <a href="#">♡</a>
+
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              setView("profile");
+            }}
+          >
+            ◯
+          </a>
+        </nav>
+      </div>
+    );
+  }
+
+  // =========================
+  // HOME PAGE
+  // =========================
   return (
     <div className="app">
       {/* LEFT SIDEBAR */}
-
       <aside className="sidebar">
         <h1 className="logo">𝕏</h1>
 
         <nav>
-          <a href="#">Home</a>
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              setView("home");
+            }}
+          >
+            Home
+          </a>
+
           <a href="#">Explore</a>
+
           <a href="#">Notifications</a>
+
           <a href="#">Messages</a>
+
           <a href="#">Bookmarks</a>
-          <a href="#">Profile</a>
+
+          <a
+            href="#"
+            onClick={(e) => {
+              e.preventDefault();
+              setView("profile");
+            }}
+          >
+            Profile
+          </a>
         </nav>
 
         <button
@@ -471,8 +1069,6 @@ function App() {
           Post
         </button>
 
-        {/* CURRENT USER */}
-
         <div className="sidebar-user">
           <div className="small-avatar">
             {currentUser.name.charAt(0).toUpperCase()}
@@ -480,6 +1076,7 @@ function App() {
 
           <div>
             <strong>{currentUser.name}</strong>
+
             <span>@{currentUser.username}</span>
           </div>
 
@@ -489,15 +1086,13 @@ function App() {
         </div>
       </aside>
 
-      {/* MAIN FEED */}
-
+      {/* FEED */}
       <main className="feed">
         <header className="feed-header">
           <h2>Home</h2>
         </header>
 
         {/* COMPOSE */}
-
         <section className="compose">
           <div className="avatar">
             {currentUser.name.charAt(0).toUpperCase()}
@@ -508,17 +1103,14 @@ function App() {
               placeholder="Share your thoughts...."
               value={postText}
               onChange={(e) => setPostText(e.target.value)}
-            ></textarea>
+            />
 
             <button onClick={handlePost}>Post</button>
           </div>
         </section>
 
         {/* POSTS */}
-
         <section className="posts">
-          {/* USER CREATED POSTS */}
-
           {filteredPosts.map((post) => (
             <article className="post" key={post.id}>
               <div className="avatar">
@@ -546,8 +1138,6 @@ function App() {
                 <p>{post.text}</p>
 
                 <div className="post-actions">
-                  {/* COMMENT */}
-
                   <button
                     onClick={() =>
                       setActivePost(activePost === post.id ? null : post.id)
@@ -562,13 +1152,9 @@ function App() {
                     </span>
                   </button>
 
-                  {/* REPOST */}
-
                   <button onClick={() => handlePostRepost(post.id)}>
                     🔁 <span>{post.repostCount || 0}</span>
                   </button>
-
-                  {/* LIKE */}
 
                   <button
                     className={post.liked ? "liked" : ""}
@@ -577,15 +1163,12 @@ function App() {
                     {post.liked ? "❤️" : "♡"} <span>{post.likeCount || 0}</span>
                   </button>
 
-                  {/* BOOKMARK */}
-
                   <button onClick={() => handleBookmark(post.id)}>
                     {post.bookmarked ? "🔖" : "♡"}
                   </button>
                 </div>
 
                 {/* COMMENTS */}
-
                 {activePost === post.id && (
                   <>
                     <div className="comments-box">
@@ -593,7 +1176,7 @@ function App() {
                         placeholder="Post your reply..."
                         value={commentText}
                         onChange={(e) => setCommentText(e.target.value)}
-                      ></textarea>
+                      />
 
                       <button onClick={() => handleComment(post.id)}>
                         Reply
@@ -627,8 +1210,7 @@ function App() {
             </article>
           ))}
 
-          {/* ORIGINAL SAMPLE POST */}
-
+          {/* SAMPLE POST 1 */}
           <article className="post">
             <div className="avatar">S</div>
 
@@ -672,8 +1254,7 @@ function App() {
             </div>
           </article>
 
-          {/* ALEX JOHNSON */}
-
+          {/* SAMPLE POST 2 */}
           <article className="post">
             <div className="avatar">A</div>
 
@@ -709,8 +1290,7 @@ function App() {
             </div>
           </article>
 
-          {/* MICHAEL BROWN */}
-
+          {/* SAMPLE POST 3 */}
           <article className="post">
             <div className="avatar">M</div>
 
@@ -746,10 +1326,8 @@ function App() {
       </main>
 
       {/* RIGHT SIDEBAR */}
-
       <aside className="right-sidebar">
         {/* SEARCH */}
-
         <div className="search">
           <input
             type="text"
@@ -760,7 +1338,6 @@ function App() {
         </div>
 
         {/* TRENDS */}
-
         <div className="sidebar-card trends-card">
           <h3>What's happening</h3>
 
@@ -802,7 +1379,6 @@ function App() {
         </div>
 
         {/* WHO TO FOLLOW */}
-
         <div className="sidebar-card">
           <h3>Who to follow</h3>
 
@@ -855,9 +1431,16 @@ function App() {
       </aside>
 
       {/* MOBILE NAV */}
-
       <nav className="mobile-nav">
-        <a href="#">⌂</a>
+        <a
+          href="#"
+          onClick={(e) => {
+            e.preventDefault();
+            setView("home");
+          }}
+        >
+          ⌂
+        </a>
 
         <a href="#">⌕</a>
 
@@ -865,7 +1448,15 @@ function App() {
 
         <a href="#">♡</a>
 
-        <a href="#">◯</a>
+        <a
+          href="#"
+          onClick={(e) => {
+            e.preventDefault();
+            setView("profile");
+          }}
+        >
+          ◯
+        </a>
       </nav>
     </div>
   );
