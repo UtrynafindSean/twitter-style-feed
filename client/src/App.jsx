@@ -32,7 +32,9 @@ function App() {
   useEffect(() => {
     localStorage.setItem("comments", JSON.stringify(comments));
   }, [comments]);
-
+  const filteredPosts = posts.filter((post) =>
+    post.text.toLowerCase().includes(searchText.toLowerCase()),
+  );
   const handlePost = () => {
     if (postText.trim() === "") return;
 
@@ -128,7 +130,7 @@ function App() {
         {/* POSTS */}
         <section className="posts">
           {/* USER CREATED POSTS */}
-          {posts.map((post) => (
+          {filteredPosts.map((post) => (
             <article className="post" key={post.id}>
               <div className="avatar">I</div>
 
