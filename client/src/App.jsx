@@ -1,122 +1,82 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
-
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="app">
+      <aside className="sidebar">
+        <h1 className="logo">𝕏</h1>
 
-      <div className="ticks"></div>
+        <nav>
+          <a href="#">Home</a>
+          <a href="#">Explore</a>
+          <a href="#">Notifications</a>
+          <a href="#">Messages</a>
+          <a href="#">Bookmarks</a>
+          <a href="#">Profile</a>
+        </nav>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+        <button className="post-button">Post</button>
+      </aside>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      <main className="feed">
+        <header className="feed-header">
+          <h2>Home</h2>
+        </header>
+
+        <section className="compose">
+          <div className="avatar">U</div>
+
+          <div className="compose-content">
+            <textarea placeholder="What is happening?!"></textarea>
+            <button>Post</button>
+          </div>
+        </section>
+
+        <section className="posts">
+          <article className="post">
+            <div className="avatar">U</div>
+
+            <div className="post-content">
+              <div className="post-author">
+                <strong>User Name</strong>
+                <span>@username · 2h</span>
+              </div>
+
+              <p>
+                This is where the post content will appear. We're building the
+                Twitter-style feed UI first.
+              </p>
+
+              <div className="post-actions">
+                <button>💬</button>
+                <button>🔁</button>
+                <button>❤️</button>
+                <button>🔖</button>
+              </div>
+            </div>
+          </article>
+        </section>
+      </main>
+
+      <aside className="right-sidebar">
+        <div className="search">
+          <input type="text" placeholder="Search" />
+        </div>
+
+        <div className="sidebar-card">
+          <h3>What's happening</h3>
+          <p>Trending topic #1</p>
+          <p>Trending topic #2</p>
+          <p>Trending topic #3</p>
+        </div>
+
+        <div className="sidebar-card">
+          <h3>Who to follow</h3>
+          <p>@userone</p>
+          <p>@usertwo</p>
+          <p>@userthree</p>
+        </div>
+      </aside>
+    </div>
+  );
 }
 
-export default App
+export default App;
