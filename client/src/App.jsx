@@ -44,6 +44,11 @@ function App() {
                 Just started working on my new project. Excited to see how
                 everything comes together!
               </p>
+              <div className="post-media">
+  <div className="media-placeholder">
+    <span>Project Preview</span>
+  </div>
+</div>
 
               <div className="post-actions">
                 <button>💬</button>
