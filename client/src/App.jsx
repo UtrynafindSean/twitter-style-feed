@@ -248,6 +248,13 @@ function App() {
           </a>
         </div>
       </aside>
+      <nav className="mobile-nav">
+        <a href="#">⌂</a>
+        <a href="#">⌕</a>
+        <a href="#">＋</a>
+        <a href="#">♡</a>
+        <a href="#">◯</a>
+      </nav>
     </div>
   );
 }

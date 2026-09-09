@@ -390,3 +390,272 @@ button {
 .trend strong {
   font-size: 15px;
 }
+.mobile-nav {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .mobile-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: white;
+    border-top: 1px solid #eff3f4;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    z-index: 20;
+  }
+
+  .mobile-nav a {
+    text-decoration: none;
+    color: #0f1419;
+    font-size: 25px;
+    padding: 8px 18px;
+  }
+
+  .mobile-nav a:hover {
+    background: #eff3f4;
+    border-radius: 50%;
+  }
+
+  .feed {
+    padding-bottom: 60px;
+  }
+}
+/* =========================
+   UI POLISH
+========================= */
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  line-height: 1.4;
+}
+
+/* Logo */
+
+.logo {
+  font-weight: 700;
+  letter-spacing: -2px;
+}
+
+/* Navigation */
+
+.sidebar nav a {
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.sidebar nav a:hover {
+  transform: translateX(2px);
+}
+
+/* Feed header */
+
+.feed-header {
+  display: flex;
+  align-items: center;
+  min-height: 60px;
+}
+
+.feed-header h2 {
+  font-weight: 700;
+}
+
+/* Compose section */
+
+.compose {
+  min-height: 125px;
+}
+
+.compose textarea {
+  line-height: 1.5;
+}
+
+.compose-content button {
+  transition:
+    background 0.2s ease,
+    transform 0.15s ease;
+}
+
+.compose-content button:hover {
+  transform: translateY(-1px);
+}
+
+/* Avatars */
+
+.avatar,
+.small-avatar {
+  flex-shrink: 0;
+}
+
+/* Posts */
+
+.post {
+  transition: background 0.15s ease;
+}
+
+.post-author {
+  position: relative;
+}
+
+.post-author strong {
+  font-size: 15px;
+}
+
+.post-author span {
+  font-size: 14px;
+}
+
+.post-content p {
+  margin-top: 4px;
+  margin-bottom: 4px;
+  word-wrap: break-word;
+}
+
+/* Post actions */
+
+.post-actions {
+  margin-top: 14px;
+}
+
+.post-actions button {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.post-actions button:hover {
+  background: #e8f5fd;
+}
+
+/* More button */
+
+.more-button {
+  font-size: 14px;
+  letter-spacing: 2px;
+}
+
+/* Search */
+
+.search {
+  position: sticky;
+  top: 15px;
+}
+
+.search input {
+  transition:
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.search input:focus {
+  background: #ffffff;
+  box-shadow: 0 0 0 1px #1d9bf0;
+}
+
+/* Sidebar cards */
+
+.sidebar-card {
+  overflow: hidden;
+}
+
+.sidebar-card h3 {
+  font-weight: 800;
+}
+
+/* Trends */
+
+.trend {
+  cursor: pointer;
+  border-radius: 10px;
+  transition: background 0.2s ease;
+}
+
+.trend:hover {
+  background: #eef1f2;
+}
+
+.trend strong {
+  font-weight: 700;
+}
+
+/* Follow section */
+
+.follow-user {
+  border-radius: 10px;
+  transition: background 0.2s ease;
+}
+
+.follow-user:hover {
+  background: #eef1f2;
+}
+
+.follow-user button {
+  transition:
+    background 0.2s ease,
+    transform 0.15s ease;
+}
+
+.follow-user button:hover {
+  transform: translateY(-1px);
+}
+
+/* Show more */
+
+.show-more:hover {
+  text-decoration: underline;
+}
+
+/* Mobile improvements */
+
+@media (max-width: 700px) {
+  .feed-header {
+    padding: 15px;
+  }
+
+  .feed-header h2 {
+    font-size: 18px;
+  }
+
+  .compose textarea {
+    font-size: 18px;
+  }
+
+  .post-author {
+    flex-wrap: wrap;
+  }
+
+  .post-author span {
+    font-size: 13px;
+  }
+
+  .post-content p {
+    font-size: 15px;
+  }
+
+  .post-actions {
+    max-width: 100%;
+  }
+
+  .post-actions button {
+    font-size: 15px;
+  }
+
+  .post-actions button span {
+    font-size: 13px;
+  }
+
+  .mobile-nav {
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+  }
+}
