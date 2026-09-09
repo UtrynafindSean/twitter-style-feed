@@ -25,7 +25,7 @@ function App() {
           <div className="avatar">U</div>
 
           <div className="compose-content">
-            <textarea placeholder="What is happening?!"></textarea>
+            <textarea placeholder="Share your thoughts...."></textarea>
             <button>Post</button>
           </div>
         </section>
