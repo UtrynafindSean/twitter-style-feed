@@ -175,18 +175,77 @@ function App() {
           <input type="text" placeholder="Search" />
         </div>
 
-        <div className="sidebar-card">
+        <div className="sidebar-card trends-card">
           <h3>What's happening</h3>
-          <p>Trending topic #1</p>
-          <p>Trending topic #2</p>
-          <p>Trending topic #3</p>
+
+          <div className="trend">
+            <span>Trending in Nigeria</span>
+            <strong>#Tech</strong>
+            <small>12.4K posts</small>
+          </div>
+
+          <div className="trend">
+            <span>Trending</span>
+            <strong>#ReactJS</strong>
+            <small>8,532 posts</small>
+          </div>
+
+          <div className="trend">
+            <span>Trending in Nigeria</span>
+            <strong>#Football</strong>
+            <small>24.8K posts</small>
+          </div>
+
+          <div className="trend">
+            <span>Trending</span>
+            <strong>#JavaScript</strong>
+            <small>6,921 posts</small>
+          </div>
+
+          <a href="#" className="show-more">
+            Show more
+          </a>
         </div>
 
         <div className="sidebar-card">
           <h3>Who to follow</h3>
-          <p>@userone</p>
-          <p>@usertwo</p>
-          <p>@userthree</p>
+
+          <div className="follow-user">
+            <div className="small-avatar">J</div>
+
+            <div className="follow-info">
+              <strong>John Smith</strong>
+              <span>@johnsmith</span>
+            </div>
+
+            <button>Follow</button>
+          </div>
+
+          <div className="follow-user">
+            <div className="small-avatar">D</div>
+
+            <div className="follow-info">
+              <strong>David James</strong>
+              <span>@davidjames</span>
+            </div>
+
+            <button>Follow</button>
+          </div>
+
+          <div className="follow-user">
+            <div className="small-avatar">E</div>
+
+            <div className="follow-info">
+              <strong>Emily Rose</strong>
+              <span>@emilyrose</span>
+            </div>
+
+            <button>Follow</button>
+          </div>
+
+          <a href="#" className="show-more">
+            Show more
+          </a>
         </div>
       </aside>
     </div>
