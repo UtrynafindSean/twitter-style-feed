@@ -171,12 +171,15 @@ function App() {
                   </button>
 
                   {/* LIKE */}
-                  <button className={liked ? "liked" : ""} onClick={handleLike}>
-                    {liked ? "❤️" : "♡"} <span>{likeCount}</span>
+                  <button
+                    className={post.liked ? "liked" : ""}
+                    onClick={() => handlePostLike(post.id)}
+                  >
+                    {post.liked ? "❤️" : "♡"} <span>{post.likeCount}</span>
                   </button>
 
                   {/* BOOKMARK */}
-                  <button onClick={handleBookmark}>
+                  <button onClick={() => handleBookmark(post.id)}>
                     {bookmarked ? "🔖" : "♡"}
                   </button>
                 </div>
