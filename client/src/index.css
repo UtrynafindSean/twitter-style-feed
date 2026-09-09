@@ -744,3 +744,12 @@ body {
   border-radius: 20px;
   font-weight: bold;
 }
+.layout {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 250px minmax(500px, 650px) 320px;
+  gap: 20px;
+  align-items: start;
+}
