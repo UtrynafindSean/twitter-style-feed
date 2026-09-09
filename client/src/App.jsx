@@ -19,6 +19,8 @@ function App() {
   });
 
   const [activePost, setActivePost] = useState(null);
+  const [reposted, setReposted] = useState(false);
+  const [repostCount, setRepostCount] = useState(0);
 
   useEffect(() => {
     localStorage.setItem("posts", JSON.stringify(posts));
@@ -57,9 +59,7 @@ function App() {
   const handleDeletePost = (postId) => {
     setPosts(posts.filter((post) => post.id !== postId));
 
-    setComments(
-      comments.filter((comment) => comment.postId !== postId)
-    );
+    setComments(comments.filter((comment) => comment.postId !== postId));
 
     setActivePost(null);
   };
@@ -67,6 +67,10 @@ function App() {
   const handleLike = () => {
     setLiked(!liked);
     setLikeCount(liked ? likeCount - 1 : likeCount + 1);
+  };
+  const handleRepost = () => {
+    setReposted(!reposted);
+    setRepostCount(reposted ? repostCount - 1 : repostCount + 1);
   };
 
   return (
@@ -110,7 +114,6 @@ function App() {
 
         {/* POSTS */}
         <section className="posts">
-
           {/* USER CREATED POSTS */}
           {posts.map((post) => (
             <article className="post" key={post.id}>
@@ -135,33 +138,26 @@ function App() {
                   {/* COMMENT */}
                   <button
                     onClick={() =>
-                      setActivePost(
-                        activePost === post.id ? null : post.id
-                      )
+                      setActivePost(activePost === post.id ? null : post.id)
                     }
                   >
                     💬{" "}
                     <span>
                       {
-                        comments.filter(
-                          (comment) => comment.postId === post.id
-                        ).length
+                        comments.filter((comment) => comment.postId === post.id)
+                          .length
                       }
                     </span>
                   </button>
 
                   {/* REPOST */}
-                  <button>
-                    🔁 <span>0</span>
+                  <button onClick={handleRepost}>
+                    🔁 <span>{repostCount}</span>
                   </button>
 
                   {/* LIKE */}
-                  <button
-                    className={liked ? "liked" : ""}
-                    onClick={handleLike}
-                  >
-                    {liked ? "❤️" : "♡"}{" "}
-                    <span>{likeCount}</span>
+                  <button className={liked ? "liked" : ""} onClick={handleLike}>
+                    {liked ? "❤️" : "♡"} <span>{likeCount}</span>
                   </button>
 
                   {/* BOOKMARK */}
@@ -175,37 +171,23 @@ function App() {
                       <textarea
                         placeholder="Post your reply..."
                         value={commentText}
-                        onChange={(e) =>
-                          setCommentText(e.target.value)
-                        }
+                        onChange={(e) => setCommentText(e.target.value)}
                       ></textarea>
 
-                      <button
-                        onClick={() => handleComment(post.id)}
-                      >
+                      <button onClick={() => handleComment(post.id)}>
                         Reply
                       </button>
                     </div>
 
                     <div className="comments-list">
                       {comments
-                        .filter(
-                          (comment) =>
-                            comment.postId === post.id
-                        )
+                        .filter((comment) => comment.postId === post.id)
                         .map((comment) => (
-                          <div
-                            className="comment"
-                            key={comment.id}
-                          >
-                            <div className="small-avatar">
-                              I
-                            </div>
+                          <div className="comment" key={comment.id}>
+                            <div className="small-avatar">I</div>
 
                             <div>
-                              <strong>
-                                Idienumah Sokombie
-                              </strong>
+                              <strong>Idienumah Sokombie</strong>
 
                               <p>{comment.text}</p>
                             </div>
@@ -227,15 +209,12 @@ function App() {
                 <strong>Idienumah Sokombie</strong>
                 <span>@sokombie · 2h</span>
 
-                <button className="more-button">
-                  •••
-                </button>
+                <button className="more-button">•••</button>
               </div>
 
               <p>
-                Just started working on my new project.
-                Excited to see how everything comes
-                together!
+                Just started working on my new project. Excited to see how
+                everything comes together!
               </p>
 
               <div className="post-media">
@@ -249,16 +228,12 @@ function App() {
                   💬 <span>12</span>
                 </button>
 
-                <button>
-                  🔁 <span>5</span>
+                <button onClick={handleRepost}>
+                  🔁 <span>{repostCount}</span>
                 </button>
 
-                <button
-                  className={liked ? "liked" : ""}
-                  onClick={handleLike}
-                >
-                  {liked ? "❤️" : "♡"}{" "}
-                  <span>{likeCount}</span>
+                <button className={liked ? "liked" : ""} onClick={handleLike}>
+                  {liked ? "❤️" : "♡"} <span>{likeCount}</span>
                 </button>
 
                 <button>🔖</button>
@@ -275,15 +250,12 @@ function App() {
                 <strong>Alex Johnson</strong>
                 <span>@alexj · 4h</span>
 
-                <button className="more-button">
-                  •••
-                </button>
+                <button className="more-button">•••</button>
               </div>
 
               <p>
-                Learning React and building reusable
-                components makes development so much
-                easier.
+                Learning React and building reusable components makes
+                development so much easier.
               </p>
 
               <div className="post-actions">
@@ -291,8 +263,8 @@ function App() {
                   💬 <span>8</span>
                 </button>
 
-                <button>
-                  🔁 <span>3</span>
+                <button onClick={handleRepost}>
+                  🔁 <span>{repostCount}</span>
                 </button>
 
                 <button>
@@ -313,23 +285,18 @@ function App() {
                 <strong>Michael Brown</strong>
                 <span>@michaelb · 6h</span>
 
-                <button className="more-button">
-                  •••
-                </button>
+                <button className="more-button">•••</button>
               </div>
 
-              <p>
-                What's everyone working on today? Drop
-                your projects below.
-              </p>
+              <p>What's everyone working on today? Drop your projects below.</p>
 
               <div className="post-actions">
                 <button>
                   💬 <span>15</span>
                 </button>
 
-                <button>
-                  🔁 <span>7</span>
+                <button onClick={handleRepost}>
+                  🔁 <span>{repostCount}</span>
                 </button>
 
                 <button>
@@ -340,7 +307,6 @@ function App() {
               </div>
             </div>
           </article>
-
         </section>
       </main>
 
