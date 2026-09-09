@@ -21,6 +21,7 @@ function App() {
   const [activePost, setActivePost] = useState(null);
   const [reposted, setReposted] = useState(false);
   const [repostCount, setRepostCount] = useState(0);
+  const [bookmarked, setBookmarked] = useState(false);
 
   useEffect(() => {
     localStorage.setItem("posts", JSON.stringify(posts));
@@ -71,6 +72,9 @@ function App() {
   const handleRepost = () => {
     setReposted(!reposted);
     setRepostCount(reposted ? repostCount - 1 : repostCount + 1);
+  };
+  const handleBookmark = () => {
+    setBookmarked(!bookmarked);
   };
 
   return (
@@ -161,7 +165,9 @@ function App() {
                   </button>
 
                   {/* BOOKMARK */}
-                  <button>🔖</button>
+                  <button onClick={handleBookmark}>
+                    {bookmarked ? "🔖" : "♡"}
+                  </button>
                 </div>
 
                 {/* COMMENTS */}
@@ -236,7 +242,9 @@ function App() {
                   {liked ? "❤️" : "♡"} <span>{likeCount}</span>
                 </button>
 
-                <button>🔖</button>
+                <button onClick={handleBookmark}>
+                  {bookmarked ? "🔖" : "♡"}
+                </button>
               </div>
             </div>
           </article>
@@ -267,11 +275,13 @@ function App() {
                   🔁 <span>{repostCount}</span>
                 </button>
 
-                <button>
-                  ❤️ <span>18</span>
+                <button onClick={handleLike}>
+                  {liked ? "❤️" : "♡"} <span>{likeCount}</span>
                 </button>
 
-                <button>🔖</button>
+                <button onClick={handleBookmark}>
+                  {bookmarked ? "🔖" : "♡"}
+                </button>
               </div>
             </div>
           </article>
@@ -299,11 +309,13 @@ function App() {
                   🔁 <span>{repostCount}</span>
                 </button>
 
-                <button>
-                  ❤️ <span>31</span>
+                <button onClick={handleLike}>
+                  {liked ? "❤️" : "♡"} <span>{likeCount}</span>
                 </button>
 
-                <button>🔖</button>
+                <button onClick={handleBookmark}>
+                  {bookmarked ? "🔖" : "♡"}
+                </button>
               </div>
             </div>
           </article>
