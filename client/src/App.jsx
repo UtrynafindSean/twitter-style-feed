@@ -20,9 +20,12 @@ function App() {
   });
 
   const [activePost, setActivePost] = useState(null);
+
   const [reposted, setReposted] = useState(false);
   const [repostCount, setRepostCount] = useState(0);
+
   const [bookmarked, setBookmarked] = useState(false);
+
   const [followedUsers, setFollowedUsers] = useState([]);
 
   useEffect(() => {
@@ -32,15 +35,22 @@ function App() {
   useEffect(() => {
     localStorage.setItem("comments", JSON.stringify(comments));
   }, [comments]);
+
   const filteredPosts = posts.filter((post) =>
     post.text.toLowerCase().includes(searchText.toLowerCase()),
   );
+
   const handlePost = () => {
     if (postText.trim() === "") return;
 
     const newPost = {
       id: Date.now(),
       text: postText,
+      liked: false,
+      likeCount: 0,
+      reposted: false,
+      repostCount: 0,
+      bookmarked: false,
     };
 
     setPosts([newPost, ...posts]);
@@ -62,39 +72,70 @@ function App() {
   };
 
   const handleDeletePost = (postId) => {
-    setPosts(posts.filter((post) => post.id !== postId));
+    setPosts((currentPosts) =>
+      currentPosts.filter((post) => post.id !== postId),
+    );
 
-    setComments(comments.filter((comment) => comment.postId !== postId));
+    setComments((currentComments) =>
+      currentComments.filter((comment) => comment.postId !== postId),
+    );
 
     setActivePost(null);
   };
 
+  // Like for the original sample post
   const handleLike = () => {
     setLiked(!liked);
     setLikeCount(liked ? likeCount - 1 : likeCount + 1);
   };
+
+  // Like for user-created posts
   const handlePostLike = (postId) => {
-  setPosts((currentPosts) =>
-    currentPosts.map((post) => {
-      if (post.id !== postId) return post;
+    setPosts((currentPosts) =>
+      currentPosts.map((post) => {
+        if (post.id !== postId) return post;
 
-      const currentlyLiked = post.liked || false;
-      const currentCount = post.likeCount || 0;
+        const currentlyLiked = post.liked || false;
+        const currentCount = post.likeCount || 0;
 
-      return {
-        ...post,
-        liked: !currentlyLiked,
-        likeCount: currentlyLiked
-          ? Math.max(0, currentCount - 1)
-          : currentCount + 1,
-      };
-    })
-  );
-};
+        return {
+          ...post,
+          liked: !currentlyLiked,
+          likeCount: currentlyLiked
+            ? Math.max(0, currentCount - 1)
+            : currentCount + 1,
+        };
+      }),
+    );
+  };
+
+  // Repost for the original/sample area
   const handleRepost = () => {
     setReposted(!reposted);
     setRepostCount(reposted ? repostCount - 1 : repostCount + 1);
   };
+
+  // Repost for user-created posts
+  const handlePostRepost = (postId) => {
+    setPosts((currentPosts) =>
+      currentPosts.map((post) => {
+        if (post.id !== postId) return post;
+
+        const currentlyReposted = post.reposted || false;
+        const currentCount = post.repostCount || 0;
+
+        return {
+          ...post,
+          reposted: !currentlyReposted,
+          repostCount: currentlyReposted
+            ? Math.max(0, currentCount - 1)
+            : currentCount + 1,
+        };
+      }),
+    );
+  };
+
+  // Bookmark for user-created posts
   const handleBookmark = (postId) => {
     setPosts((currentPosts) =>
       currentPosts.map((post) => {
@@ -104,9 +145,10 @@ function App() {
           ...post,
           bookmarked: !post.bookmarked,
         };
-      })
+      }),
     );
   };
+
   const handleFollow = (username) => {
     if (followedUsers.includes(username)) {
       setFollowedUsers(followedUsers.filter((user) => user !== username));
@@ -193,8 +235,8 @@ function App() {
                   </button>
 
                   {/* REPOST */}
-                  <button onClick={handleRepost}>
-                    🔁 <span>{repostCount}</span>
+                  <button onClick={() => handlePostRepost(post.id)}>
+                    🔁 <span>{post.repostCount || 0}</span>
                   </button>
 
                   {/* LIKE */}
@@ -202,7 +244,7 @@ function App() {
                     className={post.liked ? "liked" : ""}
                     onClick={() => handlePostLike(post.id)}
                   >
-                    {post.liked ? "❤️" : "♡"} <span>{post.likeCount}</span>
+                    {post.liked ? "❤️" : "♡"} <span>{post.likeCount || 0}</span>
                   </button>
 
                   {/* BOOKMARK */}
@@ -275,16 +317,16 @@ function App() {
                   💬 <span>12</span>
                 </button>
 
-                <button onClick={() => handleRepost(post.id)}>
-                  🔁 <span>{post.repostCount}</span>
+                <button onClick={handleRepost}>
+                  🔁 <span>{repostCount}</span>
                 </button>
 
-                <button className={post.liked ? "liked" : ""} onClick={() => handlePostLike(post.id)}>
-                  {post.liked ? "❤️" : "♡"} <span>{post.likeCount}</span>
+                <button className={liked ? "liked" : ""} onClick={handleLike}>
+                  {liked ? "❤️" : "♡"} <span>{likeCount}</span>
                 </button>
 
-                <button onClick={() => handleBookmark(post.id)}>
-                  {post.bookmarked ? "🔖" : "♡"}
+                <button onClick={() => setBookmarked(!bookmarked)}>
+                  {bookmarked ? "🔖" : "♡"}
                 </button>
               </div>
             </div>
@@ -312,17 +354,15 @@ function App() {
                   💬 <span>8</span>
                 </button>
 
-                <button onClick={() => handleRepost(post.id)}>
-                  🔁 <span>{post.repostCount}</span>
+                <button>
+                  🔁 <span>3</span>
                 </button>
 
-                <button onClick={() => handlePostLike(post.id)}>
-                  {post.liked ? "❤️" : "♡"} <span>{post.likeCount}</span>
+                <button>
+                  ❤️ <span>18</span>
                 </button>
 
-                <button onClick={() => handleBookmark(post.id)}>
-                  {post.bookmarked ? "🔖" : "♡"}
-                </button>
+                <button>🔖</button>
               </div>
             </div>
           </article>
@@ -346,17 +386,15 @@ function App() {
                   💬 <span>15</span>
                 </button>
 
-                <button onClick={() => handleRepost(post.id)}>
-                  🔁 <span>{post.repostCount}</span>
+                <button>
+                  🔁 <span>7</span>
                 </button>
 
-                <button onClick={() => handlePostLike(post.id)}>
-                  {post.liked ? "❤️" : "♡"} <span>{post.likeCount}</span>
+                <button>
+                  ❤️ <span>31</span>
                 </button>
 
-                <button onClick={() => handleBookmark(post.id)}>
-                  {post.bookmarked ? "🔖" : "♡"}
-                </button>
+                <button>🔖</button>
               </div>
             </div>
           </article>
@@ -365,6 +403,7 @@ function App() {
 
       {/* RIGHT SIDEBAR */}
       <aside className="right-sidebar">
+        {/* SEARCH */}
         <div className="search">
           <input
             type="text"
@@ -374,6 +413,7 @@ function App() {
           />
         </div>
 
+        {/* TRENDS */}
         <div className="sidebar-card trends-card">
           <h3>What's happening</h3>
 
@@ -406,6 +446,7 @@ function App() {
           </a>
         </div>
 
+        {/* WHO TO FOLLOW */}
         <div className="sidebar-card">
           <h3>Who to follow</h3>
 
