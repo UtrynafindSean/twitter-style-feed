@@ -32,17 +32,17 @@ function App() {
 
         <section className="posts">
           <article className="post">
-            <div className="avatar">U</div>
+            <div className="avatar">S</div>
 
             <div className="post-content">
               <div className="post-author">
-                <strong>User Name</strong>
-                <span>@username · 2h</span>
+                <strong>Idienumah Sokombie</strong>
+                <span>@sokombie · 2h</span>
               </div>
 
               <p>
-                This is where the post content will appear. We're building the
-                Twitter-style feed UI first.
+                Just started working on my new project. Excited to see how
+                everything comes together!
               </p>
 
               <div className="post-actions">
@@ -53,6 +53,120 @@ function App() {
               </div>
             </div>
           </article>
+
+          <article className="post">
+            <div className="avatar">A</div>
+
+            <div className="post-content">
+              <div className="post-author">
+                <strong>Alex Johnson</strong>
+                <span>@alexj · 4h</span>
+              </div>
+
+              <p>
+                Learning React and building reusable components makes
+                development so much easier.
+              </p>
+
+              <div className="post-actions">
+                <button>💬</button>
+                <button>🔁</button>
+                <button>❤️</button>
+                <button>🔖</button>
+              </div>
+            </div>
+          </article>
+
+          <section className="posts">
+            <article className="post">
+              <div className="avatar">S</div>
+
+              <div className="post-content">
+                <div className="post-author">
+                  <strong>Stanley Okonkwo</strong>
+                  <span>@stanley · 2h</span>
+                  <button className="more-button">•••</button>
+                </div>
+
+                <p>
+                  Just started working on my new project. Excited to see how
+                  everything comes together!
+                </p>
+
+                <div className="post-actions">
+                  <button>
+                    💬 <span>12</span>
+                  </button>
+                  <button>
+                    🔁 <span>5</span>
+                  </button>
+                  <button>
+                    ❤️ <span>24</span>
+                  </button>
+                  <button>🔖</button>
+                </div>
+              </div>
+            </article>
+
+            <article className="post">
+              <div className="avatar">A</div>
+
+              <div className="post-content">
+                <div className="post-author">
+                  <strong>Alex Johnson</strong>
+                  <span>@alexj · 4h</span>
+                  <button className="more-button">•••</button>
+                </div>
+
+                <p>
+                  Learning React and building reusable components makes
+                  development so much easier.
+                </p>
+
+                <div className="post-actions">
+                  <button>
+                    💬 <span>8</span>
+                  </button>
+                  <button>
+                    🔁 <span>3</span>
+                  </button>
+                  <button>
+                    ❤️ <span>18</span>
+                  </button>
+                  <button>🔖</button>
+                </div>
+              </div>
+            </article>
+
+            <article className="post">
+              <div className="avatar">M</div>
+
+              <div className="post-content">
+                <div className="post-author">
+                  <strong>Michael Brown</strong>
+                  <span>@michaelb · 6h</span>
+                  <button className="more-button">•••</button>
+                </div>
+
+                <p>
+                  What's everyone working on today? Drop your projects below.
+                </p>
+
+                <div className="post-actions">
+                  <button>
+                    💬 <span>15</span>
+                  </button>
+                  <button>
+                    🔁 <span>7</span>
+                  </button>
+                  <button>
+                    ❤️ <span>31</span>
+                  </button>
+                  <button>🔖</button>
+                </div>
+              </div>
+            </article>
+          </section>
         </section>
       </main>
 
