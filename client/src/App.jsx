@@ -73,12 +73,39 @@ function App() {
     setLiked(!liked);
     setLikeCount(liked ? likeCount - 1 : likeCount + 1);
   };
+  const handlePostLike = (postId) => {
+  setPosts((currentPosts) =>
+    currentPosts.map((post) => {
+      if (post.id !== postId) return post;
+
+      const currentlyLiked = post.liked || false;
+      const currentCount = post.likeCount || 0;
+
+      return {
+        ...post,
+        liked: !currentlyLiked,
+        likeCount: currentlyLiked
+          ? Math.max(0, currentCount - 1)
+          : currentCount + 1,
+      };
+    })
+  );
+};
   const handleRepost = () => {
     setReposted(!reposted);
     setRepostCount(reposted ? repostCount - 1 : repostCount + 1);
   };
-  const handleBookmark = () => {
-    setBookmarked(!bookmarked);
+  const handleBookmark = (postId) => {
+    setPosts((currentPosts) =>
+      currentPosts.map((post) => {
+        if (post.id !== postId) return post;
+
+        return {
+          ...post,
+          bookmarked: !post.bookmarked,
+        };
+      })
+    );
   };
   const handleFollow = (username) => {
     if (followedUsers.includes(username)) {
@@ -180,7 +207,7 @@ function App() {
 
                   {/* BOOKMARK */}
                   <button onClick={() => handleBookmark(post.id)}>
-                    {bookmarked ? "🔖" : "♡"}
+                    {post.bookmarked ? "🔖" : "♡"}
                   </button>
                 </div>
 
@@ -248,16 +275,16 @@ function App() {
                   💬 <span>12</span>
                 </button>
 
-                <button onClick={handleRepost}>
-                  🔁 <span>{repostCount}</span>
+                <button onClick={() => handleRepost(post.id)}>
+                  🔁 <span>{post.repostCount}</span>
                 </button>
 
-                <button className={liked ? "liked" : ""} onClick={handleLike}>
-                  {liked ? "❤️" : "♡"} <span>{likeCount}</span>
+                <button className={post.liked ? "liked" : ""} onClick={() => handlePostLike(post.id)}>
+                  {post.liked ? "❤️" : "♡"} <span>{post.likeCount}</span>
                 </button>
 
-                <button onClick={handleBookmark}>
-                  {bookmarked ? "🔖" : "♡"}
+                <button onClick={() => handleBookmark(post.id)}>
+                  {post.bookmarked ? "🔖" : "♡"}
                 </button>
               </div>
             </div>
@@ -285,16 +312,16 @@ function App() {
                   💬 <span>8</span>
                 </button>
 
-                <button onClick={handleRepost}>
-                  🔁 <span>{repostCount}</span>
+                <button onClick={() => handleRepost(post.id)}>
+                  🔁 <span>{post.repostCount}</span>
                 </button>
 
-                <button onClick={handleLike}>
-                  {liked ? "❤️" : "♡"} <span>{likeCount}</span>
+                <button onClick={() => handlePostLike(post.id)}>
+                  {post.liked ? "❤️" : "♡"} <span>{post.likeCount}</span>
                 </button>
 
-                <button onClick={handleBookmark}>
-                  {bookmarked ? "🔖" : "♡"}
+                <button onClick={() => handleBookmark(post.id)}>
+                  {post.bookmarked ? "🔖" : "♡"}
                 </button>
               </div>
             </div>
@@ -319,16 +346,16 @@ function App() {
                   💬 <span>15</span>
                 </button>
 
-                <button onClick={handleRepost}>
-                  🔁 <span>{repostCount}</span>
+                <button onClick={() => handleRepost(post.id)}>
+                  🔁 <span>{post.repostCount}</span>
                 </button>
 
-                <button onClick={handleLike}>
-                  {liked ? "❤️" : "♡"} <span>{likeCount}</span>
+                <button onClick={() => handlePostLike(post.id)}>
+                  {post.liked ? "❤️" : "♡"} <span>{post.likeCount}</span>
                 </button>
 
-                <button onClick={handleBookmark}>
-                  {bookmarked ? "🔖" : "♡"}
+                <button onClick={() => handleBookmark(post.id)}>
+                  {post.bookmarked ? "🔖" : "♡"}
                 </button>
               </div>
             </div>
