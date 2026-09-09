@@ -5,6 +5,7 @@ function App() {
   const [likeCount, setLikeCount] = useState(24);
 
   const [postText, setPostText] = useState("");
+  const [searchText, setSearchText] = useState("");
 
   const [posts, setPosts] = useState(() => {
     const savedPosts = localStorage.getItem("posts");
@@ -22,6 +23,7 @@ function App() {
   const [reposted, setReposted] = useState(false);
   const [repostCount, setRepostCount] = useState(0);
   const [bookmarked, setBookmarked] = useState(false);
+  const [followedUsers, setFollowedUsers] = useState([]);
 
   useEffect(() => {
     localStorage.setItem("posts", JSON.stringify(posts));
@@ -75,6 +77,13 @@ function App() {
   };
   const handleBookmark = () => {
     setBookmarked(!bookmarked);
+  };
+  const handleFollow = (username) => {
+    if (followedUsers.includes(username)) {
+      setFollowedUsers(followedUsers.filter((user) => user !== username));
+    } else {
+      setFollowedUsers([...followedUsers, username]);
+    }
   };
 
   return (
@@ -325,7 +334,12 @@ function App() {
       {/* RIGHT SIDEBAR */}
       <aside className="right-sidebar">
         <div className="search">
-          <input type="text" placeholder="Search" />
+          <input
+            type="text"
+            placeholder="Search"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+          />
         </div>
 
         <div className="sidebar-card trends-card">
@@ -371,7 +385,9 @@ function App() {
               <span>@johnsmith</span>
             </div>
 
-            <button>Follow</button>
+            <button onClick={() => handleFollow("johnsmith")}>
+              {followedUsers.includes("johnsmith") ? "Following" : "Follow"}
+            </button>
           </div>
 
           <div className="follow-user">
@@ -382,7 +398,9 @@ function App() {
               <span>@davidjames</span>
             </div>
 
-            <button>Follow</button>
+            <button onClick={() => handleFollow("davidjames")}>
+              {followedUsers.includes("davidjames") ? "Following" : "Follow"}
+            </button>
           </div>
 
           <div className="follow-user">
@@ -393,7 +411,9 @@ function App() {
               <span>@emilyrose</span>
             </div>
 
-            <button>Follow</button>
+            <button onClick={() => handleFollow("emilyrose")}>
+              {followedUsers.includes("emilyrose") ? "Following" : "Follow"}
+            </button>
           </div>
 
           <a href="#" className="show-more">
