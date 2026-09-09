@@ -1,11 +1,64 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
 function App() {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(24);
+
+  const [postText, setPostText] = useState("");
+
+  const [posts, setPosts] = useState(() => {
+    const savedPosts = localStorage.getItem("posts");
+    return savedPosts ? JSON.parse(savedPosts) : [];
+  });
+
+  const [commentText, setCommentText] = useState("");
+
+  const [comments, setComments] = useState(() => {
+    const savedComments = localStorage.getItem("comments");
+    return savedComments ? JSON.parse(savedComments) : [];
+  });
+
+  const [activePost, setActivePost] = useState(null);
+
+  useEffect(() => {
+    localStorage.setItem("posts", JSON.stringify(posts));
+  }, [posts]);
+
+  useEffect(() => {
+    localStorage.setItem("comments", JSON.stringify(comments));
+  }, [comments]);
+
+  const handlePost = () => {
+    if (postText.trim() === "") return;
+
+    const newPost = {
+      id: Date.now(),
+      text: postText,
+    };
+
+    setPosts([newPost, ...posts]);
+    setPostText("");
+  };
+
+  const handleComment = (postId) => {
+    if (commentText.trim() === "") return;
+
+    const newComment = {
+      id: Date.now(),
+      postId: postId,
+      text: commentText,
+    };
+
+    setComments([...comments, newComment]);
+    setCommentText("");
+    setActivePost(null);
+  };
+
   const handleLike = () => {
     setLiked(!liked);
     setLikeCount(liked ? likeCount - 1 : likeCount + 1);
   };
+
   return (
     <div className="app">
       <aside className="sidebar">
@@ -25,13 +78,83 @@ function App() {
           <h2>Home</h2>
         </header>
         <section className="compose">
-          <div className="avatar">U</div>
+          <div className="avatar">I</div>
           <div className="compose-content">
-            <textarea placeholder="Share your thoughts...."></textarea>
-            <button>Post</button>
+            <textarea
+              placeholder="Share your thoughts...."
+              value={postText}
+              onChange={(e) => setPostText(e.target.value)}
+            ></textarea>
+            <button onClick={handlePost}>Post</button>
           </div>
         </section>
         <section className="posts">
+          {posts.map((post) => (
+            <article className="post" key={post.id}>
+              <div className="avatar">U</div>
+              <div className="post-content">
+                <div className="post-author">
+                  <strong>Idienumah Sokombie</strong>
+                  <span>@sokombie · now</span>
+                  <button className="more-button">•••</button>
+                </div>
+                <p>{post.text}</p>
+                <div className="post-actions">
+                  <button
+                    onClick={() =>
+                      setActivePost(activePost === post.id ? null : post.id)
+                    }
+                  >
+                    💬{" "}
+                    <span>
+                      {
+                        comments.filter((comment) => comment.postId === post.id)
+                          .length
+                      }
+                    </span>
+                  </button>
+                  <button>
+                    🔁 <span>0</span>
+                  </button>
+                  <button onClick={handleLike}>
+                    {liked ? "♥" : "♡"} <span>{likeCount}</span>
+                  </button>
+                  <button>
+                    ♡ <span>24</span>
+                  </button>
+                  <button>🔖</button>
+                </div>
+                {activePost === post.id && (
+                  <>
+                    <div className="comments-box">
+                      <textarea
+                        placeholder="Post your reply..."
+                        value={commentText}
+                        onChange={(e) => setCommentText(e.target.value)}
+                      />
+                      <button onClick={() => handleComment(post.id)}>
+                        Reply
+                      </button>
+                    </div>
+                    <div className="comments-list">
+                      {comments
+                        .filter((comment) => comment.postId === post.id)
+                        .map((comment) => (
+                          <div className="comment" key={comment.id}>
+                            <div className="small-avatar">U</div>
+                            <div>
+                              <strong>Idienumah Sokombie</strong>
+                              <p>{comment.text}</p>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            </article>
+          ))}
+          {/* Original sample post */}
           <article className="post">
             <div className="avatar">S</div>
             <div className="post-content">
@@ -56,18 +179,14 @@ function App() {
                 <button>
                   🔁 <span>5</span>
                 </button>
-                <button
-                  className={liked ? "liked" : ""}
-                  onClick={handleLike}
-                >
+                <button className={liked ? "liked" : ""} onClick={handleLike}>
                   {liked ? "❤️" : "♡"} <span>{likeCount}</span>
                 </button>
-                <button>
-                  🔖
-                </button>
+                <button>🔖</button>
               </div>
             </div>
           </article>
+          {/* Alex Johnson */}
           <article className="post">
             <div className="avatar">A</div>
             <div className="post-content">
@@ -90,12 +209,11 @@ function App() {
                 <button>
                   ❤️ <span>18</span>
                 </button>
-                <button>
-                  🔖
-                </button>
+                <button>🔖</button>
               </div>
             </div>
           </article>
+          {/* Michael Brown */}
           <article className="post">
             <div className="avatar">M</div>
             <div className="post-content">
@@ -104,9 +222,7 @@ function App() {
                 <span>@michaelb · 6h</span>
                 <button className="more-button">•••</button>
               </div>
-              <p>
-                What's everyone working on today? Drop your projects below.
-              </p>
+              <p>What's everyone working on today? Drop your projects below.</p>
               <div className="post-actions">
                 <button>
                   💬 <span>15</span>
@@ -117,9 +233,7 @@ function App() {
                 <button>
                   ❤️ <span>31</span>
                 </button>
-                <button>
-                  🔖
-                </button>
+                <button>🔖</button>
               </div>
             </div>
           </article>
