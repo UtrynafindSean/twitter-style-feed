@@ -222,7 +222,7 @@ a {
   position: sticky;
   top: 0;
   z-index: 10;
-  height: 62px;
+  min-height: 62px;
   display: flex;
   align-items: center;
   padding: 0 20px;
@@ -292,7 +292,7 @@ a {
   border-radius: 22px;
   padding: 9px 20px;
   background: #1d9bf0;
-  color: white;
+  color: #ffffff;
   font-weight: 700;
   transition:
     background 0.2s ease,
@@ -570,116 +570,152 @@ form input:focus {
 }
 
 /* ================================
-   RESPONSIVE
+   AUTH PAGE
 ================================ */
 
-@media (max-width: 1100px) {
-  .layout {
-    grid-template-columns: 220px minmax(450px, 1fr);
-    max-width: 900px;
-  }
-
-  .right-sidebar {
-    display: none;
-  }
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: linear-gradient(135deg, #f7f9f9 0%, #ffffff 50%, #eef7ff 100%);
 }
 
-@media (max-width: 700px) {
-  .layout {
-    display: block;
-    max-width: 100%;
-  }
-
-  .sidebar {
-    display: none;
-  }
-
-  .feed {
-    border-left: none;
-    border-right: none;
-    padding-bottom: 65px;
-  }
-
-  .right-sidebar {
-    display: none;
-  }
-
-  .post {
-    padding: 15px;
-  }
-
-  .compose {
-    padding: 15px;
-  }
-
-  .feed-header {
-    height: 55px;
-    padding: 0 15px;
-  }
-
-  .compose-input {
-    font-size: 17px;
-  }
-
-  .mobile-nav {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 100;
-    height: 58px;
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
-    background: rgba(255, 255, 255, 0.96);
-    backdrop-filter: blur(10px);
-    border-top: 1px solid #eff3f4;
-  }
-
-  .mobile-nav span {
-    font-size: 22px;
-    cursor: pointer;
-    padding: 10px;
-  }
-
-  .post-actions {
-    max-width: 100%;
-  }
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  padding: 36px;
+  background: #ffffff;
+  border: 1px solid #eff3f4;
+  border-radius: 22px;
+  box-shadow: 0 15px 50px rgba(15, 20, 25, 0.08);
 }
 
-@media (max-width: 480px) {
-  .post {
-    gap: 9px;
-    padding: 14px 12px;
-  }
-
-  .avatar {
-    width: 40px;
-    height: 40px;
-    font-size: 16px;
-  }
-
-  .post-header {
-    font-size: 14px;
-  }
-
-  .post-text {
-    font-size: 14px;
-  }
-
-  .post-actions button {
-    min-width: 45px;
-    padding: 6px;
-  }
-
-  .compose {
-    gap: 9px;
-  }
-
-  .compose-icons {
-    gap: 8px;
-  }
+.auth-logo {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #000000;
+  color: #ffffff;
+  font-size: 30px;
+  font-weight: 700;
 }
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.auth-header h1 {
+  font-size: 27px;
+  margin-bottom: 8px;
+}
+
+.auth-header p {
+  color: #536471;
+  line-height: 1.5;
+}
+
+.auth-error {
+  padding: 11px 13px;
+  margin-bottom: 16px;
+  border-radius: 10px;
+  background: #fff1f1;
+  color: #d93025;
+  font-size: 14px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 17px;
+}
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.auth-field label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f1419;
+}
+
+.auth-field input {
+  width: 100%;
+  padding: 13px 14px;
+  border: 1px solid #cfd9de;
+  border-radius: 10px;
+  outline: none;
+  background: #ffffff;
+  color: #0f1419;
+}
+
+.auth-submit {
+  width: 100%;
+  margin-top: 5px;
+  padding: 13px;
+  border: none;
+  border-radius: 999px;
+  background: #000000;
+  color: #ffffff;
+  font-weight: 700;
+  transition:
+    background 0.2s ease,
+    transform 0.15s ease;
+}
+
+.auth-submit:hover {
+  background: #222222;
+}
+
+.auth-submit:active {
+  transform: scale(0.98);
+}
+
+.auth-switch {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 22px;
+  font-size: 14px;
+  color: #536471;
+}
+
+.auth-switch button {
+  border: none;
+  background: transparent;
+  color: #1d9bf0;
+  font-weight: 700;
+}
+
+.auth-switch button:hover {
+  text-decoration: underline;
+}
+
+.auth-footer {
+  margin-top: 20px;
+  text-align: center;
+  color: #8899a6;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* ================================
+   PROFILE
+================================ */
+
+.profile-page {
+  min-height: 100vh;
+}
+
 .profile-cover {
   height: 170px;
   background: linear-gradient(135deg, #1d9bf0, #7856ff);
@@ -695,14 +731,14 @@ form input:focus {
   width: 90px;
   height: 90px;
   border-radius: 50%;
-  background: #000;
-  color: #fff;
+  background: #000000;
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 36px;
-  font-weight: bold;
-  border: 4px solid #fff;
+  font-weight: 700;
+  border: 4px solid #ffffff;
   position: absolute;
   top: -45px;
 }
@@ -712,9 +748,11 @@ form input:focus {
   padding: 9px 18px;
   border: 1px solid #cfd9de;
   border-radius: 22px;
-  background: #fff;
-  font-weight: bold;
+  background: #ffffff;
+  color: #0f1419;
+  font-weight: 700;
   cursor: pointer;
+  transition: background 0.2s ease;
 }
 
 .edit-profile-button:hover {
@@ -734,6 +772,7 @@ form input:focus {
 .profile-bio {
   margin: 18px 0;
   color: #0f1419;
+  line-height: 1.5;
 }
 
 .profile-stats {
@@ -760,9 +799,10 @@ form input:focus {
   padding: 18px 10px;
   border: none;
   background: transparent;
-  font-weight: bold;
+  font-weight: 700;
   color: #536471;
   cursor: pointer;
+  transition: background 0.2s ease;
 }
 
 .profile-tab:hover {
@@ -770,8 +810,12 @@ form input:focus {
 }
 
 .profile-tab.active {
-  color: #000;
+  color: #000000;
   border-bottom: 3px solid #1d9bf0;
+}
+
+.profile-posts .post {
+  border-bottom: 1px solid #eff3f4;
 }
 
 .empty-profile {
@@ -791,11 +835,11 @@ form input:focus {
 
 .empty-profile button {
   border: none;
-  background: #000;
-  color: #fff;
+  background: #000000;
+  color: #ffffff;
   padding: 12px 22px;
   border-radius: 25px;
-  font-weight: bold;
+  font-weight: 700;
   cursor: pointer;
 }
 
@@ -803,12 +847,9 @@ form input:focus {
   opacity: 0.85;
 }
 
-.profile-posts .post {
-  border-bottom: 1px solid #eff3f4;
-}
-/* =========================
-   EDIT PROFILE
-========================= */
+/* ================================
+   EDIT PROFILE MODAL
+================================ */
 
 .edit-profile-overlay {
   position: fixed;
@@ -912,26 +953,20 @@ form input:focus {
 }
 
 .edit-profile-actions {
-  .edit-profile-actions {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 10px;
-    padding: 16px 20px;
-    border-top: 1px solid #eff3f4;
-  }
-
-  .cancel-profile-button,
-  .save-profile-button {
-    width: auto;
-    min-width: 90px;
-    white-space: nowrap;
-  }
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 20px;
+  border-top: 1px solid #eff3f4;
 }
 
 .cancel-profile-button,
 .save-profile-button {
+  width: auto;
+  min-width: 90px;
+  white-space: nowrap;
   border: none;
   border-radius: 999px;
   padding: 10px 20px;
@@ -957,20 +992,9 @@ form input:focus {
   background: #1a8cd8;
 }
 
-@media (max-width: 600px) {
-  .edit-profile-overlay {
-    align-items: flex-end;
-    padding: 0;
-  }
-
-  .edit-profile-card {
-    max-width: none;
-    border-radius: 18px 18px 0 0;
-  }
-}
-/* =========================
+/* ================================
    NOTIFICATIONS
-========================= */
+================================ */
 
 .notifications-page {
   min-height: 100%;
@@ -1105,7 +1129,83 @@ form input:focus {
   line-height: 1.5;
 }
 
+/* ================================
+   RESPONSIVE
+================================ */
+
+@media (max-width: 1100px) {
+  .layout {
+    grid-template-columns: 220px minmax(450px, 1fr);
+    max-width: 900px;
+  }
+
+  .right-sidebar {
+    display: none;
+  }
+}
+
 @media (max-width: 700px) {
+  .layout {
+    display: block;
+    max-width: 100%;
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  .feed {
+    border-left: none;
+    border-right: none;
+    padding-bottom: 65px;
+  }
+
+  .right-sidebar {
+    display: none;
+  }
+
+  .post {
+    padding: 15px;
+  }
+
+  .compose {
+    padding: 15px;
+  }
+
+  .feed-header {
+    min-height: 55px;
+    padding: 0 15px;
+  }
+
+  .compose-input {
+    font-size: 17px;
+  }
+
+  .mobile-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 100;
+    height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid #eff3f4;
+  }
+
+  .mobile-nav span {
+    font-size: 22px;
+    cursor: pointer;
+    padding: 10px;
+  }
+
+  .post-actions {
+    max-width: 100%;
+  }
+
   .notifications-header {
     align-items: flex-start;
     gap: 10px;
@@ -1113,5 +1213,94 @@ form input:focus {
 
   .notification-item {
     padding: 16px;
+  }
+}
+
+@media (max-width: 600px) {
+  .auth-card {
+    padding: 28px 20px;
+    border-radius: 18px;
+  }
+
+  .edit-profile-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .edit-profile-card {
+    max-width: none;
+    border-radius: 18px 18px 0 0;
+  }
+
+  .edit-profile-actions {
+    padding-bottom: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .post {
+    gap: 9px;
+    padding: 14px 12px;
+  }
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+
+  .post-header {
+    font-size: 14px;
+  }
+
+  .post-text {
+    font-size: 14px;
+  }
+
+  .post-actions button {
+    min-width: 45px;
+    padding: 6px;
+  }
+
+  .compose {
+    gap: 9px;
+  }
+
+  .compose-icons {
+    gap: 8px;
+  }
+
+  .profile-cover {
+    height: 140px;
+  }
+
+  .profile-info {
+    padding: 18px 15px;
+  }
+
+  .profile-avatar {
+    width: 78px;
+    height: 78px;
+    top: -39px;
+    font-size: 30px;
+  }
+
+  .profile-info h2 {
+    margin-top: 40px;
+  }
+
+  .profile-tabs button {
+    padding: 15px 5px;
+  }
+
+  .notification-item {
+    gap: 10px;
+    padding: 14px 12px;
+  }
+
+  .notification-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
   }
 }
