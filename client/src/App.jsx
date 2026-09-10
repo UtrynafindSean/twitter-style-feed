@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const DEFAULT_POSTS = [
   {
@@ -7,6 +7,7 @@ const DEFAULT_POSTS = [
     username: "johnsmith",
     avatar: "J",
     text: "Just finished working on an exciting new project! 🚀",
+    image: "",
     time: "2h",
     likeCount: 24,
     liked: false,
@@ -21,6 +22,7 @@ const DEFAULT_POSTS = [
     username: "sarahw",
     avatar: "S",
     text: "Learning React has been challenging, but I'm finally starting to understand how everything works. 💻",
+    image: "",
     time: "4h",
     likeCount: 41,
     liked: false,
@@ -35,6 +37,7 @@ const DEFAULT_POSTS = [
     username: "michaelb",
     avatar: "M",
     text: "Beautiful day to build something amazing.",
+    image: "",
     time: "6h",
     likeCount: 17,
     liked: false,
@@ -83,6 +86,10 @@ function getStoredUser() {
   }
 }
 
+/* =========================
+   POST NORMALIZATION
+========================= */
+
 function normalizePosts(posts) {
   if (!Array.isArray(posts)) return DEFAULT_POSTS;
 
@@ -92,6 +99,7 @@ function normalizePosts(posts) {
     username: post.username || "user",
     avatar: post.avatar || "U",
     text: post.text || "",
+    image: post.image || "",
     time: post.time || "now",
     likeCount: Number(post.likeCount) || 0,
     liked: Boolean(post.liked),
@@ -99,6 +107,20 @@ function normalizePosts(posts) {
     reposted: Boolean(post.reposted),
     bookmarked: Boolean(post.bookmarked),
   }));
+}
+
+/* =========================
+   POST IMAGE COMPONENT
+========================= */
+
+function PostImage({ image }) {
+  if (!image) return null;
+
+  return (
+    <div className="post-image-wrapper">
+      <img src={image} alt="Post attachment" className="post-image" />
+    </div>
+  );
 }
 
 /* =========================
@@ -119,6 +141,10 @@ function AuthScreen({ onLogin }) {
 
     const users = getStoredData("users", []);
 
+    /* =========================
+       CREATE ACCOUNT
+    ========================= */
+
     if (mode === "signup") {
       if (!name.trim() || !username.trim() || !email.trim() || !password) {
         setError("Please fill in all fields.");
@@ -132,9 +158,20 @@ function AuthScreen({ onLogin }) {
 
       const cleanName = name.trim();
 
-      const cleanUsername = username.trim().replace(/\s+/g, "").toLowerCase();
+      const cleanUsername = username
+        .trim()
+        .replace(/\s+/g, "")
+        .toLowerCase()
+        .replace(/^@/, "");
 
       const cleanEmail = email.trim().toLowerCase();
+
+      if (!/^[a-zA-Z0-9._-]+$/.test(cleanUsername)) {
+        setError(
+          "Username can only contain letters, numbers, dots, underscores, and hyphens.",
+        );
+        return;
+      }
 
       if (users.some((user) => user.email?.toLowerCase() === cleanEmail)) {
         setError("An account with this email already exists.");
@@ -158,7 +195,9 @@ function AuthScreen({ onLogin }) {
         bio: "",
       };
 
-      localStorage.setItem("users", JSON.stringify([...users, newUser]));
+      const updatedUsers = [...users, newUser];
+
+      localStorage.setItem("users", JSON.stringify(updatedUsers));
 
       localStorage.setItem("currentUser", JSON.stringify(newUser));
 
@@ -166,6 +205,10 @@ function AuthScreen({ onLogin }) {
 
       return;
     }
+
+    /* =========================
+       SIGN IN
+    ========================= */
 
     if (!email.trim() || !password) {
       setError("Please enter your email and password.");
@@ -307,6 +350,11 @@ function App() {
   );
 
   const [postText, setPostText] = useState("");
+
+  const [postImage, setPostImage] = useState("");
+
+  const imageInputRef = useRef(null);
+
   const [searchText, setSearchText] = useState("");
 
   const [comments, setComments] = useState(() => getStoredData("comments", {}));
@@ -461,19 +509,26 @@ function App() {
 
   const handleOpenEditProfile = () => {
     setEditName(currentUser?.name || "");
+
     setEditUsername(currentUser?.username || "");
+
     setEditBio(currentUser?.bio || "");
 
     setEditAvatar(currentUser?.avatar || currentUser?.name?.charAt(0) || "");
 
     setProfileError("");
+
     setIsEditingProfile(true);
   };
 
   const handleSaveProfile = () => {
     const newName = editName.trim();
 
-    const newUsername = editUsername.trim().replace(/\s+/g, "").toLowerCase();
+    const newUsername = editUsername
+      .trim()
+      .replace(/\s+/g, "")
+      .toLowerCase()
+      .replace(/^@/, "");
 
     const newBio = editBio.trim();
 
@@ -488,6 +543,13 @@ function App() {
 
     if (!newUsername) {
       setProfileError("Please enter a username.");
+      return;
+    }
+
+    if (!/^[a-zA-Z0-9._-]+$/.test(newUsername)) {
+      setProfileError(
+        "Username can only contain letters, numbers, dots, underscores, and hyphens.",
+      );
       return;
     }
 
@@ -536,8 +598,87 @@ function App() {
     );
 
     setCurrentUser(updatedUser);
+
     setIsEditingProfile(false);
+
     setProfileError("");
+  };
+
+  /* =========================
+     IMAGE UPLOAD
+  ========================= */
+
+  const handleImageSelect = (e) => {
+    const file = e.target.files?.[0];
+
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      alert("Please select a valid image file.");
+      e.target.value = "";
+      return;
+    }
+
+    const maxFileSize = 10 * 1024 * 1024;
+
+    if (file.size > maxFileSize) {
+      alert("Please choose an image smaller than 10MB.");
+      e.target.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = (event) => {
+      const originalImage = event.target?.result;
+
+      if (!originalImage) return;
+
+      const img = new Image();
+
+      img.onload = () => {
+        const maxWidth = 1400;
+
+        const scale = img.width > maxWidth ? maxWidth / img.width : 1;
+
+        const canvas = document.createElement("canvas");
+
+        canvas.width = Math.round(img.width * scale);
+
+        canvas.height = Math.round(img.height * scale);
+
+        const context = canvas.getContext("2d");
+
+        if (!context) {
+          setPostImage(originalImage);
+          return;
+        }
+
+        context.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        const compressedImage = canvas.toDataURL("image/jpeg", 0.8);
+
+        setPostImage(compressedImage);
+      };
+
+      img.onerror = () => {
+        alert("Unable to process this image.");
+      };
+
+      img.src = originalImage;
+    };
+
+    reader.readAsDataURL(file);
+
+    e.target.value = "";
+  };
+
+  const removePostImage = () => {
+    setPostImage("");
+
+    if (imageInputRef.current) {
+      imageInputRef.current.value = "";
+    }
   };
 
   /* =========================
@@ -545,26 +686,45 @@ function App() {
   ========================= */
 
   const handlePost = () => {
-    if (!postText.trim()) return;
+    if (!postText.trim() && !postImage) return;
 
     const newPost = {
       id: Date.now().toString(),
+
       authorName: currentUser.name,
+
       username: currentUser.username,
+
       avatar: currentUser.avatar || currentUser.name.charAt(0).toUpperCase(),
+
       text: postText.trim(),
+
+      image: postImage,
+
       time: "now",
+
       likeCount: 0,
+
       liked: false,
+
       repostCount: 0,
+
       reposted: false,
+
       bookmarked: false,
+
       isUserPost: true,
     };
 
     setPosts((prev) => [newPost, ...prev]);
 
     setPostText("");
+
+    setPostImage("");
+
+    if (imageInputRef.current) {
+      imageInputRef.current.value = "";
+    }
   };
 
   const handleDeletePost = (postId) => {
@@ -710,9 +870,13 @@ function App() {
 
     const newComment = {
       id: Date.now().toString(),
+
       text,
+
       authorName: currentUser.name,
+
       username: currentUser.username,
+
       avatar: currentUser.avatar || currentUser.name.charAt(0).toUpperCase(),
     };
 
@@ -725,11 +889,13 @@ function App() {
 
     setComments((prev) => ({
       ...prev,
+
       [postId]: [...(prev[postId] || []), newComment],
     }));
 
     setCommentText((prev) => ({
       ...prev,
+
       [postId]: "",
     }));
   };
@@ -815,14 +981,19 @@ function App() {
 
     const newMessage = {
       id: Date.now().toString() + Math.random().toString(36).slice(2),
+
       sender: currentUser.username,
+
       text,
+
       time: "now",
+
       read: true,
     };
 
     setMessages((prev) => ({
       ...prev,
+
       [selectedChat]: [...(prev[selectedChat] || []), newMessage],
     }));
 
@@ -852,6 +1023,7 @@ function App() {
 
     setMessages((prev) => ({
       ...prev,
+
       [username]: (prev[username] || []).map((message) =>
         message.sender !== currentUser.username
           ? {
@@ -1096,7 +1268,9 @@ function App() {
                     <span>{post.time}</span>
                   </div>
 
-                  <p className="post-text">{post.text}</p>
+                  {post.text && <p className="post-text">{post.text}</p>}
+
+                  <PostImage image={post.image} />
 
                   <div className="post-actions">
                     <button
@@ -1313,7 +1487,9 @@ function App() {
                   <span>{post.time}</span>
                 </div>
 
-                <p className="post-text">{post.text}</p>
+                {post.text && <p className="post-text">{post.text}</p>}
+
+                <PostImage image={post.image} />
 
                 <div className="post-actions">
                   <button
@@ -1535,7 +1711,9 @@ function App() {
                         </button>
                       </div>
 
-                      <p className="post-text">{post.text}</p>
+                      {post.text && <p className="post-text">{post.text}</p>}
+
+                      <PostImage image={post.image} />
 
                       <div className="post-actions">
                         <button
@@ -1599,7 +1777,9 @@ function App() {
                         <span>{post.time}</span>
                       </div>
 
-                      <p className="post-text">{post.text}</p>
+                      {post.text && <p className="post-text">{post.text}</p>}
+
+                      <PostImage image={post.image} />
 
                       <div className="post-actions">
                         <button>💬 {(comments[post.id] || []).length}</button>
@@ -1764,17 +1944,80 @@ function App() {
             onChange={(e) => setPostText(e.target.value)}
           />
 
+          {postImage && (
+            <div className="compose-image-preview">
+              <img src={postImage} alt="Selected upload" />
+
+              <button
+                type="button"
+                className="remove-image-button"
+                onClick={removePostImage}
+                aria-label="Remove image"
+              >
+                ×
+              </button>
+            </div>
+          )}
+
           <div className="compose-bottom">
             <div className="compose-icons">
-              <span>🖼️</span>
-              <span>GIF</span>
-              <span>😊</span>
-              <span>📍</span>
+              <button
+                type="button"
+                className="compose-image-button"
+                onClick={() => imageInputRef.current?.click()}
+                title="Add image"
+                aria-label="Add image"
+              >
+                🖼️
+              </button>
+
+              <button
+                type="button"
+                className="compose-tool-button"
+                onClick={() =>
+                  setPostText((prev) => prev + (prev ? " " : "") + "GIF")
+                }
+                title="Add GIF text"
+              >
+                GIF
+              </button>
+
+              <button
+                type="button"
+                className="compose-tool-button"
+                onClick={() =>
+                  setPostText((prev) => prev + (prev ? " " : "") + "😊")
+                }
+                title="Add emoji"
+              >
+                😊
+              </button>
+
+              <button
+                type="button"
+                className="compose-tool-button"
+                onClick={() =>
+                  setPostText((prev) => prev + (prev ? " " : "") + "📍")
+                }
+                title="Add location"
+              >
+                📍
+              </button>
+
+              <input
+                ref={imageInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageSelect}
+                style={{
+                  display: "none",
+                }}
+              />
             </div>
 
             <button
               onClick={handlePost}
-              disabled={!postText.trim()}
+              disabled={!postText.trim() && !postImage}
               className="small-post-button"
             >
               Post
@@ -1828,7 +2071,9 @@ function App() {
                   )}
                 </div>
 
-                <p className="post-text">{post.text}</p>
+                {post.text && <p className="post-text">{post.text}</p>}
+
+                <PostImage image={post.image} />
 
                 <div className="post-actions">
                   <button
