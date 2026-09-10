@@ -67,7 +67,17 @@ function getStoredUser() {
       return null;
     }
 
-    return JSON.parse(saved);
+    const user = JSON.parse(saved);
+
+    if (!user || typeof user !== "object") {
+      return null;
+    }
+
+    if (!user.id || !user.email || !user.username) {
+      return null;
+    }
+
+    return user;
   } catch {
     return null;
   }
@@ -99,10 +109,12 @@ function normalizePosts(posts) {
 
 function AuthScreen({ onLogin }) {
   const [mode, setMode] = useState("signin");
+
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
   const [error, setError] = useState("");
 
   const handleSubmit = (e) => {
@@ -110,6 +122,10 @@ function AuthScreen({ onLogin }) {
     setError("");
 
     const users = getStoredData("users", []);
+
+    /* =========================
+       SIGN UP
+    ========================= */
 
     if (mode === "signup") {
       if (!name.trim() || !username.trim() || !email.trim() || !password) {
@@ -122,10 +138,14 @@ function AuthScreen({ onLogin }) {
         return;
       }
 
+      const cleanName = name.trim();
+
       const cleanUsername = username.trim().replace(/\s+/g, "").toLowerCase();
 
+      const cleanEmail = email.trim().toLowerCase();
+
       const emailExists = users.some(
-        (user) => user.email?.toLowerCase() === email.trim().toLowerCase(),
+        (user) => user.email?.toLowerCase() === cleanEmail,
       );
 
       if (emailExists) {
@@ -144,32 +164,43 @@ function AuthScreen({ onLogin }) {
 
       const newUser = {
         id: Date.now().toString(),
-        name: name.trim(),
+        name: cleanName,
         username: cleanUsername,
-        email: email.trim().toLowerCase(),
+        email: cleanEmail,
         password,
-        avatar: name.trim().charAt(0).toUpperCase(),
+        avatar: cleanName.charAt(0).toUpperCase(),
         bio: "",
       };
 
       const updatedUsers = [...users, newUser];
 
       localStorage.setItem("users", JSON.stringify(updatedUsers));
+
+      /*
+        Save the logged-in user immediately.
+        This makes the session survive page refreshes.
+      */
       localStorage.setItem("currentUser", JSON.stringify(newUser));
 
       onLogin(newUser);
+
       return;
     }
+
+    /* =========================
+       SIGN IN
+    ========================= */
 
     if (!email.trim() || !password) {
       setError("Please enter your email and password.");
       return;
     }
 
+    const cleanEmail = email.trim().toLowerCase();
+
     const user = users.find(
       (item) =>
-        item.email?.toLowerCase() === email.trim().toLowerCase() &&
-        item.password === password,
+        item.email?.toLowerCase() === cleanEmail && item.password === password,
     );
 
     if (!user) {
@@ -177,7 +208,12 @@ function AuthScreen({ onLogin }) {
       return;
     }
 
+    /*
+      Save the authenticated user.
+      App also saves it through handleLogin.
+    */
     localStorage.setItem("currentUser", JSON.stringify(user));
+
     onLogin(user);
   };
 
@@ -219,6 +255,7 @@ function AuthScreen({ onLogin }) {
                   placeholder="Enter your full name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  autoComplete="name"
                 />
               </div>
 
@@ -230,6 +267,7 @@ function AuthScreen({ onLogin }) {
                   placeholder="Choose a username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
+                  autoComplete="username"
                 />
               </div>
             </>
@@ -243,6 +281,7 @@ function AuthScreen({ onLogin }) {
               placeholder="Enter your email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
             />
           </div>
 
@@ -254,6 +293,9 @@ function AuthScreen({ onLogin }) {
               placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              autoComplete={
+                mode === "signin" ? "current-password" : "new-password"
+              }
             />
           </div>
 
@@ -344,8 +386,20 @@ function App() {
   ========================= */
 
   const handleLogin = (user) => {
+    /*
+      Always save the current session here.
+      This means both Sign In and Sign Up
+      behave consistently.
+    */
+    localStorage.setItem("currentUser", JSON.stringify(user));
+
     setCurrentUser(user);
+
     setActivePage("home");
+
+    setIsEditingProfile(false);
+
+    setProfileError("");
   };
 
   /* =========================
@@ -353,8 +407,20 @@ function App() {
   ========================= */
 
   const handleLogout = () => {
+    /*
+      Only remove the current session.
+      Do NOT delete users, posts, comments,
+      notifications, or followed users.
+    */
     localStorage.removeItem("currentUser");
+
     setCurrentUser(null);
+
+    setActivePage("home");
+
+    setIsEditingProfile(false);
+
+    setProfileError("");
   };
 
   /* =========================
@@ -379,12 +445,15 @@ function App() {
 
   const handleOpenEditProfile = () => {
     setEditName(currentUser?.name || "");
+
     setEditUsername(currentUser?.username || "");
+
     setEditBio(currentUser?.bio || "");
 
     setEditAvatar(currentUser?.avatar || currentUser?.name?.charAt(0) || "");
 
     setProfileError("");
+
     setIsEditingProfile(true);
   };
 
@@ -452,8 +521,11 @@ function App() {
     );
 
     setPosts(updatedPosts);
+
     setCurrentUser(updatedUser);
+
     setIsEditingProfile(false);
+
     setProfileError("");
   };
 
@@ -539,8 +611,10 @@ function App() {
       }),
     );
 
-    // Create exactly ONE notification when the post is liked.
-    // Nothing is added when the post is unliked.
+    /*
+      Exactly ONE notification when liking.
+      Unliking does not create a notification.
+    */
     if (!wasLiked) {
       addNotification(`You liked a post by @${targetPost.username}.`, "like");
     }
@@ -551,30 +625,36 @@ function App() {
   ========================= */
 
   const handleRepost = (postId) => {
+    const targetPost = posts.find((post) => post.id === postId);
+
+    if (!targetPost) {
+      return;
+    }
+
+    const wasReposted = Boolean(targetPost.reposted);
+
     setPosts((prevPosts) =>
       prevPosts.map((post) => {
         if (post.id !== postId) {
           return post;
         }
 
-        const wasReposted = post.reposted;
-
-        if (!wasReposted && post.username !== currentUser.username) {
-          addNotification(
-            `${currentUser.name} reposted ${post.authorName}'s post.`,
-            "repost",
-          );
-        }
-
         return {
           ...post,
-          reposted: !post.reposted,
-          repostCount: post.reposted
+          reposted: !wasReposted,
+          repostCount: wasReposted
             ? Math.max(0, post.repostCount - 1)
             : post.repostCount + 1,
         };
       }),
     );
+
+    if (!wasReposted && targetPost.username !== currentUser.username) {
+      addNotification(
+        `${currentUser.name} reposted ${targetPost.authorName}'s post.`,
+        "repost",
+      );
+    }
   };
 
   /* =========================
@@ -617,24 +697,23 @@ function App() {
   ];
 
   const handleFollow = (username) => {
-    setFollowedUsers((prev) => {
-      if (prev.includes(username)) {
-        return prev.filter((item) => item !== username);
-      }
+    const isAlreadyFollowing = followedUsers.includes(username);
 
-      const followedUser = suggestedUsers.find(
-        (user) => user.username === username,
-      );
+    if (isAlreadyFollowing) {
+      setFollowedUsers((prev) => prev.filter((item) => item !== username));
 
-      if (followedUser) {
-        addNotification(
-          `You are now following ${followedUser.name}.`,
-          "follow",
-        );
-      }
+      return;
+    }
 
-      return [...prev, username];
-    });
+    const followedUser = suggestedUsers.find(
+      (user) => user.username === username,
+    );
+
+    setFollowedUsers((prev) => [...prev, username]);
+
+    if (followedUser) {
+      addNotification(`You are now following ${followedUser.name}.`, "follow");
+    }
   };
 
   /* =========================
@@ -693,6 +772,10 @@ function App() {
       post.username.toLowerCase().includes(search)
     );
   });
+
+  /* =========================
+     AUTH CHECK
+  ========================= */
 
   if (!currentUser) {
     return <AuthScreen onLogin={handleLogin} />;
@@ -781,6 +864,7 @@ function App() {
 
                 <div className="notification-content">
                   <p>{notification.message}</p>
+
                   <span>{notification.time}</span>
                 </div>
 
