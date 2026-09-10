@@ -2142,3 +2142,401 @@ a {
     max-width: 220px;
   }
 }
+/* ================================
+   GLOBAL DARK MODE
+================================ */
+
+/* APP BACKGROUND */
+.dark-mode {
+  background: #000000;
+  color: #e7e9ea;
+}
+
+.dark-mode .app {
+  background: #000000;
+  color: #e7e9ea;
+}
+
+/* MAIN CONTENT */
+.dark-mode .main-content {
+  background: #000000;
+  color: #e7e9ea;
+}
+
+.dark-mode .feed {
+  background: #000000;
+}
+
+/* LEFT SIDEBAR */
+.dark-mode .sidebar {
+  background: #000000;
+  border-color: #2f3336;
+}
+
+.dark-mode .sidebar a,
+.dark-mode .sidebar button {
+  color: #e7e9ea;
+}
+
+.dark-mode .sidebar a:hover,
+.dark-mode .sidebar button:hover {
+  background: #181818;
+}
+
+/* LOGO */
+.dark-mode .logo {
+  color: #e7e9ea;
+}
+
+/* NAVIGATION */
+.dark-mode .nav-item {
+  color: #e7e9ea;
+}
+
+.dark-mode .nav-item:hover {
+  background: #181818;
+}
+
+.dark-mode .nav-item.active {
+  color: #ffffff;
+}
+
+/* FEED HEADER */
+.dark-mode .feed-header {
+  background: #000000;
+  border-color: #2f3336;
+}
+
+.dark-mode .feed-header h2,
+.dark-mode .feed-header h3,
+.dark-mode .feed-header strong {
+  color: #e7e9ea;
+}
+
+.dark-mode .feed-header p {
+  color: #71767b;
+}
+
+/* POST COMPOSER */
+.dark-mode .composer,
+.dark-mode .post-composer {
+  background: #000000;
+  border-color: #2f3336;
+}
+
+.dark-mode .composer textarea,
+.dark-mode .post-composer textarea {
+  background: #000000;
+  color: #e7e9ea;
+}
+
+.dark-mode .composer textarea::placeholder,
+.dark-mode .post-composer textarea::placeholder {
+  color: #71767b;
+}
+
+/* POSTS */
+.dark-mode .post,
+.dark-mode .post-card {
+  background: #000000;
+  border-color: #2f3336;
+}
+
+.dark-mode .post:hover,
+.dark-mode .post-card:hover {
+  background: #080808;
+}
+
+.dark-mode .post-name,
+.dark-mode .post-author,
+.dark-mode .post-card strong {
+  color: #e7e9ea;
+}
+
+.dark-mode .post-username,
+.dark-mode .post-time,
+.dark-mode .post-card small {
+  color: #71767b;
+}
+
+.dark-mode .post-text,
+.dark-mode .post-content {
+  color: #e7e9ea;
+}
+
+/* POST ACTIONS */
+.dark-mode .post-actions button,
+.dark-mode .post-action {
+  color: #71767b;
+}
+
+.dark-mode .post-actions button:hover,
+.dark-mode .post-action:hover {
+  background: #181818;
+}
+
+/* RIGHT SIDEBAR */
+.dark-mode .right-sidebar {
+  background: #000000;
+  color: #e7e9ea;
+}
+
+.dark-mode .right-sidebar section,
+.dark-mode .sidebar-card,
+.dark-mode .trend-card,
+.dark-mode .who-to-follow {
+  background: #16181c;
+  border-color: #2f3336;
+}
+
+/* SEARCH */
+.dark-mode input,
+.dark-mode textarea,
+.dark-mode select {
+  background: #16181c;
+  color: #e7e9ea;
+  border-color: #2f3336;
+}
+
+.dark-mode input::placeholder,
+.dark-mode textarea::placeholder {
+  color: #71767b;
+}
+
+/* SEARCH BOX */
+.dark-mode .search-box {
+  background: #16181c;
+  border-color: #2f3336;
+}
+
+.dark-mode .search-box input {
+  background: transparent;
+  color: #e7e9ea;
+}
+
+/* BUTTONS */
+.dark-mode button {
+  color: #e7e9ea;
+}
+
+.dark-mode .secondary-button {
+  background: #16181c;
+  border-color: #2f3336;
+  color: #e7e9ea;
+}
+
+.dark-mode .secondary-button:hover {
+  background: #1d1f23;
+}
+
+/* TRENDS */
+.dark-mode .trend-item {
+  border-color: #2f3336;
+}
+
+.dark-mode .trend-item:hover {
+  background: #181818;
+}
+
+.dark-mode .trend-item strong,
+.dark-mode .trend-item h3 {
+  color: #e7e9ea;
+}
+
+.dark-mode .trend-item span,
+.dark-mode .trend-item small {
+  color: #71767b;
+}
+
+/* FOLLOW SUGGESTIONS */
+.dark-mode .follow-card,
+.dark-mode .user-card {
+  background: #16181c;
+  border-color: #2f3336;
+}
+
+.dark-mode .follow-card strong,
+.dark-mode .user-card strong {
+  color: #e7e9ea;
+}
+
+.dark-mode .follow-card span,
+.dark-mode .user-card span {
+  color: #71767b;
+}
+
+/* PROFILE */
+.dark-mode .profile-page {
+  background: #000000;
+  color: #e7e9ea;
+}
+
+.dark-mode .profile-info {
+  background: #000000;
+  border-color: #2f3336;
+}
+
+.dark-mode .profile-info h2,
+.dark-mode .profile-info h3,
+.dark-mode .profile-info strong {
+  color: #e7e9ea;
+}
+
+.dark-mode .profile-info p,
+.dark-mode .profile-info span {
+  color: #71767b;
+}
+
+.dark-mode .profile-tabs {
+  background: #000000;
+  border-color: #2f3336;
+}
+
+.dark-mode .profile-tabs button {
+  color: #71767b;
+}
+
+.dark-mode .profile-tabs button:hover {
+  background: #181818;
+}
+
+/* EXPLORE */
+.dark-mode .explore-page {
+  background: #000000;
+  color: #e7e9ea;
+}
+
+.dark-mode .explore-page h2,
+.dark-mode .explore-page h3,
+.dark-mode .explore-page strong {
+  color: #e7e9ea;
+}
+
+.dark-mode .explore-page p,
+.dark-mode .explore-page span {
+  color: #71767b;
+}
+
+/* NOTIFICATIONS */
+.dark-mode .notifications-page {
+  background: #000000;
+  color: #e7e9ea;
+}
+
+.dark-mode .notification-item {
+  background: #000000;
+  border-color: #2f3336;
+}
+
+.dark-mode .notification-item:hover {
+  background: #080808;
+}
+
+.dark-mode .notification-item strong {
+  color: #e7e9ea;
+}
+
+.dark-mode .notification-item span,
+.dark-mode .notification-item p {
+  color: #71767b;
+}
+
+/* MESSAGES */
+.dark-mode .messages-page {
+  background: #000000;
+  color: #e7e9ea;
+}
+
+.dark-mode .conversation-list {
+  background: #000000;
+  border-color: #2f3336;
+}
+
+.dark-mode .conversation-item {
+  background: #000000;
+  border-color: #2f3336;
+}
+
+.dark-mode .conversation-item:hover,
+.dark-mode .conversation-item.active {
+  background: #181818;
+}
+
+.dark-mode .conversation-item strong {
+  color: #e7e9ea;
+}
+
+.dark-mode .conversation-item span {
+  color: #71767b;
+}
+
+.dark-mode .chat-area {
+  background: #000000;
+}
+
+.dark-mode .message-bubble {
+  background: #16181c;
+  color: #e7e9ea;
+}
+
+/* BOOKMARKS */
+.dark-mode .bookmarks-page {
+  background: #000000;
+  color: #e7e9ea;
+}
+
+.dark-mode .bookmarks-page h2,
+.dark-mode .bookmarks-page h3 {
+  color: #e7e9ea;
+}
+
+/* MODALS */
+.dark-mode .modal-overlay {
+  background: rgba(0, 0, 0, 0.75);
+}
+
+.dark-mode .modal,
+.dark-mode .modal-content {
+  background: #16181c;
+  color: #e7e9ea;
+  border-color: #2f3336;
+}
+
+.dark-mode .modal h2,
+.dark-mode .modal h3,
+.dark-mode .modal strong {
+  color: #e7e9ea;
+}
+
+.dark-mode .modal p,
+.dark-mode .modal span {
+  color: #71767b;
+}
+
+/* DIVIDERS */
+.dark-mode hr {
+  border-color: #2f3336;
+}
+
+/* LINKS */
+.dark-mode a {
+  color: #1d9bf0;
+}
+
+/* SCROLLBARS */
+.dark-mode ::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dark-mode ::-webkit-scrollbar-track {
+  background: #000000;
+}
+
+.dark-mode ::-webkit-scrollbar-thumb {
+  background: #2f3336;
+  border-radius: 999px;
+}
+
+.dark-mode ::-webkit-scrollbar-thumb:hover {
+  background: #536471;
+}
