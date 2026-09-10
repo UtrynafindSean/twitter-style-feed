@@ -111,10 +111,6 @@ function AuthScreen({ onLogin }) {
 
     const users = getStoredData("users", []);
 
-    /* =========================
-       SIGN UP
-    ========================= */
-
     if (mode === "signup") {
       if (!name.trim() || !username.trim() || !email.trim() || !password) {
         setError("Please fill in all fields.");
@@ -164,10 +160,6 @@ function AuthScreen({ onLogin }) {
       onLogin(newUser);
       return;
     }
-
-    /* =========================
-       SIGN IN
-    ========================= */
 
     if (!email.trim() || !password) {
       setError("Please enter your email and password.");
@@ -313,17 +305,9 @@ function App() {
     getStoredData("followedUsers", []),
   );
 
-  /* =========================
-     NOTIFICATIONS STATE
-  ========================= */
-
   const [notifications, setNotifications] = useState(() =>
     getStoredData("notifications", []),
   );
-
-  /* =========================
-     PROFILE PAGE STATE
-  ========================= */
 
   const [activePage, setActivePage] = useState("home");
   const [profileTab, setProfileTab] = useState("posts");
@@ -379,7 +363,7 @@ function App() {
 
   const addNotification = (message, type = "activity") => {
     const newNotification = {
-      id: Date.now().toString(),
+      id: Date.now().toString() + Math.random().toString(36).slice(2),
       message,
       type,
       time: "now",
@@ -530,36 +514,36 @@ function App() {
      LIKE
   ========================= */
 
- const handleLike = (postId) => {
-  const targetPost = posts.find((post) => post.id === postId);
+  const handleLike = (postId) => {
+    const targetPost = posts.find((post) => post.id === postId);
 
-  if (!targetPost) return;
+    if (!targetPost) {
+      return;
+    }
 
-  const wasLiked = targetPost.liked;
+    const wasLiked = Boolean(targetPost.liked);
 
-  setPosts((prevPosts) =>
-    prevPosts.map((post) =>
-      post.id === postId
-        ? {
-            ...post,
-            liked: !post.liked,
-            likes: post.liked
-              ? Math.max((post.likes || 0) - 1, 0)
-              : (post.likes || 0) + 1,
-          }
-        : post
-    )
-  );
+    setPosts((prevPosts) =>
+      prevPosts.map((post) => {
+        if (post.id !== postId) {
+          return post;
+        }
 
-  // Add ONLY ONE notification when the post is liked
-  if (!wasLiked) {
-    createNotification({
-      type: "like",
-      icon: "❤️",
-      message: `You liked a post by @${targetPost.username}.`,
-    });
-  }
-};
+        return {
+          ...post,
+          liked: !wasLiked,
+          likeCount: wasLiked
+            ? Math.max((post.likeCount || 0) - 1, 0)
+            : (post.likeCount || 0) + 1,
+        };
+      }),
+    );
+
+    // Create exactly ONE notification when the post is liked.
+    // Nothing is added when the post is unliked.
+    if (!wasLiked) {
+      addNotification(`You liked a post by @${targetPost.username}.`, "like");
+    }
   };
 
   /* =========================
@@ -722,9 +706,7 @@ function App() {
     (post) => post.username === currentUser.username,
   );
 
-  const myLikedPosts = posts.filter(
-    (post) => post.username === currentUser.username && post.liked,
-  );
+  const myLikedPosts = posts.filter((post) => post.liked);
 
   /* =========================
      NOTIFICATIONS PAGE
@@ -820,10 +802,8 @@ function App() {
   const ProfilePage = () => {
     return (
       <div className="profile-page">
-        {/* COVER */}
         <div className="profile-cover"></div>
 
-        {/* PROFILE INFORMATION */}
         <div className="profile-info">
           <button
             className="edit-profile-button"
@@ -858,6 +838,7 @@ function App() {
         </div>
 
         {/* EDIT PROFILE POPUP */}
+
         {isEditingProfile && (
           <div className="edit-profile-overlay">
             <div className="edit-profile-card">
@@ -944,6 +925,7 @@ function App() {
         )}
 
         {/* PROFILE TABS */}
+
         <div className="profile-tabs">
           <button
             className={`profile-tab ${profileTab === "posts" ? "active" : ""}`}
@@ -970,6 +952,7 @@ function App() {
         </div>
 
         {/* PROFILE POSTS */}
+
         <div className="profile-posts">
           {profileTab === "posts" && (
             <>
@@ -1067,7 +1050,6 @@ function App() {
                           <button>↗️</button>
                         </div>
 
-                        {/* COMMENTS */}
                         {activePost === post.id && (
                           <div
                             style={{
@@ -1169,7 +1151,6 @@ function App() {
             </>
           )}
 
-          {/* REPLIES */}
           {profileTab === "replies" && (
             <div className="empty-profile">
               <h3>No replies yet</h3>
@@ -1178,7 +1159,6 @@ function App() {
             </div>
           )}
 
-          {/* LIKES */}
           {profileTab === "likes" && (
             <>
               {myLikedPosts.length === 0 ? (
@@ -1260,8 +1240,6 @@ function App() {
               <strong>Explore</strong>
             </div>
 
-            {/* NOTIFICATIONS */}
-
             <div
               className={`nav-item ${
                 activePage === "notifications" ? "active" : ""
@@ -1315,8 +1293,6 @@ function App() {
             Post
           </button>
 
-          {/* CURRENT USER */}
-
           <div className="current-user-card">
             <div className="avatar">
               {currentUser.avatar || currentUser.name.charAt(0)}
@@ -1359,9 +1335,7 @@ function App() {
           </button>
         </aside>
 
-        {/* =========================
-            CENTER
-        ========================= */}
+        {/* CENTER */}
 
         <main className="feed">
           {activePage === "profile" ? (
@@ -1370,13 +1344,9 @@ function App() {
             <NotificationsPage />
           ) : (
             <>
-              {/* HOME HEADER */}
-
               <header className="feed-header">
                 <h2>Home</h2>
               </header>
-
-              {/* COMPOSE */}
 
               <div className="compose">
                 <div className="avatar">
@@ -1631,13 +1601,9 @@ function App() {
           )}
         </main>
 
-        {/* =========================
-            RIGHT SIDEBAR
-        ========================= */}
+        {/* RIGHT SIDEBAR */}
 
         <aside className="right-sidebar">
-          {/* SEARCH */}
-
           <div className="sidebar-card">
             <h3>Search</h3>
 
@@ -1655,8 +1621,6 @@ function App() {
               }}
             />
           </div>
-
-          {/* TRENDS */}
 
           <div className="sidebar-card">
             <h3>What’s happening</h3>
@@ -1693,8 +1657,6 @@ function App() {
               <small>4,321 posts</small>
             </div>
           </div>
-
-          {/* WHO TO FOLLOW */}
 
           <div className="sidebar-card">
             <h3>Who to follow</h3>
