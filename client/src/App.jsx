@@ -93,6 +93,10 @@ function normalizePosts(posts) {
   }));
 }
 
+/* =========================
+   AUTH SCREEN
+========================= */
+
 function AuthScreen({ onLogin }) {
   const [mode, setMode] = useState("signin");
 
@@ -121,7 +125,7 @@ function AuthScreen({ onLogin }) {
       }
 
       const emailExists = users.some(
-        (user) => user.email.toLowerCase() === email.toLowerCase(),
+        (user) => user.email.toLowerCase() === email.trim().toLowerCase(),
       );
 
       if (emailExists) {
@@ -341,6 +345,10 @@ const inputStyle = {
   outline: "none",
 };
 
+/* =========================
+   MAIN APP
+========================= */
+
 function App() {
   const [currentUser, setCurrentUser] = useState(getStoredUser);
 
@@ -360,6 +368,10 @@ function App() {
     getStoredData("followedUsers", []),
   );
 
+  /* PROFILE PAGE STATE */
+  const [activePage, setActivePage] = useState("home");
+  const [profileTab, setProfileTab] = useState("posts");
+
   useEffect(() => {
     localStorage.setItem("posts", JSON.stringify(posts));
   }, [posts]);
@@ -374,12 +386,17 @@ function App() {
 
   const handleLogin = (user) => {
     setCurrentUser(user);
+    setActivePage("home");
   };
 
   const handleLogout = () => {
     localStorage.removeItem("currentUser");
     setCurrentUser(null);
   };
+
+  /* =========================
+     POST
+  ========================= */
 
   const handlePost = () => {
     if (!postText.trim()) {
@@ -405,6 +422,10 @@ function App() {
     setPostText("");
   };
 
+  /* =========================
+     DELETE
+  ========================= */
+
   const handleDeletePost = (postId) => {
     setPosts((prevPosts) =>
       prevPosts.filter((post) => {
@@ -422,6 +443,10 @@ function App() {
       return updated;
     });
   };
+
+  /* =========================
+     LIKE
+  ========================= */
 
   const handleLike = (postId) => {
     setPosts((prevPosts) =>
@@ -441,6 +466,10 @@ function App() {
     );
   };
 
+  /* =========================
+     REPOST
+  ========================= */
+
   const handleRepost = (postId) => {
     setPosts((prevPosts) =>
       prevPosts.map((post) => {
@@ -459,6 +488,10 @@ function App() {
     );
   };
 
+  /* =========================
+     BOOKMARK
+  ========================= */
+
   const handleBookmark = (postId) => {
     setPosts((prevPosts) =>
       prevPosts.map((post) =>
@@ -472,6 +505,10 @@ function App() {
     );
   };
 
+  /* =========================
+     FOLLOW
+  ========================= */
+
   const handleFollow = (username) => {
     setFollowedUsers((prev) => {
       if (prev.includes(username)) {
@@ -481,6 +518,10 @@ function App() {
       return [...prev, username];
     });
   };
+
+  /* =========================
+     COMMENT
+  ========================= */
 
   const handleComment = (postId) => {
     const text = commentText[postId]?.trim();
@@ -507,6 +548,10 @@ function App() {
       [postId]: "",
     }));
   };
+
+  /* =========================
+     SEARCH
+  ========================= */
 
   const filteredPosts = posts.filter((post) => {
     const search = searchText.toLowerCase().trim();
@@ -544,6 +589,350 @@ function App() {
     return <AuthScreen onLogin={handleLogin} />;
   }
 
+  /* =========================
+     PROFILE DATA
+  ========================= */
+
+  const myPosts = posts.filter(
+    (post) => post.username === currentUser.username,
+  );
+
+  const myLikedPosts = posts.filter(
+    (post) => post.username === currentUser.username && post.liked,
+  );
+
+  /* =========================
+     PROFILE PAGE
+  ========================= */
+
+  const ProfilePage = () => {
+    return (
+      <div className="profile-page">
+        {/* COVER */}
+        <div className="profile-cover"></div>
+
+        {/* PROFILE INFORMATION */}
+        <div className="profile-info">
+          <button className="edit-profile-button">Edit profile</button>
+
+          <div className="profile-avatar">
+            {currentUser.avatar || currentUser.name.charAt(0).toUpperCase()}
+          </div>
+
+          <h2>{currentUser.name}</h2>
+
+          <p className="profile-username">@{currentUser.username}</p>
+
+          <p className="profile-bio">Welcome to my profile! 🚀</p>
+
+          <div className="profile-stats">
+            <div>
+              <strong>{followedUsers.length}</strong>
+              <span>Following</span>
+            </div>
+
+            <div>
+              <strong>0</strong>
+              <span>Followers</span>
+            </div>
+          </div>
+        </div>
+
+        {/* PROFILE TABS */}
+        <div className="profile-tabs">
+          <button
+            className={`profile-tab ${profileTab === "posts" ? "active" : ""}`}
+            onClick={() => setProfileTab("posts")}
+          >
+            Posts
+          </button>
+
+          <button
+            className={`profile-tab ${
+              profileTab === "replies" ? "active" : ""
+            }`}
+            onClick={() => setProfileTab("replies")}
+          >
+            Replies
+          </button>
+
+          <button
+            className={`profile-tab ${profileTab === "likes" ? "active" : ""}`}
+            onClick={() => setProfileTab("likes")}
+          >
+            Likes
+          </button>
+        </div>
+
+        {/* PROFILE POSTS */}
+        <div className="profile-posts">
+          {profileTab === "posts" && (
+            <>
+              {myPosts.length === 0 ? (
+                <div className="empty-profile">
+                  <h3>You haven't posted yet</h3>
+
+                  <p>When you post something, it will appear here.</p>
+
+                  <button
+                    onClick={() => {
+                      setActivePage("home");
+
+                      setTimeout(() => {
+                        document.querySelector(".compose-input")?.focus();
+                      }, 100);
+                    }}
+                  >
+                    Create your first post
+                  </button>
+                </div>
+              ) : (
+                myPosts.map((post) => {
+                  const postComments = comments[post.id] || [];
+
+                  return (
+                    <article className="post" key={post.id}>
+                      <div className="avatar">{post.avatar}</div>
+
+                      <div className="post-content">
+                        <div className="post-header">
+                          <strong>{post.authorName}</strong>
+
+                          <span>@{post.username}</span>
+
+                          <span>·</span>
+
+                          <span>{post.time}</span>
+
+                          <button
+                            onClick={() => handleDeletePost(post.id)}
+                            style={{
+                              marginLeft: "auto",
+                              border: "none",
+                              background: "transparent",
+                              cursor: "pointer",
+                              color: "#f4212e",
+                            }}
+                            title="Delete post"
+                          >
+                            🗑️
+                          </button>
+                        </div>
+
+                        <p className="post-text">{post.text}</p>
+
+                        <div className="post-actions">
+                          <button
+                            onClick={() =>
+                              setActivePost(
+                                activePost === post.id ? null : post.id,
+                              )
+                            }
+                          >
+                            💬 {postComments.length}
+                          </button>
+
+                          <button
+                            onClick={() => handleRepost(post.id)}
+                            style={{
+                              color: post.reposted ? "#00ba7c" : "inherit",
+                            }}
+                          >
+                            🔁 {post.repostCount}
+                          </button>
+
+                          <button
+                            onClick={() => handleLike(post.id)}
+                            style={{
+                              color: post.liked ? "#f91880" : "inherit",
+                            }}
+                          >
+                            {post.liked ? "❤️" : "♡"} {post.likeCount}
+                          </button>
+
+                          <button
+                            onClick={() => handleBookmark(post.id)}
+                            style={{
+                              color: post.bookmarked ? "#1d9bf0" : "inherit",
+                            }}
+                          >
+                            {post.bookmarked ? "🔖" : "📑"}
+                          </button>
+
+                          <button>↗️</button>
+                        </div>
+
+                        {/* COMMENTS */}
+                        {activePost === post.id && (
+                          <div
+                            style={{
+                              marginTop: "15px",
+                              borderTop: "1px solid #eff3f4",
+                              paddingTop: "15px",
+                            }}
+                          >
+                            <div
+                              style={{
+                                display: "flex",
+                                gap: "10px",
+                                marginBottom: "15px",
+                              }}
+                            >
+                              <div className="small-avatar">
+                                {currentUser.avatar ||
+                                  currentUser.name.charAt(0)}
+                              </div>
+
+                              <input
+                                type="text"
+                                placeholder="Post your reply"
+                                value={commentText[post.id] || ""}
+                                onChange={(e) =>
+                                  setCommentText((prev) => ({
+                                    ...prev,
+                                    [post.id]: e.target.value,
+                                  }))
+                                }
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") {
+                                    handleComment(post.id);
+                                  }
+                                }}
+                                style={{
+                                  flex: 1,
+                                  border: "1px solid #cfd9de",
+                                  borderRadius: "20px",
+                                  padding: "10px 15px",
+                                  outline: "none",
+                                }}
+                              />
+
+                              <button
+                                onClick={() => handleComment(post.id)}
+                                style={{
+                                  border: "none",
+                                  borderRadius: "20px",
+                                  background: "#000",
+                                  color: "#fff",
+                                  padding: "8px 15px",
+                                  cursor: "pointer",
+                                }}
+                              >
+                                Reply
+                              </button>
+                            </div>
+
+                            {postComments.map((comment) => (
+                              <div
+                                key={comment.id}
+                                style={{
+                                  display: "flex",
+                                  gap: "10px",
+                                  marginBottom: "15px",
+                                }}
+                              >
+                                <div className="small-avatar">
+                                  {comment.avatar}
+                                </div>
+
+                                <div>
+                                  <strong>{comment.authorName}</strong>{" "}
+                                  <span
+                                    style={{
+                                      color: "#536471",
+                                    }}
+                                  >
+                                    @{comment.username}
+                                  </span>
+                                  <p
+                                    style={{
+                                      margin: "5px 0 0",
+                                    }}
+                                  >
+                                    {comment.text}
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </article>
+                  );
+                })
+              )}
+            </>
+          )}
+
+          {/* REPLIES TAB */}
+          {profileTab === "replies" && (
+            <div className="empty-profile">
+              <h3>No replies yet</h3>
+
+              <p>Replies you make will appear here.</p>
+            </div>
+          )}
+
+          {/* LIKES TAB */}
+          {profileTab === "likes" && (
+            <>
+              {myLikedPosts.length === 0 ? (
+                <div className="empty-profile">
+                  <h3>No liked posts yet</h3>
+
+                  <p>Posts you like will appear here.</p>
+                </div>
+              ) : (
+                myLikedPosts.map((post) => (
+                  <article className="post" key={post.id}>
+                    <div className="avatar">{post.avatar}</div>
+
+                    <div className="post-content">
+                      <div className="post-header">
+                        <strong>{post.authorName}</strong>
+
+                        <span>@{post.username}</span>
+
+                        <span>·</span>
+
+                        <span>{post.time}</span>
+                      </div>
+
+                      <p className="post-text">{post.text}</p>
+
+                      <div className="post-actions">
+                        <button>💬 {(comments[post.id] || []).length}</button>
+
+                        <button>🔁 {post.repostCount}</button>
+
+                        <button
+                          onClick={() => handleLike(post.id)}
+                          style={{
+                            color: "#f91880",
+                          }}
+                        >
+                          ❤️ {post.likeCount}
+                        </button>
+
+                        <button onClick={() => handleBookmark(post.id)}>
+                          {post.bookmarked ? "🔖" : "📑"}
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                ))
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  /* =========================
+     MAIN RETURN
+  ========================= */
+
   return (
     <div className="app">
       <div className="layout">
@@ -552,7 +941,10 @@ function App() {
           <div className="logo">𝕏</div>
 
           <nav>
-            <div className="nav-item active">
+            <div
+              className={`nav-item ${activePage === "home" ? "active" : ""}`}
+              onClick={() => setActivePage("home")}
+            >
               <span>⌂</span>
               <strong>Home</strong>
             </div>
@@ -577,7 +969,10 @@ function App() {
               <strong>Bookmarks</strong>
             </div>
 
-            <div className="nav-item">
+            <div
+              className={`nav-item ${activePage === "profile" ? "active" : ""}`}
+              onClick={() => setActivePage("profile")}
+            >
               <span>👤</span>
               <strong>Profile</strong>
             </div>
@@ -585,11 +980,18 @@ function App() {
 
           <button
             className="post-button"
-            onClick={() => document.querySelector(".compose-input")?.focus()}
+            onClick={() => {
+              setActivePage("home");
+
+              setTimeout(() => {
+                document.querySelector(".compose-input")?.focus();
+              }, 100);
+            }}
           >
             Post
           </button>
 
+          {/* CURRENT USER */}
           <div className="current-user-card">
             <div className="avatar">
               {currentUser.avatar || currentUser.name.charAt(0)}
@@ -631,257 +1033,275 @@ function App() {
           </button>
         </aside>
 
-        {/* MAIN FEED */}
+        {/* =========================
+            CENTER
+        ========================= */}
+
         <main className="feed">
-          <header className="feed-header">
-            <h2>Home</h2>
-          </header>
+          {activePage === "profile" ? (
+            <ProfilePage />
+          ) : (
+            <>
+              {/* HOME HEADER */}
+              <header className="feed-header">
+                <h2>Home</h2>
+              </header>
 
-          {/* COMPOSE */}
-          <div className="compose">
-            <div className="avatar">
-              {currentUser.avatar || currentUser.name.charAt(0)}
-            </div>
-
-            <div className="compose-content">
-              <textarea
-                className="compose-input"
-                placeholder="What is happening?!"
-                value={postText}
-                onChange={(e) => setPostText(e.target.value)}
-              />
-
-              <div className="compose-bottom">
-                <div className="compose-icons">
-                  <span>🖼️</span>
-                  <span>GIF</span>
-                  <span>😊</span>
-                  <span>📍</span>
+              {/* COMPOSE */}
+              <div className="compose">
+                <div className="avatar">
+                  {currentUser.avatar || currentUser.name.charAt(0)}
                 </div>
 
-                <button
-                  onClick={handlePost}
-                  disabled={!postText.trim()}
-                  className="small-post-button"
-                >
-                  Post
-                </button>
+                <div className="compose-content">
+                  <textarea
+                    className="compose-input"
+                    placeholder="What is happening?!"
+                    value={postText}
+                    onChange={(e) => setPostText(e.target.value)}
+                  />
+
+                  <div className="compose-bottom">
+                    <div className="compose-icons">
+                      <span>🖼️</span>
+                      <span>GIF</span>
+                      <span>😊</span>
+                      <span>📍</span>
+                    </div>
+
+                    <button
+                      onClick={handlePost}
+                      disabled={!postText.trim()}
+                      className="small-post-button"
+                    >
+                      Post
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
 
-          {/* SEARCH */}
-          <div
-            style={{
-              padding: "15px",
-              borderBottom: "1px solid #eff3f4",
-            }}
-          >
-            <input
-              type="text"
-              placeholder="Search posts..."
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              style={{
-                width: "100%",
-                boxSizing: "border-box",
-                padding: "12px 18px",
-                borderRadius: "25px",
-                border: "1px solid #cfd9de",
-                outline: "none",
-                fontSize: "15px",
-              }}
-            />
-          </div>
+              {/* SEARCH */}
+              <div
+                style={{
+                  padding: "15px",
+                  borderBottom: "1px solid #eff3f4",
+                }}
+              >
+                <input
+                  type="text"
+                  placeholder="Search posts..."
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  style={{
+                    width: "100%",
+                    boxSizing: "border-box",
+                    padding: "12px 18px",
+                    borderRadius: "25px",
+                    border: "1px solid #cfd9de",
+                    outline: "none",
+                    fontSize: "15px",
+                  }}
+                />
+              </div>
 
-          {/* POSTS */}
-          {filteredPosts.length === 0 ? (
-            <div
-              style={{
-                textAlign: "center",
-                padding: "40px",
-                color: "#536471",
-              }}
-            >
-              No posts found.
-            </div>
-          ) : (
-            filteredPosts.map((post) => {
-              const postComments = comments[post.id] || [];
+              {/* POSTS */}
+              {filteredPosts.length === 0 ? (
+                <div
+                  style={{
+                    textAlign: "center",
+                    padding: "40px",
+                    color: "#536471",
+                  }}
+                >
+                  No posts found.
+                </div>
+              ) : (
+                filteredPosts.map((post) => {
+                  const postComments = comments[post.id] || [];
 
-              const isOwnPost = post.username === currentUser.username;
+                  const isOwnPost = post.username === currentUser.username;
 
-              return (
-                <article className="post" key={post.id}>
-                  <div className="avatar">{post.avatar}</div>
+                  return (
+                    <article className="post" key={post.id}>
+                      <div className="avatar">{post.avatar}</div>
 
-                  <div className="post-content">
-                    <div className="post-header">
-                      <strong>{post.authorName}</strong>
+                      <div className="post-content">
+                        <div className="post-header">
+                          <strong>{post.authorName}</strong>
 
-                      <span>@{post.username}</span>
+                          <span>@{post.username}</span>
 
-                      <span>·</span>
+                          <span>·</span>
 
-                      <span>{post.time}</span>
+                          <span>{post.time}</span>
 
-                      {isOwnPost && (
-                        <button
-                          onClick={() => handleDeletePost(post.id)}
-                          style={{
-                            marginLeft: "auto",
-                            border: "none",
-                            background: "transparent",
-                            cursor: "pointer",
-                            color: "#f4212e",
-                          }}
-                          title="Delete post"
-                        >
-                          🗑️
-                        </button>
-                      )}
-                    </div>
-
-                    <p className="post-text">{post.text}</p>
-
-                    <div className="post-actions">
-                      <button
-                        onClick={() =>
-                          setActivePost(activePost === post.id ? null : post.id)
-                        }
-                      >
-                        💬 {postComments.length}
-                      </button>
-
-                      <button
-                        onClick={() => handleRepost(post.id)}
-                        style={{
-                          color: post.reposted ? "#00ba7c" : "inherit",
-                        }}
-                      >
-                        🔁 {post.repostCount}
-                      </button>
-
-                      <button
-                        onClick={() => handleLike(post.id)}
-                        style={{
-                          color: post.liked ? "#f91880" : "inherit",
-                        }}
-                      >
-                        {post.liked ? "❤️" : "♡"} {post.likeCount}
-                      </button>
-
-                      <button
-                        onClick={() => handleBookmark(post.id)}
-                        style={{
-                          color: post.bookmarked ? "#1d9bf0" : "inherit",
-                        }}
-                      >
-                        {post.bookmarked ? "🔖" : "📑"}
-                      </button>
-
-                      <button>↗️</button>
-                    </div>
-
-                    {/* COMMENTS */}
-                    {activePost === post.id && (
-                      <div
-                        style={{
-                          marginTop: "15px",
-                          borderTop: "1px solid #eff3f4",
-                          paddingTop: "15px",
-                        }}
-                      >
-                        <div
-                          style={{
-                            display: "flex",
-                            gap: "10px",
-                            marginBottom: "15px",
-                          }}
-                        >
-                          <div className="small-avatar">
-                            {currentUser.avatar || currentUser.name.charAt(0)}
-                          </div>
-
-                          <input
-                            type="text"
-                            placeholder="Post your reply"
-                            value={commentText[post.id] || ""}
-                            onChange={(e) =>
-                              setCommentText((prev) => ({
-                                ...prev,
-                                [post.id]: e.target.value,
-                              }))
-                            }
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") {
-                                handleComment(post.id);
-                              }
-                            }}
-                            style={{
-                              flex: 1,
-                              border: "1px solid #cfd9de",
-                              borderRadius: "20px",
-                              padding: "10px 15px",
-                              outline: "none",
-                            }}
-                          />
-
-                          <button
-                            onClick={() => handleComment(post.id)}
-                            style={{
-                              border: "none",
-                              borderRadius: "20px",
-                              background: "#000",
-                              color: "#fff",
-                              padding: "8px 15px",
-                              cursor: "pointer",
-                            }}
-                          >
-                            Reply
-                          </button>
+                          {isOwnPost && (
+                            <button
+                              onClick={() => handleDeletePost(post.id)}
+                              style={{
+                                marginLeft: "auto",
+                                border: "none",
+                                background: "transparent",
+                                cursor: "pointer",
+                                color: "#f4212e",
+                              }}
+                              title="Delete post"
+                            >
+                              🗑️
+                            </button>
+                          )}
                         </div>
 
-                        {postComments.map((comment) => (
-                          <div
-                            key={comment.id}
+                        <p className="post-text">{post.text}</p>
+
+                        <div className="post-actions">
+                          <button
+                            onClick={() =>
+                              setActivePost(
+                                activePost === post.id ? null : post.id,
+                              )
+                            }
+                          >
+                            💬 {postComments.length}
+                          </button>
+
+                          <button
+                            onClick={() => handleRepost(post.id)}
                             style={{
-                              display: "flex",
-                              gap: "10px",
-                              marginBottom: "15px",
+                              color: post.reposted ? "#00ba7c" : "inherit",
                             }}
                           >
-                            <div className="small-avatar">{comment.avatar}</div>
+                            🔁 {post.repostCount}
+                          </button>
 
-                            <div>
-                              <strong>{comment.authorName}</strong>{" "}
-                              <span
+                          <button
+                            onClick={() => handleLike(post.id)}
+                            style={{
+                              color: post.liked ? "#f91880" : "inherit",
+                            }}
+                          >
+                            {post.liked ? "❤️" : "♡"} {post.likeCount}
+                          </button>
+
+                          <button
+                            onClick={() => handleBookmark(post.id)}
+                            style={{
+                              color: post.bookmarked ? "#1d9bf0" : "inherit",
+                            }}
+                          >
+                            {post.bookmarked ? "🔖" : "📑"}
+                          </button>
+
+                          <button>↗️</button>
+                        </div>
+
+                        {/* COMMENTS */}
+                        {activePost === post.id && (
+                          <div
+                            style={{
+                              marginTop: "15px",
+                              borderTop: "1px solid #eff3f4",
+                              paddingTop: "15px",
+                            }}
+                          >
+                            <div
+                              style={{
+                                display: "flex",
+                                gap: "10px",
+                                marginBottom: "15px",
+                              }}
+                            >
+                              <div className="small-avatar">
+                                {currentUser.avatar ||
+                                  currentUser.name.charAt(0)}
+                              </div>
+
+                              <input
+                                type="text"
+                                placeholder="Post your reply"
+                                value={commentText[post.id] || ""}
+                                onChange={(e) =>
+                                  setCommentText((prev) => ({
+                                    ...prev,
+                                    [post.id]: e.target.value,
+                                  }))
+                                }
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") {
+                                    handleComment(post.id);
+                                  }
+                                }}
                                 style={{
-                                  color: "#536471",
+                                  flex: 1,
+                                  border: "1px solid #cfd9de",
+                                  borderRadius: "20px",
+                                  padding: "10px 15px",
+                                  outline: "none",
+                                }}
+                              />
+
+                              <button
+                                onClick={() => handleComment(post.id)}
+                                style={{
+                                  border: "none",
+                                  borderRadius: "20px",
+                                  background: "#000",
+                                  color: "#fff",
+                                  padding: "8px 15px",
+                                  cursor: "pointer",
                                 }}
                               >
-                                @{comment.username}
-                              </span>
-                              <p
-                                style={{
-                                  margin: "5px 0 0",
-                                }}
-                              >
-                                {comment.text}
-                              </p>
+                                Reply
+                              </button>
                             </div>
+
+                            {postComments.map((comment) => (
+                              <div
+                                key={comment.id}
+                                style={{
+                                  display: "flex",
+                                  gap: "10px",
+                                  marginBottom: "15px",
+                                }}
+                              >
+                                <div className="small-avatar">
+                                  {comment.avatar}
+                                </div>
+
+                                <div>
+                                  <strong>{comment.authorName}</strong>{" "}
+                                  <span
+                                    style={{
+                                      color: "#536471",
+                                    }}
+                                  >
+                                    @{comment.username}
+                                  </span>
+                                  <p
+                                    style={{
+                                      margin: "5px 0 0",
+                                    }}
+                                  >
+                                    {comment.text}
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
                           </div>
-                        ))}
+                        )}
                       </div>
-                    )}
-                  </div>
-                </article>
-              );
-            })
+                    </article>
+                  );
+                })
+              )}
+            </>
           )}
         </main>
 
-        {/* RIGHT SIDEBAR */}
+        {/* =========================
+            RIGHT SIDEBAR
+        ========================= */}
+
         <aside className="right-sidebar">
           {/* SEARCH */}
           <div className="sidebar-card">
@@ -970,11 +1390,25 @@ function App() {
 
       {/* MOBILE NAV */}
       <div className="mobile-nav">
-        <span>⌂</span>
+        <span onClick={() => setActivePage("home")}>⌂</span>
+
         <span>🔍</span>
+
+        <span
+          onClick={() => {
+            setActivePage("home");
+
+            setTimeout(() => {
+              document.querySelector(".compose-input")?.focus();
+            }, 100);
+          }}
+        >
+          ＋
+        </span>
+
         <span>🔔</span>
-        <span>✉️</span>
-        <span>👤</span>
+
+        <span onClick={() => setActivePage("profile")}>👤</span>
       </div>
     </div>
   );
