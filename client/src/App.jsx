@@ -96,6 +96,7 @@ function normalizePosts(posts) {
 /* =========================
    AUTH SCREEN
 ========================= */
+
 function AuthScreen({ onLogin }) {
   const [mode, setMode] = useState("signin");
   const [name, setName] = useState("");
@@ -103,37 +104,48 @@ function AuthScreen({ onLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+
   const handleSubmit = (e) => {
     e.preventDefault();
     setError("");
+
     const users = getStoredData("users", []);
+
     /* =========================
        SIGN UP
     ========================= */
+
     if (mode === "signup") {
       if (!name.trim() || !username.trim() || !email.trim() || !password) {
         setError("Please fill in all fields.");
         return;
       }
+
       if (password.length < 6) {
         setError("Password must be at least 6 characters.");
         return;
       }
+
       const cleanUsername = username.trim().replace(/\s+/g, "").toLowerCase();
+
       const emailExists = users.some(
-        (user) => user.email.toLowerCase() === email.trim().toLowerCase(),
+        (user) => user.email?.toLowerCase() === email.trim().toLowerCase(),
       );
+
       if (emailExists) {
         setError("An account with this email already exists.");
         return;
       }
+
       const usernameExists = users.some(
-        (user) => user.username.toLowerCase() === cleanUsername,
+        (user) => user.username?.toLowerCase() === cleanUsername,
       );
+
       if (usernameExists) {
         setError("That username is already taken.");
         return;
       }
+
       const newUser = {
         id: Date.now().toString(),
         name: name.trim(),
@@ -141,62 +153,75 @@ function AuthScreen({ onLogin }) {
         email: email.trim().toLowerCase(),
         password,
         avatar: name.trim().charAt(0).toUpperCase(),
+        bio: "",
       };
+
       const updatedUsers = [...users, newUser];
+
       localStorage.setItem("users", JSON.stringify(updatedUsers));
       localStorage.setItem("currentUser", JSON.stringify(newUser));
+
       onLogin(newUser);
       return;
     }
+
     /* =========================
        SIGN IN
     ========================= */
+
     if (!email.trim() || !password) {
       setError("Please enter your email and password.");
       return;
     }
+
     const user = users.find(
       (item) =>
-        item.email.toLowerCase() === email.trim().toLowerCase() &&
+        item.email?.toLowerCase() === email.trim().toLowerCase() &&
         item.password === password,
     );
+
     if (!user) {
       setError("Incorrect email or password.");
       return;
     }
+
     localStorage.setItem("currentUser", JSON.stringify(user));
     onLogin(user);
   };
+
   const switchMode = () => {
     setMode((currentMode) => (currentMode === "signin" ? "signup" : "signin"));
+
     setName("");
     setUsername("");
     setEmail("");
     setPassword("");
     setError("");
   };
+
   return (
     <div className="auth-page">
       <div className="auth-card">
-        {/* LOGO */}
         <div className="auth-logo">𝕏</div>
-        {/* HEADER */}
+
         <div className="auth-header">
           <h1>{mode === "signin" ? "Sign in to X" : "Create your account"}</h1>
+
           <p>
             {mode === "signin"
               ? "Welcome back! Sign in to continue."
               : "Join the conversation and share your thoughts."}
           </p>
         </div>
-        {/* ERROR */}
+
         {error && <div className="auth-error">{error}</div>}
-        {/* FORM */}
+
         <form className="auth-form" onSubmit={handleSubmit}>
           {mode === "signup" && (
             <>
               <div className="auth-field">
                 <label>Full name</label>
+
                 <input
                   type="text"
                   placeholder="Enter your full name"
@@ -204,8 +229,10 @@ function AuthScreen({ onLogin }) {
                   onChange={(e) => setName(e.target.value)}
                 />
               </div>
+
               <div className="auth-field">
                 <label>Username</label>
+
                 <input
                   type="text"
                   placeholder="Choose a username"
@@ -215,8 +242,10 @@ function AuthScreen({ onLogin }) {
               </div>
             </>
           )}
+
           <div className="auth-field">
             <label>Email</label>
+
             <input
               type="email"
               placeholder="Enter your email"
@@ -224,8 +253,10 @@ function AuthScreen({ onLogin }) {
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
+
           <div className="auth-field">
             <label>Password</label>
+
             <input
               type="password"
               placeholder="Enter your password"
@@ -233,22 +264,24 @@ function AuthScreen({ onLogin }) {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
+
           <button type="submit" className="auth-submit">
             {mode === "signin" ? "Sign In" : "Create Account"}
           </button>
         </form>
-        {/* SWITCH MODE */}
+
         <div className="auth-switch">
           <span>
             {mode === "signin"
               ? "Don't have an account?"
               : "Already have an account?"}
           </span>
+
           <button type="button" onClick={switchMode}>
             {mode === "signin" ? "Sign up" : "Sign in"}
           </button>
         </div>
-        {/* FOOTER */}
+
         <p className="auth-footer">
           By continuing, you agree to use this demo application responsibly.
         </p>
@@ -280,15 +313,31 @@ function App() {
     getStoredData("followedUsers", []),
   );
 
-  /* PROFILE PAGE STATE */
+  /* =========================
+     NOTIFICATIONS STATE
+  ========================= */
+
+  const [notifications, setNotifications] = useState(() =>
+    getStoredData("notifications", []),
+  );
+
+  /* =========================
+     PROFILE PAGE STATE
+  ========================= */
+
   const [activePage, setActivePage] = useState("home");
   const [profileTab, setProfileTab] = useState("posts");
+
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editName, setEditName] = useState("");
   const [editUsername, setEditUsername] = useState("");
   const [editBio, setEditBio] = useState("");
   const [editAvatar, setEditAvatar] = useState("");
   const [profileError, setProfileError] = useState("");
+
+  /* =========================
+     LOCAL STORAGE
+  ========================= */
 
   useEffect(() => {
     localStorage.setItem("posts", JSON.stringify(posts));
@@ -302,28 +351,66 @@ function App() {
     localStorage.setItem("followedUsers", JSON.stringify(followedUsers));
   }, [followedUsers]);
 
+  useEffect(() => {
+    localStorage.setItem("notifications", JSON.stringify(notifications));
+  }, [notifications]);
+
+  /* =========================
+     LOGIN
+  ========================= */
+
   const handleLogin = (user) => {
     setCurrentUser(user);
     setActivePage("home");
   };
 
+  /* =========================
+     LOGOUT
+  ========================= */
+
   const handleLogout = () => {
     localStorage.removeItem("currentUser");
     setCurrentUser(null);
   };
+
+  /* =========================
+     NOTIFICATIONS
+  ========================= */
+
+  const addNotification = (message, type = "activity") => {
+    const newNotification = {
+      id: Date.now().toString(),
+      message,
+      type,
+      time: "now",
+      read: false,
+    };
+
+    setNotifications((prev) => [newNotification, ...prev]);
+  };
+
+  /* =========================
+     EDIT PROFILE
+  ========================= */
+
   const handleOpenEditProfile = () => {
     setEditName(currentUser?.name || "");
     setEditUsername(currentUser?.username || "");
     setEditBio(currentUser?.bio || "");
+
     setEditAvatar(currentUser?.avatar || currentUser?.name?.charAt(0) || "");
+
     setProfileError("");
     setIsEditingProfile(true);
   };
 
   const handleSaveProfile = () => {
     const newName = editName.trim();
+
     const newUsername = editUsername.trim().replace(/\s+/g, "").toLowerCase();
+
     const newBio = editBio.trim();
+
     const newAvatar =
       editAvatar.trim().charAt(0).toUpperCase() ||
       newName.charAt(0).toUpperCase();
@@ -366,6 +453,7 @@ function App() {
     );
 
     localStorage.setItem("users", JSON.stringify(updatedUsers));
+
     localStorage.setItem("currentUser", JSON.stringify(updatedUser));
 
     const updatedPosts = posts.map((post) =>
@@ -410,6 +498,7 @@ function App() {
     };
 
     setPosts((prevPosts) => [newPost, ...prevPosts]);
+
     setPostText("");
   };
 
@@ -430,7 +519,9 @@ function App() {
 
     setComments((prevComments) => {
       const updated = { ...prevComments };
+
       delete updated[postId];
+
       return updated;
     });
   };
@@ -444,6 +535,15 @@ function App() {
       prevPosts.map((post) => {
         if (post.id !== postId) {
           return post;
+        }
+
+        const wasLiked = post.liked;
+
+        if (!wasLiked && post.username !== currentUser.username) {
+          addNotification(
+            `${currentUser.name} liked ${post.authorName}'s post.`,
+            "like",
+          );
         }
 
         return {
@@ -466,6 +566,15 @@ function App() {
       prevPosts.map((post) => {
         if (post.id !== postId) {
           return post;
+        }
+
+        const wasReposted = post.reposted;
+
+        if (!wasReposted && post.username !== currentUser.username) {
+          addNotification(
+            `${currentUser.name} reposted ${post.authorName}'s post.`,
+            "repost",
+          );
         }
 
         return {
@@ -500,10 +609,39 @@ function App() {
      FOLLOW
   ========================= */
 
+  const suggestedUsers = [
+    {
+      name: "John Smith",
+      username: "johnsmith",
+      avatar: "J",
+    },
+    {
+      name: "Sarah Williams",
+      username: "sarahw",
+      avatar: "S",
+    },
+    {
+      name: "Michael Brown",
+      username: "michaelb",
+      avatar: "M",
+    },
+  ];
+
   const handleFollow = (username) => {
     setFollowedUsers((prev) => {
       if (prev.includes(username)) {
         return prev.filter((item) => item !== username);
+      }
+
+      const followedUser = suggestedUsers.find(
+        (user) => user.username === username,
+      );
+
+      if (followedUser) {
+        addNotification(
+          `You are now following ${followedUser.name}.`,
+          "follow",
+        );
       }
 
       return [...prev, username];
@@ -521,6 +659,8 @@ function App() {
       return;
     }
 
+    const post = posts.find((item) => item.id === postId);
+
     const newComment = {
       id: Date.now().toString(),
       text,
@@ -528,6 +668,13 @@ function App() {
       username: currentUser.username,
       avatar: currentUser.avatar || currentUser.name.charAt(0).toUpperCase(),
     };
+
+    if (post && post.username !== currentUser.username) {
+      addNotification(
+        `${currentUser.name} replied to ${post.authorName}'s post.`,
+        "comment",
+      );
+    }
 
     setComments((prevComments) => ({
       ...prevComments,
@@ -558,24 +705,6 @@ function App() {
     );
   });
 
-  const suggestedUsers = [
-    {
-      name: "John Smith",
-      username: "johnsmith",
-      avatar: "J",
-    },
-    {
-      name: "Sarah Williams",
-      username: "sarahw",
-      avatar: "S",
-    },
-    {
-      name: "Michael Brown",
-      username: "michaelb",
-      avatar: "M",
-    },
-  ];
-
   if (!currentUser) {
     return <AuthScreen onLogin={handleLogin} />;
   }
@@ -591,6 +720,93 @@ function App() {
   const myLikedPosts = posts.filter(
     (post) => post.username === currentUser.username && post.liked,
   );
+
+  /* =========================
+     NOTIFICATIONS PAGE
+  ========================= */
+
+  const NotificationsPage = () => {
+    const unreadCount = notifications.filter(
+      (notification) => !notification.read,
+    ).length;
+
+    const markAllNotificationsRead = () => {
+      setNotifications((prev) =>
+        prev.map((notification) => ({
+          ...notification,
+          read: true,
+        })),
+      );
+    };
+
+    return (
+      <div className="notifications-page">
+        <div className="feed-header notifications-header">
+          <div>
+            <h2>Notifications</h2>
+
+            <p>
+              {unreadCount > 0
+                ? `${unreadCount} unread notification${
+                    unreadCount === 1 ? "" : "s"
+                  }`
+                : "You're all caught up"}
+            </p>
+          </div>
+
+          {notifications.length > 0 && unreadCount > 0 && (
+            <button
+              className="mark-read-button"
+              onClick={markAllNotificationsRead}
+            >
+              Mark all as read
+            </button>
+          )}
+        </div>
+
+        {notifications.length === 0 ? (
+          <div className="empty-notifications">
+            <div className="empty-notifications-icon">🔔</div>
+
+            <h3>Nothing to see here — yet</h3>
+
+            <p>
+              When people interact with your posts, you'll see notifications
+              here.
+            </p>
+          </div>
+        ) : (
+          <div className="notification-list">
+            {notifications.map((notification) => (
+              <div
+                className={`notification-item ${
+                  notification.read ? "" : "unread"
+                }`}
+                key={notification.id}
+              >
+                <div className="notification-icon">
+                  {notification.type === "like" && "❤️"}
+                  {notification.type === "repost" && "🔁"}
+                  {notification.type === "comment" && "💬"}
+                  {notification.type === "follow" && "👤"}
+                  {notification.type === "activity" && "🔔"}
+                </div>
+
+                <div className="notification-content">
+                  <p>{notification.message}</p>
+                  <span>{notification.time}</span>
+                </div>
+
+                {!notification.read && (
+                  <span className="notification-dot"></span>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   /* =========================
      PROFILE PAGE
@@ -619,7 +835,9 @@ function App() {
 
           <p className="profile-username">@{currentUser.username}</p>
 
-          <p className="profile-bio">Welcome to my profile! 🚀</p>
+          <p className="profile-bio">
+            {currentUser.bio || "Welcome to my profile! 🚀"}
+          </p>
 
           <div className="profile-stats">
             <div>
@@ -630,95 +848,95 @@ function App() {
             <div>
               <strong>0</strong>
               <span>Followers</span>
-              {isEditingProfile && (
-                <div className="edit-profile-overlay">
-                  <div className="edit-profile-card">
-                    <div className="edit-profile-header">
-                      <h2>Edit profile</h2>
-
-                      <button
-                        className="close-edit-profile"
-                        onClick={() => setIsEditingProfile(false)}
-                      >
-                        ×
-                      </button>
-                    </div>
-
-                    {profileError && (
-                      <div className="profile-error">{profileError}</div>
-                    )}
-
-                    <div className="edit-profile-form">
-                      <label>
-                        Name
-                        <input
-                          type="text"
-                          value={editName}
-                          onChange={(e) => setEditName(e.target.value)}
-                          placeholder="Your name"
-                          maxLength={50}
-                        />
-                      </label>
-
-                      <label>
-                        Username
-                        <input
-                          type="text"
-                          value={editUsername}
-                          onChange={(e) => setEditUsername(e.target.value)}
-                          placeholder="username"
-                          maxLength={30}
-                        />
-                      </label>
-
-                      <label>
-                        Bio
-                        <textarea
-                          value={editBio}
-                          onChange={(e) => setEditBio(e.target.value)}
-                          placeholder="Tell people about yourself"
-                          maxLength={160}
-                          rows={4}
-                        />
-                      </label>
-
-                      <label>
-                        Avatar initial
-                        <input
-                          type="text"
-                          value={editAvatar}
-                          onChange={(e) =>
-                            setEditAvatar(
-                              e.target.value.charAt(0).toUpperCase(),
-                            )
-                          }
-                          maxLength={1}
-                          placeholder="A"
-                        />
-                      </label>
-                    </div>
-
-                    <div className="edit-profile-actions">
-                      <button
-                        className="cancel-profile-button"
-                        onClick={() => setIsEditingProfile(false)}
-                      >
-                        Cancel
-                      </button>
-
-                      <button
-                        className="save-profile-button"
-                        onClick={handleSaveProfile}
-                      >
-                        Save
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </div>
+
+        {/* EDIT PROFILE POPUP */}
+        {isEditingProfile && (
+          <div className="edit-profile-overlay">
+            <div className="edit-profile-card">
+              <div className="edit-profile-header">
+                <h2>Edit profile</h2>
+
+                <button
+                  className="close-edit-profile"
+                  onClick={() => setIsEditingProfile(false)}
+                >
+                  ×
+                </button>
+              </div>
+
+              {profileError && (
+                <div className="profile-error">{profileError}</div>
+              )}
+
+              <div className="edit-profile-form">
+                <label>
+                  Name
+                  <input
+                    type="text"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    placeholder="Your name"
+                    maxLength={50}
+                  />
+                </label>
+
+                <label>
+                  Username
+                  <input
+                    type="text"
+                    value={editUsername}
+                    onChange={(e) => setEditUsername(e.target.value)}
+                    placeholder="username"
+                    maxLength={30}
+                  />
+                </label>
+
+                <label>
+                  Bio
+                  <textarea
+                    value={editBio}
+                    onChange={(e) => setEditBio(e.target.value)}
+                    placeholder="Tell people about yourself"
+                    maxLength={160}
+                    rows={4}
+                  />
+                </label>
+
+                <label>
+                  Avatar initial
+                  <input
+                    type="text"
+                    value={editAvatar}
+                    onChange={(e) =>
+                      setEditAvatar(e.target.value.charAt(0).toUpperCase())
+                    }
+                    maxLength={1}
+                    placeholder="A"
+                  />
+                </label>
+              </div>
+
+              <div className="edit-profile-actions">
+                <button
+                  className="cancel-profile-button"
+                  onClick={() => setIsEditingProfile(false)}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  className="save-profile-button"
+                  onClick={handleSaveProfile}
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* PROFILE TABS */}
         <div className="profile-tabs">
@@ -946,7 +1164,7 @@ function App() {
             </>
           )}
 
-          {/* REPLIES TAB */}
+          {/* REPLIES */}
           {profileTab === "replies" && (
             <div className="empty-profile">
               <h3>No replies yet</h3>
@@ -955,7 +1173,7 @@ function App() {
             </div>
           )}
 
-          {/* LIKES TAB */}
+          {/* LIKES */}
           {profileTab === "likes" && (
             <>
               {myLikedPosts.length === 0 ? (
@@ -1019,6 +1237,7 @@ function App() {
     <div className="app">
       <div className="layout">
         {/* LEFT SIDEBAR */}
+
         <aside className="sidebar">
           <div className="logo">𝕏</div>
 
@@ -1036,8 +1255,26 @@ function App() {
               <strong>Explore</strong>
             </div>
 
-            <div className="nav-item">
-              <span>🔔</span>
+            {/* NOTIFICATIONS */}
+
+            <div
+              className={`nav-item ${
+                activePage === "notifications" ? "active" : ""
+              }`}
+              onClick={() => setActivePage("notifications")}
+            >
+              <span className="notification-nav-icon">
+                🔔
+                {notifications.some((notification) => !notification.read) && (
+                  <span className="notification-badge">
+                    {
+                      notifications.filter((notification) => !notification.read)
+                        .length
+                    }
+                  </span>
+                )}
+              </span>
+
               <strong>Notifications</strong>
             </div>
 
@@ -1074,6 +1311,7 @@ function App() {
           </button>
 
           {/* CURRENT USER */}
+
           <div className="current-user-card">
             <div className="avatar">
               {currentUser.avatar || currentUser.name.charAt(0)}
@@ -1081,6 +1319,7 @@ function App() {
 
             <div className="current-user-info">
               <strong>{currentUser.name}</strong>
+
               <span>@{currentUser.username}</span>
             </div>
 
@@ -1122,14 +1361,18 @@ function App() {
         <main className="feed">
           {activePage === "profile" ? (
             <ProfilePage />
+          ) : activePage === "notifications" ? (
+            <NotificationsPage />
           ) : (
             <>
               {/* HOME HEADER */}
+
               <header className="feed-header">
                 <h2>Home</h2>
               </header>
 
               {/* COMPOSE */}
+
               <div className="compose">
                 <div className="avatar">
                   {currentUser.avatar || currentUser.name.charAt(0)}
@@ -1163,6 +1406,7 @@ function App() {
               </div>
 
               {/* SEARCH */}
+
               <div
                 style={{
                   padding: "15px",
@@ -1187,6 +1431,7 @@ function App() {
               </div>
 
               {/* POSTS */}
+
               {filteredPosts.length === 0 ? (
                 <div
                   style={{
@@ -1278,6 +1523,7 @@ function App() {
                         </div>
 
                         {/* COMMENTS */}
+
                         {activePost === post.id && (
                           <div
                             style={{
@@ -1386,6 +1632,7 @@ function App() {
 
         <aside className="right-sidebar">
           {/* SEARCH */}
+
           <div className="sidebar-card">
             <h3>Search</h3>
 
@@ -1405,35 +1652,45 @@ function App() {
           </div>
 
           {/* TRENDS */}
+
           <div className="sidebar-card">
             <h3>What’s happening</h3>
 
             <div className="trend">
               <span>Trending in Nigeria</span>
+
               <strong>#TechNigeria</strong>
+
               <small>12.5K posts</small>
             </div>
 
             <div className="trend">
               <span>Trending</span>
+
               <strong>React</strong>
+
               <small>8,421 posts</small>
             </div>
 
             <div className="trend">
               <span>Trending</span>
+
               <strong>JavaScript</strong>
+
               <small>6,892 posts</small>
             </div>
 
             <div className="trend">
               <span>Trending</span>
+
               <strong>#WebDevelopment</strong>
+
               <small>4,321 posts</small>
             </div>
           </div>
 
           {/* WHO TO FOLLOW */}
+
           <div className="sidebar-card">
             <h3>Who to follow</h3>
 
@@ -1446,6 +1703,7 @@ function App() {
 
                   <div className="follow-info">
                     <strong>{user.name}</strong>
+
                     <span>@{user.username}</span>
                   </div>
 
@@ -1471,6 +1729,7 @@ function App() {
       </div>
 
       {/* MOBILE NAV */}
+
       <div className="mobile-nav">
         <span onClick={() => setActivePage("home")}>⌂</span>
 
@@ -1488,7 +1747,7 @@ function App() {
           ＋
         </span>
 
-        <span>🔔</span>
+        <span onClick={() => setActivePage("notifications")}>🔔</span>
 
         <span onClick={() => setActivePage("profile")}>👤</span>
       </div>

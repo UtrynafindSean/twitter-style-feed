@@ -968,3 +968,150 @@ form input:focus {
     border-radius: 18px 18px 0 0;
   }
 }
+/* =========================
+   NOTIFICATIONS
+========================= */
+
+.notifications-page {
+  min-height: 100%;
+}
+
+.notifications-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.notifications-header p {
+  margin-top: 4px;
+  color: #536471;
+  font-size: 14px;
+}
+
+.mark-read-button {
+  border: none;
+  background: transparent;
+  color: #1d9bf0;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mark-read-button:hover {
+  text-decoration: underline;
+}
+
+.notification-list {
+  width: 100%;
+}
+
+.notification-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 20px;
+  border-bottom: 1px solid #eff3f4;
+  transition: background 0.2s ease;
+}
+
+.notification-item:hover {
+  background: #f7f9f9;
+}
+
+.notification-item.unread {
+  background: #f0f8ff;
+}
+
+.notification-icon {
+  width: 45px;
+  height: 45px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #eff3f4;
+  font-size: 20px;
+}
+
+.notification-content {
+  flex: 1;
+}
+
+.notification-content p {
+  margin: 0;
+  color: #0f1419;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.notification-content span {
+  display: block;
+  margin-top: 5px;
+  color: #536471;
+  font-size: 13px;
+}
+
+.notification-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #1d9bf0;
+  flex-shrink: 0;
+}
+
+.notification-nav-icon {
+  position: relative;
+  display: inline-flex;
+}
+
+.notification-badge {
+  position: absolute;
+  top: -8px;
+  right: -10px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #f4212e;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.empty-notifications {
+  text-align: center;
+  padding: 80px 30px;
+  color: #536471;
+}
+
+.empty-notifications-icon {
+  font-size: 42px;
+  margin-bottom: 15px;
+}
+
+.empty-notifications h3 {
+  margin-bottom: 8px;
+  color: #0f1419;
+  font-size: 20px;
+}
+
+.empty-notifications p {
+  max-width: 360px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+@media (max-width: 700px) {
+  .notifications-header {
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .notification-item {
+    padding: 16px;
+  }
+}
