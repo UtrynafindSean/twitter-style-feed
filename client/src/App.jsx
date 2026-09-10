@@ -530,31 +530,36 @@ function App() {
      LIKE
   ========================= */
 
-  const handleLike = (postId) => {
-    setPosts((prevPosts) =>
-      prevPosts.map((post) => {
-        if (post.id !== postId) {
-          return post;
-        }
+ const handleLike = (postId) => {
+  const targetPost = posts.find((post) => post.id === postId);
 
-        const wasLiked = post.liked;
+  if (!targetPost) return;
 
-        if (!wasLiked && post.username !== currentUser.username) {
-          addNotification(
-            `${currentUser.name} liked ${post.authorName}'s post.`,
-            "like",
-          );
-        }
+  const wasLiked = targetPost.liked;
 
-        return {
-          ...post,
-          liked: !post.liked,
-          likeCount: post.liked
-            ? Math.max(0, post.likeCount - 1)
-            : post.likeCount + 1,
-        };
-      }),
-    );
+  setPosts((prevPosts) =>
+    prevPosts.map((post) =>
+      post.id === postId
+        ? {
+            ...post,
+            liked: !post.liked,
+            likes: post.liked
+              ? Math.max((post.likes || 0) - 1, 0)
+              : (post.likes || 0) + 1,
+          }
+        : post
+    )
+  );
+
+  // Add ONLY ONE notification when the post is liked
+  if (!wasLiked) {
+    createNotification({
+      type: "like",
+      icon: "❤️",
+      message: `You liked a post by @${targetPost.username}.`,
+    });
+  }
+};
   };
 
   /* =========================
