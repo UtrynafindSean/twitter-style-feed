@@ -1843,3 +1843,302 @@ a {
   visibility: visible !important;
   opacity: 1 !important;
 }
+/* ================================
+   SETTINGS PAGE
+================================ */
+
+.settings-page {
+  min-height: 100%;
+  background: #ffffff;
+  color: #0f1419;
+}
+
+.settings-page .feed-header {
+  padding: 22px 24px;
+  border-bottom: 1px solid #eff3f4;
+  background: #ffffff;
+}
+
+.settings-page .feed-header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+
+.settings-page .feed-header p {
+  margin: 5px 0 0;
+  color: #536471;
+  font-size: 14px;
+}
+
+/* SETTINGS SECTION */
+
+.settings-section {
+  padding: 24px;
+  border-bottom: 1px solid #eff3f4;
+  background: #ffffff;
+}
+
+.settings-section-title {
+  margin-bottom: 18px;
+}
+
+.settings-section-title h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f1419;
+}
+
+.settings-section-title p {
+  margin: 5px 0 0;
+  color: #536471;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* SETTINGS ITEM */
+
+.settings-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 18px;
+  border: 1px solid #eff3f4;
+  border-radius: 16px;
+  background: #ffffff;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.settings-item:hover {
+  background: #f7f9f9;
+  border-color: #d8e0e3;
+}
+
+.settings-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.settings-item-info strong {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f1419;
+}
+
+.settings-item-info span {
+  font-size: 14px;
+  line-height: 1.4;
+  color: #536471;
+}
+
+/* TOGGLE */
+
+.settings-toggle {
+  position: relative;
+  width: 52px;
+  height: 30px;
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: #cfd9de;
+  transition:
+    background 0.2s ease,
+    transform 0.15s ease;
+}
+
+.settings-toggle:hover {
+  transform: scale(1.04);
+}
+
+.settings-toggle:active {
+  transform: scale(0.97);
+}
+
+.settings-toggle span {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  transition:
+    left 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.settings-toggle.enabled {
+  background: #1d9bf0;
+}
+
+.settings-toggle.enabled span {
+  left: 26px;
+}
+
+/* SIGN OUT */
+
+.settings-sign-out {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 18px;
+  border: 1px solid #f4212e;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #f4212e;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.15s ease;
+}
+
+.settings-sign-out:hover {
+  background: #f4212e;
+  color: #ffffff;
+}
+
+.settings-sign-out:active {
+  transform: scale(0.98);
+}
+
+/* ================================
+   DARK MODE SETTINGS
+================================ */
+
+.dark-mode .settings-page {
+  background: #000000;
+  color: #e7e9ea;
+}
+
+.dark-mode .settings-page .feed-header {
+  background: #000000;
+  border-color: #2f3336;
+}
+
+.dark-mode .settings-page .feed-header h2 {
+  color: #e7e9ea;
+}
+
+.dark-mode .settings-page .feed-header p {
+  color: #71767b;
+}
+
+.dark-mode .settings-section {
+  background: #000000;
+  border-color: #2f3336;
+}
+
+.dark-mode .settings-section-title h3 {
+  color: #e7e9ea;
+}
+
+.dark-mode .settings-section-title p {
+  color: #71767b;
+}
+
+.dark-mode .settings-item {
+  background: #16181c;
+  border-color: #2f3336;
+}
+
+.dark-mode .settings-item:hover {
+  background: #1d1f23;
+  border-color: #3d4145;
+}
+
+.dark-mode .settings-item-info strong {
+  color: #e7e9ea;
+}
+
+.dark-mode .settings-item-info span {
+  color: #71767b;
+}
+
+.dark-mode .settings-toggle {
+  background: #536471;
+}
+
+.dark-mode .settings-toggle.enabled {
+  background: #1d9bf0;
+}
+
+.dark-mode .settings-sign-out {
+  background: #000000;
+}
+
+/* ================================
+   SETTINGS RESPONSIVE
+================================ */
+
+@media (max-width: 700px) {
+  .settings-page .feed-header {
+    padding: 18px;
+  }
+
+  .settings-page .feed-header h2 {
+    font-size: 21px;
+  }
+
+  .settings-section {
+    padding: 18px;
+  }
+
+  .settings-item {
+    padding: 15px;
+    border-radius: 14px;
+  }
+
+  .settings-item-info strong {
+    font-size: 15px;
+  }
+
+  .settings-item-info span {
+    font-size: 13px;
+  }
+
+  .settings-toggle {
+    width: 48px;
+    height: 28px;
+  }
+
+  .settings-toggle span {
+    width: 20px;
+    height: 20px;
+    top: 4px;
+    left: 4px;
+  }
+
+  .settings-toggle.enabled span {
+    left: 24px;
+  }
+
+  .settings-sign-out {
+    min-height: 46px;
+  }
+}
+
+@media (max-width: 420px) {
+  .settings-section {
+    padding: 16px;
+  }
+
+  .settings-item {
+    gap: 12px;
+  }
+
+  .settings-item-info span {
+    max-width: 220px;
+  }
+}
