@@ -96,254 +96,166 @@ function normalizePosts(posts) {
 /* =========================
    AUTH SCREEN
 ========================= */
-
 function AuthScreen({ onLogin }) {
   const [mode, setMode] = useState("signin");
-
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const [error, setError] = useState("");
-
   const handleSubmit = (e) => {
     e.preventDefault();
     setError("");
-
     const users = getStoredData("users", []);
-
+    /* =========================
+       SIGN UP
+    ========================= */
     if (mode === "signup") {
       if (!name.trim() || !username.trim() || !email.trim() || !password) {
         setError("Please fill in all fields.");
         return;
       }
-
       if (password.length < 6) {
         setError("Password must be at least 6 characters.");
         return;
       }
-
+      const cleanUsername = username.trim().replace(/\s+/g, "").toLowerCase();
       const emailExists = users.some(
         (user) => user.email.toLowerCase() === email.trim().toLowerCase(),
       );
-
       if (emailExists) {
         setError("An account with this email already exists.");
         return;
       }
-
       const usernameExists = users.some(
-        (user) => user.username.toLowerCase() === username.trim().toLowerCase(),
+        (user) => user.username.toLowerCase() === cleanUsername,
       );
-
       if (usernameExists) {
         setError("That username is already taken.");
         return;
       }
-
       const newUser = {
         id: Date.now().toString(),
         name: name.trim(),
-        username: username.trim().replace(/\s+/g, ""),
+        username: cleanUsername,
         email: email.trim().toLowerCase(),
         password,
         avatar: name.trim().charAt(0).toUpperCase(),
       };
-
       const updatedUsers = [...users, newUser];
-
       localStorage.setItem("users", JSON.stringify(updatedUsers));
       localStorage.setItem("currentUser", JSON.stringify(newUser));
-
       onLogin(newUser);
-
       return;
     }
-
+    /* =========================
+       SIGN IN
+    ========================= */
     if (!email.trim() || !password) {
       setError("Please enter your email and password.");
       return;
     }
-
     const user = users.find(
       (item) =>
         item.email.toLowerCase() === email.trim().toLowerCase() &&
         item.password === password,
     );
-
     if (!user) {
       setError("Incorrect email or password.");
       return;
     }
-
     localStorage.setItem("currentUser", JSON.stringify(user));
-
     onLogin(user);
   };
-
+  const switchMode = () => {
+    setMode((currentMode) => (currentMode === "signin" ? "signup" : "signin"));
+    setName("");
+    setUsername("");
+    setEmail("");
+    setPassword("");
+    setError("");
+  };
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "#f7f9f9",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "20px",
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "430px",
-          background: "#fff",
-          borderRadius: "20px",
-          padding: "35px",
-          boxShadow: "0 5px 25px rgba(0,0,0,0.08)",
-        }}
-      >
-        <div
-          style={{
-            textAlign: "center",
-            marginBottom: "30px",
-          }}
-        >
-          <div
-            style={{
-              fontSize: "42px",
-              fontWeight: "bold",
-              marginBottom: "10px",
-            }}
-          >
-            𝕏
-          </div>
-
-          <h1 style={{ margin: 0 }}>
-            {mode === "signin" ? "Sign in to X" : "Create your account"}
-          </h1>
-
-          <p style={{ color: "#536471" }}>
+    <div className="auth-page">
+      <div className="auth-card">
+        {/* LOGO */}
+        <div className="auth-logo">𝕏</div>
+        {/* HEADER */}
+        <div className="auth-header">
+          <h1>{mode === "signin" ? "Sign in to X" : "Create your account"}</h1>
+          <p>
             {mode === "signin"
-              ? "Welcome back!"
-              : "Join the conversation today."}
+              ? "Welcome back! Sign in to continue."
+              : "Join the conversation and share your thoughts."}
           </p>
         </div>
-
-        {error && (
-          <div
-            style={{
-              background: "#ffe8e8",
-              color: "#d93025",
-              padding: "12px",
-              borderRadius: "10px",
-              marginBottom: "15px",
-              fontSize: "14px",
-            }}
-          >
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit}>
+        {/* ERROR */}
+        {error && <div className="auth-error">{error}</div>}
+        {/* FORM */}
+        <form className="auth-form" onSubmit={handleSubmit}>
           {mode === "signup" && (
             <>
-              <input
-                type="text"
-                placeholder="Full name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                style={inputStyle}
-              />
-
-              <input
-                type="text"
-                placeholder="Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                style={inputStyle}
-              />
+              <div className="auth-field">
+                <label>Full name</label>
+                <input
+                  type="text"
+                  placeholder="Enter your full name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+              <div className="auth-field">
+                <label>Username</label>
+                <input
+                  type="text"
+                  placeholder="Choose a username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                />
+              </div>
             </>
           )}
-
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            style={inputStyle}
-          />
-
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            style={inputStyle}
-          />
-
-          <button
-            type="submit"
-            style={{
-              width: "100%",
-              padding: "14px",
-              borderRadius: "25px",
-              border: "none",
-              background: "#000",
-              color: "#fff",
-              fontSize: "16px",
-              fontWeight: "bold",
-              cursor: "pointer",
-              marginTop: "10px",
-            }}
-          >
+          <div className="auth-field">
+            <label>Email</label>
+            <input
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+          <div className="auth-field">
+            <label>Password</label>
+            <input
+              type="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+          <button type="submit" className="auth-submit">
             {mode === "signin" ? "Sign In" : "Create Account"}
           </button>
         </form>
-
-        <div
-          style={{
-            textAlign: "center",
-            marginTop: "25px",
-            color: "#536471",
-          }}
-        >
-          {mode === "signin"
-            ? "Don't have an account?"
-            : "Already have an account?"}
-
-          <button
-            onClick={() => {
-              setMode(mode === "signin" ? "signup" : "signin");
-              setError("");
-            }}
-            style={{
-              border: "none",
-              background: "none",
-              color: "#1d9bf0",
-              fontWeight: "bold",
-              cursor: "pointer",
-              marginLeft: "5px",
-            }}
-          >
+        {/* SWITCH MODE */}
+        <div className="auth-switch">
+          <span>
+            {mode === "signin"
+              ? "Don't have an account?"
+              : "Already have an account?"}
+          </span>
+          <button type="button" onClick={switchMode}>
             {mode === "signin" ? "Sign up" : "Sign in"}
           </button>
         </div>
+        {/* FOOTER */}
+        <p className="auth-footer">
+          By continuing, you agree to use this demo application responsibly.
+        </p>
       </div>
     </div>
   );
 }
-
-const inputStyle = {
-  width: "100%",
-  boxSizing: "border-box",
-  padding: "14px",
-  marginBottom: "12px",
-  border: "1px solid #cfd9de",
-  borderRadius: "8px",
-  fontSize: "15px",
-  outline: "none",
-};
 
 /* =========================
    MAIN APP
