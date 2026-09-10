@@ -1,7 +1,3 @@
-/* ========================================
-   RESET
-======================================== */
-
 * {
   margin: 0;
   padding: 0;
@@ -1822,4 +1818,28 @@ a {
   .explore-user-info strong {
     font-size: 14px;
   }
+}
+
+/* ========================================
+   AUTH SCREEN VISIBILITY FIX
+======================================== */
+
+.auth-page {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100% !important;
+  min-height: 100vh !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 99999 !important;
+  background: #ffffff;
+}
+
+.auth-card {
+  position: relative !important;
+  z-index: 100000 !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
