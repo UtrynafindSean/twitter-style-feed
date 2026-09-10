@@ -48,12 +48,7 @@ const DEFAULT_POSTS = [
 function getStoredData(key, fallback) {
   try {
     const saved = localStorage.getItem(key);
-
-    if (!saved) {
-      return fallback;
-    }
-
-    return JSON.parse(saved);
+    return saved ? JSON.parse(saved) : fallback;
   } catch {
     return fallback;
   }
@@ -63,19 +58,12 @@ function getStoredUser() {
   try {
     const saved = localStorage.getItem("currentUser");
 
-    if (!saved) {
-      return null;
-    }
+    if (!saved) return null;
 
     const user = JSON.parse(saved);
 
-    if (!user || typeof user !== "object") {
-      return null;
-    }
-
-    if (!user.id || !user.email || !user.username) {
-      return null;
-    }
+    if (!user || typeof user !== "object") return null;
+    if (!user.id || !user.email || !user.username) return null;
 
     return user;
   } catch {
@@ -84,9 +72,7 @@ function getStoredUser() {
 }
 
 function normalizePosts(posts) {
-  if (!Array.isArray(posts)) {
-    return DEFAULT_POSTS;
-  }
+  if (!Array.isArray(posts)) return DEFAULT_POSTS;
 
   return posts.map((post) => ({
     ...post,
@@ -104,17 +90,15 @@ function normalizePosts(posts) {
 }
 
 /* =========================
-   AUTH SCREEN
+   AUTH
 ========================= */
 
 function AuthScreen({ onLogin }) {
   const [mode, setMode] = useState("signin");
-
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const [error, setError] = useState("");
 
   const handleSubmit = (e) => {
@@ -122,10 +106,6 @@ function AuthScreen({ onLogin }) {
     setError("");
 
     const users = getStoredData("users", []);
-
-    /* =========================
-       SIGN UP
-    ========================= */
 
     if (mode === "signup") {
       if (!name.trim() || !username.trim() || !email.trim() || !password) {
@@ -139,25 +119,17 @@ function AuthScreen({ onLogin }) {
       }
 
       const cleanName = name.trim();
-
       const cleanUsername = username.trim().replace(/\s+/g, "").toLowerCase();
-
       const cleanEmail = email.trim().toLowerCase();
 
-      const emailExists = users.some(
-        (user) => user.email?.toLowerCase() === cleanEmail,
-      );
-
-      if (emailExists) {
+      if (users.some((user) => user.email?.toLowerCase() === cleanEmail)) {
         setError("An account with this email already exists.");
         return;
       }
 
-      const usernameExists = users.some(
-        (user) => user.username?.toLowerCase() === cleanUsername,
-      );
-
-      if (usernameExists) {
+      if (
+        users.some((user) => user.username?.toLowerCase() === cleanUsername)
+      ) {
         setError("That username is already taken.");
         return;
       }
@@ -172,35 +144,23 @@ function AuthScreen({ onLogin }) {
         bio: "",
       };
 
-      const updatedUsers = [...users, newUser];
+      localStorage.setItem("users", JSON.stringify([...users, newUser]));
 
-      localStorage.setItem("users", JSON.stringify(updatedUsers));
-
-      /*
-        Save the logged-in user immediately.
-        This makes the session survive page refreshes.
-      */
       localStorage.setItem("currentUser", JSON.stringify(newUser));
 
       onLogin(newUser);
-
       return;
     }
-
-    /* =========================
-       SIGN IN
-    ========================= */
 
     if (!email.trim() || !password) {
       setError("Please enter your email and password.");
       return;
     }
 
-    const cleanEmail = email.trim().toLowerCase();
-
     const user = users.find(
       (item) =>
-        item.email?.toLowerCase() === cleanEmail && item.password === password,
+        item.email?.toLowerCase() === email.trim().toLowerCase() &&
+        item.password === password,
     );
 
     if (!user) {
@@ -208,17 +168,13 @@ function AuthScreen({ onLogin }) {
       return;
     }
 
-    /*
-      Save the authenticated user.
-      App also saves it through handleLogin.
-    */
     localStorage.setItem("currentUser", JSON.stringify(user));
 
     onLogin(user);
   };
 
   const switchMode = () => {
-    setMode((currentMode) => (currentMode === "signin" ? "signup" : "signin"));
+    setMode((current) => (current === "signin" ? "signup" : "signin"));
 
     setName("");
     setUsername("");
@@ -351,14 +307,40 @@ function App() {
     getStoredData("notifications", []),
   );
 
+  /* =========================
+     MESSAGES
+  ========================= */
+
+  const [messages, setMessages] = useState(() => getStoredData("messages", {}));
+
+  const [selectedChat, setSelectedChat] = useState(null);
+
+  const [messageText, setMessageText] = useState("");
+
+  const [messageSearch, setMessageSearch] = useState("");
+
+  /* =========================
+     EXPLORE
+  ========================= */
+
+  const [exploreSearch, setExploreSearch] = useState("");
+
+  const [selectedTopic, setSelectedTopic] = useState("");
+
   const [activePage, setActivePage] = useState("home");
+
   const [profileTab, setProfileTab] = useState("posts");
 
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+
   const [editName, setEditName] = useState("");
+
   const [editUsername, setEditUsername] = useState("");
+
   const [editBio, setEditBio] = useState("");
+
   const [editAvatar, setEditAvatar] = useState("");
+
   const [profileError, setProfileError] = useState("");
 
   /* =========================
@@ -381,45 +363,29 @@ function App() {
     localStorage.setItem("notifications", JSON.stringify(notifications));
   }, [notifications]);
 
+  useEffect(() => {
+    localStorage.setItem("messages", JSON.stringify(messages));
+  }, [messages]);
+
   /* =========================
-     LOGIN
+     LOGIN / LOGOUT
   ========================= */
 
   const handleLogin = (user) => {
-    /*
-      Always save the current session here.
-      This means both Sign In and Sign Up
-      behave consistently.
-    */
     localStorage.setItem("currentUser", JSON.stringify(user));
 
     setCurrentUser(user);
-
     setActivePage("home");
-
     setIsEditingProfile(false);
-
     setProfileError("");
   };
 
-  /* =========================
-     LOGOUT
-  ========================= */
-
   const handleLogout = () => {
-    /*
-      Only remove the current session.
-      Do NOT delete users, posts, comments,
-      notifications, or followed users.
-    */
     localStorage.removeItem("currentUser");
 
     setCurrentUser(null);
-
     setActivePage("home");
-
     setIsEditingProfile(false);
-
     setProfileError("");
   };
 
@@ -440,20 +406,17 @@ function App() {
   };
 
   /* =========================
-     EDIT PROFILE
+     PROFILE
   ========================= */
 
   const handleOpenEditProfile = () => {
     setEditName(currentUser?.name || "");
-
     setEditUsername(currentUser?.username || "");
-
     setEditBio(currentUser?.bio || "");
 
     setEditAvatar(currentUser?.avatar || currentUser?.name?.charAt(0) || "");
 
     setProfileError("");
-
     setIsEditingProfile(true);
   };
 
@@ -509,34 +472,30 @@ function App() {
 
     localStorage.setItem("currentUser", JSON.stringify(updatedUser));
 
-    const updatedPosts = posts.map((post) =>
-      post.username === oldUsername
-        ? {
-            ...post,
-            authorName: newName,
-            username: newUsername,
-            avatar: newAvatar,
-          }
-        : post,
+    setPosts((prev) =>
+      prev.map((post) =>
+        post.username === oldUsername
+          ? {
+              ...post,
+              authorName: newName,
+              username: newUsername,
+              avatar: newAvatar,
+            }
+          : post,
+      ),
     );
 
-    setPosts(updatedPosts);
-
     setCurrentUser(updatedUser);
-
     setIsEditingProfile(false);
-
     setProfileError("");
   };
 
   /* =========================
-     POST
+     POSTS
   ========================= */
 
   const handlePost = () => {
-    if (!postText.trim()) {
-      return;
-    }
+    if (!postText.trim()) return;
 
     const newPost = {
       id: Date.now().toString(),
@@ -553,18 +512,14 @@ function App() {
       isUserPost: true,
     };
 
-    setPosts((prevPosts) => [newPost, ...prevPosts]);
+    setPosts((prev) => [newPost, ...prev]);
 
     setPostText("");
   };
 
-  /* =========================
-     DELETE
-  ========================= */
-
   const handleDeletePost = (postId) => {
-    setPosts((prevPosts) =>
-      prevPosts.filter((post) => {
+    setPosts((prev) =>
+      prev.filter((post) => {
         if (post.id !== postId) {
           return true;
         }
@@ -573,80 +528,58 @@ function App() {
       }),
     );
 
-    setComments((prevComments) => {
-      const updated = { ...prevComments };
-
+    setComments((prev) => {
+      const updated = { ...prev };
       delete updated[postId];
-
       return updated;
     });
   };
 
-  /* =========================
-     LIKE
-  ========================= */
-
   const handleLike = (postId) => {
     const targetPost = posts.find((post) => post.id === postId);
 
-    if (!targetPost) {
-      return;
-    }
+    if (!targetPost) return;
 
     const wasLiked = Boolean(targetPost.liked);
 
-    setPosts((prevPosts) =>
-      prevPosts.map((post) => {
-        if (post.id !== postId) {
-          return post;
-        }
-
-        return {
-          ...post,
-          liked: !wasLiked,
-          likeCount: wasLiked
-            ? Math.max((post.likeCount || 0) - 1, 0)
-            : (post.likeCount || 0) + 1,
-        };
-      }),
+    setPosts((prev) =>
+      prev.map((post) =>
+        post.id === postId
+          ? {
+              ...post,
+              liked: !wasLiked,
+              likeCount: wasLiked
+                ? Math.max((post.likeCount || 0) - 1, 0)
+                : (post.likeCount || 0) + 1,
+            }
+          : post,
+      ),
     );
 
-    /*
-      Exactly ONE notification when liking.
-      Unliking does not create a notification.
-    */
     if (!wasLiked) {
       addNotification(`You liked a post by @${targetPost.username}.`, "like");
     }
   };
 
-  /* =========================
-     REPOST
-  ========================= */
-
   const handleRepost = (postId) => {
     const targetPost = posts.find((post) => post.id === postId);
 
-    if (!targetPost) {
-      return;
-    }
+    if (!targetPost) return;
 
     const wasReposted = Boolean(targetPost.reposted);
 
-    setPosts((prevPosts) =>
-      prevPosts.map((post) => {
-        if (post.id !== postId) {
-          return post;
-        }
-
-        return {
-          ...post,
-          reposted: !wasReposted,
-          repostCount: wasReposted
-            ? Math.max(0, post.repostCount - 1)
-            : post.repostCount + 1,
-        };
-      }),
+    setPosts((prev) =>
+      prev.map((post) =>
+        post.id === postId
+          ? {
+              ...post,
+              reposted: !wasReposted,
+              repostCount: wasReposted
+                ? Math.max(0, (post.repostCount || 0) - 1)
+                : (post.repostCount || 0) + 1,
+            }
+          : post,
+      ),
     );
 
     if (!wasReposted && targetPost.username !== currentUser.username) {
@@ -657,13 +590,9 @@ function App() {
     }
   };
 
-  /* =========================
-     BOOKMARK
-  ========================= */
-
   const handleBookmark = (postId) => {
-    setPosts((prevPosts) =>
-      prevPosts.map((post) =>
+    setPosts((prev) =>
+      prev.map((post) =>
         post.id === postId
           ? {
               ...post,
@@ -675,7 +604,7 @@ function App() {
   };
 
   /* =========================
-     FOLLOW
+     USERS / FOLLOW
   ========================= */
 
   const suggestedUsers = [
@@ -697,9 +626,9 @@ function App() {
   ];
 
   const handleFollow = (username) => {
-    const isAlreadyFollowing = followedUsers.includes(username);
+    const alreadyFollowing = followedUsers.includes(username);
 
-    if (isAlreadyFollowing) {
+    if (alreadyFollowing) {
       setFollowedUsers((prev) => prev.filter((item) => item !== username));
 
       return;
@@ -717,15 +646,13 @@ function App() {
   };
 
   /* =========================
-     COMMENT
+     COMMENTS
   ========================= */
 
   const handleComment = (postId) => {
     const text = commentText[postId]?.trim();
 
-    if (!text) {
-      return;
-    }
+    if (!text) return;
 
     const post = posts.find((item) => item.id === postId);
 
@@ -744,9 +671,9 @@ function App() {
       );
     }
 
-    setComments((prevComments) => ({
-      ...prevComments,
-      [postId]: [...(prevComments[postId] || []), newComment],
+    setComments((prev) => ({
+      ...prev,
+      [postId]: [...(prev[postId] || []), newComment],
     }));
 
     setCommentText((prev) => ({
@@ -762,9 +689,7 @@ function App() {
   const filteredPosts = posts.filter((post) => {
     const search = searchText.toLowerCase().trim();
 
-    if (!search) {
-      return true;
-    }
+    if (!search) return true;
 
     return (
       post.text.toLowerCase().includes(search) ||
@@ -772,6 +697,124 @@ function App() {
       post.username.toLowerCase().includes(search)
     );
   });
+
+  /* =========================
+     EXPLORE
+  ========================= */
+
+  const trends = [
+    {
+      category: "Technology · Trending",
+      title: "#TechNigeria",
+      posts: "12.5K posts",
+    },
+    {
+      category: "Technology · Trending",
+      title: "React",
+      posts: "8,421 posts",
+    },
+    {
+      category: "Programming · Trending",
+      title: "JavaScript",
+      posts: "6,892 posts",
+    },
+    {
+      category: "Web Development · Trending",
+      title: "#WebDevelopment",
+      posts: "4,321 posts",
+    },
+    {
+      category: "Trending in Nigeria",
+      title: "#Nigeria",
+      posts: "18.7K posts",
+    },
+  ];
+
+  const explorePosts = posts.filter((post) => {
+    const search = exploreSearch.toLowerCase().trim();
+
+    const matchesSearch =
+      !search ||
+      post.text.toLowerCase().includes(search) ||
+      post.authorName.toLowerCase().includes(search) ||
+      post.username.toLowerCase().includes(search);
+
+    const matchesTopic =
+      !selectedTopic ||
+      post.text.toLowerCase().includes(selectedTopic.toLowerCase());
+
+    return matchesSearch && matchesTopic;
+  });
+
+  /* =========================
+     MESSAGES
+  ========================= */
+
+  const messageUsers = suggestedUsers.filter(
+    (user) => user.username !== currentUser.username,
+  );
+
+  const getChatMessages = (username) => messages[username] || [];
+
+  const sendMessage = () => {
+    const text = messageText.trim();
+
+    if (!text || !selectedChat) return;
+
+    const newMessage = {
+      id: Date.now().toString() + Math.random().toString(36).slice(2),
+      sender: currentUser.username,
+      text,
+      time: "now",
+      read: true,
+    };
+
+    setMessages((prev) => ({
+      ...prev,
+      [selectedChat]: [...(prev[selectedChat] || []), newMessage],
+    }));
+
+    setMessageText("");
+  };
+
+  const getLastMessage = (username) => {
+    const chat = messages[username] || [];
+
+    if (!chat.length) {
+      return "Start a conversation";
+    }
+
+    return chat[chat.length - 1].text;
+  };
+
+  const getUnreadMessages = (username) => {
+    const chat = messages[username] || [];
+
+    return chat.filter(
+      (message) => message.sender !== currentUser.username && !message.read,
+    ).length;
+  };
+
+  const openChat = (username) => {
+    setSelectedChat(username);
+
+    setMessages((prev) => ({
+      ...prev,
+      [username]: (prev[username] || []).map((message) =>
+        message.sender !== currentUser.username
+          ? {
+              ...message,
+              read: true,
+            }
+          : message,
+      ),
+    }));
+  };
+
+  const totalUnreadMessages = messageUsers.reduce(
+    (total, user) => total + getUnreadMessages(user.username),
+    0,
+  );
 
   /* =========================
      AUTH CHECK
@@ -791,6 +834,8 @@ function App() {
 
   const myLikedPosts = posts.filter((post) => post.liked);
 
+  const bookmarkedPosts = posts.filter((post) => post.bookmarked);
+
   /* =========================
      NOTIFICATIONS PAGE
   ========================= */
@@ -800,7 +845,7 @@ function App() {
       (notification) => !notification.read,
     ).length;
 
-    const markAllNotificationsRead = () => {
+    const markAllRead = () => {
       setNotifications((prev) =>
         prev.map((notification) => ({
           ...notification,
@@ -816,7 +861,7 @@ function App() {
             <h2>Notifications</h2>
 
             <p>
-              {unreadCount > 0
+              {unreadCount
                 ? `${unreadCount} unread notification${
                     unreadCount === 1 ? "" : "s"
                   }`
@@ -824,11 +869,8 @@ function App() {
             </p>
           </div>
 
-          {notifications.length > 0 && unreadCount > 0 && (
-            <button
-              className="mark-read-button"
-              onClick={markAllNotificationsRead}
-            >
+          {unreadCount > 0 && (
+            <button className="mark-read-button" onClick={markAllRead}>
               Mark all as read
             </button>
           )}
@@ -856,9 +898,13 @@ function App() {
               >
                 <div className="notification-icon">
                   {notification.type === "like" && "❤️"}
+
                   {notification.type === "repost" && "🔁"}
+
                   {notification.type === "comment" && "💬"}
+
                   {notification.type === "follow" && "👤"}
+
                   {notification.type === "activity" && "🔔"}
                 </div>
 
@@ -874,6 +920,371 @@ function App() {
               </div>
             ))}
           </div>
+        )}
+      </div>
+    );
+  };
+
+  /* =========================
+     EXPLORE PAGE
+  ========================= */
+
+  const ExplorePage = () => {
+    return (
+      <div className="explore-page">
+        <div className="feed-header explore-header">
+          <div>
+            <h2>Explore</h2>
+            <p>Discover what's happening</p>
+          </div>
+        </div>
+
+        <div className="explore-search">
+          <span>🔍</span>
+
+          <input
+            type="text"
+            placeholder="Search Explore"
+            value={exploreSearch}
+            onChange={(e) => setExploreSearch(e.target.value)}
+          />
+        </div>
+
+        <section className="explore-section">
+          <div className="explore-section-header">
+            <h3>What's happening</h3>
+          </div>
+
+          {trends.map((trend) => (
+            <button
+              className={`explore-trend ${
+                selectedTopic === trend.title ? "selected" : ""
+              }`}
+              key={trend.title}
+              onClick={() =>
+                setSelectedTopic(
+                  selectedTopic === trend.title ? "" : trend.title,
+                )
+              }
+            >
+              <span>{trend.category}</span>
+
+              <strong>{trend.title}</strong>
+
+              <small>{trend.posts}</small>
+            </button>
+          ))}
+        </section>
+
+        <section className="explore-section">
+          <div className="explore-section-header">
+            <h3>Who to follow</h3>
+          </div>
+
+          {suggestedUsers.map((user) => {
+            const isFollowed = followedUsers.includes(user.username);
+
+            return (
+              <div className="explore-user" key={user.username}>
+                <div className="small-avatar">{user.avatar}</div>
+
+                <div className="explore-user-info">
+                  <strong>{user.name}</strong>
+
+                  <span>@{user.username}</span>
+                </div>
+
+                <button
+                  onClick={() => handleFollow(user.username)}
+                  className={isFollowed ? "following-button" : "follow-button"}
+                >
+                  {isFollowed ? "Following" : "Follow"}
+                </button>
+              </div>
+            );
+          })}
+        </section>
+
+        <section className="explore-section">
+          <div className="explore-section-header">
+            <div>
+              <h3>Latest posts</h3>
+
+              {selectedTopic && (
+                <button
+                  className="clear-topic"
+                  onClick={() => setSelectedTopic("")}
+                >
+                  Clear filter
+                </button>
+              )}
+            </div>
+          </div>
+
+          {explorePosts.length === 0 ? (
+            <div className="empty-profile">
+              <h3>No posts found</h3>
+
+              <p>Try another search or trending topic.</p>
+            </div>
+          ) : (
+            explorePosts.map((post) => (
+              <article className="post" key={post.id}>
+                <div className="avatar">{post.avatar}</div>
+
+                <div className="post-content">
+                  <div className="post-header">
+                    <strong>{post.authorName}</strong>
+
+                    <span>@{post.username}</span>
+
+                    <span>·</span>
+
+                    <span>{post.time}</span>
+                  </div>
+
+                  <p className="post-text">{post.text}</p>
+
+                  <div className="post-actions">
+                    <button
+                      onClick={() =>
+                        setActivePost(activePost === post.id ? null : post.id)
+                      }
+                    >
+                      💬 {(comments[post.id] || []).length}
+                    </button>
+
+                    <button onClick={() => handleRepost(post.id)}>
+                      🔁 {post.repostCount}
+                    </button>
+
+                    <button onClick={() => handleLike(post.id)}>
+                      {post.liked ? "❤️" : "♡"} {post.likeCount}
+                    </button>
+
+                    <button onClick={() => handleBookmark(post.id)}>
+                      {post.bookmarked ? "🔖" : "📑"}
+                    </button>
+                  </div>
+                </div>
+              </article>
+            ))
+          )}
+        </section>
+      </div>
+    );
+  };
+
+  /* =========================
+     MESSAGES PAGE
+  ========================= */
+
+  const MessagesPage = () => {
+    const filteredUsers = messageUsers.filter((user) => {
+      const search = messageSearch.toLowerCase().trim();
+
+      if (!search) return true;
+
+      return (
+        user.name.toLowerCase().includes(search) ||
+        user.username.toLowerCase().includes(search)
+      );
+    });
+
+    const activeUser = messageUsers.find(
+      (user) => user.username === selectedChat,
+    );
+
+    return (
+      <div className="messages-page">
+        <div className="messages-header">
+          <div>
+            <h2>Messages</h2>
+            <p>Chat with people you know</p>
+          </div>
+        </div>
+
+        <div className="messages-layout">
+          <div className="conversation-panel">
+            <div className="message-search">
+              🔍
+              <input
+                type="text"
+                placeholder="Search messages"
+                value={messageSearch}
+                onChange={(e) => setMessageSearch(e.target.value)}
+              />
+            </div>
+
+            <div className="conversation-list">
+              {filteredUsers.map((user) => {
+                const unread = getUnreadMessages(user.username);
+
+                return (
+                  <button
+                    className={`conversation ${
+                      selectedChat === user.username ? "active" : ""
+                    }`}
+                    key={user.username}
+                    onClick={() => openChat(user.username)}
+                  >
+                    <div className="small-avatar">{user.avatar}</div>
+
+                    <div className="conversation-info">
+                      <strong>{user.name}</strong>
+
+                      <span>{getLastMessage(user.username)}</span>
+                    </div>
+
+                    {unread > 0 && (
+                      <span className="message-unread-badge">{unread}</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="chat-panel">
+            {!activeUser ? (
+              <div className="empty-chat">
+                <div className="empty-chat-icon">💬</div>
+
+                <h3>Select a conversation</h3>
+
+                <p>Choose someone from the list to start messaging.</p>
+              </div>
+            ) : (
+              <>
+                <div className="chat-header">
+                  <div className="small-avatar">{activeUser.avatar}</div>
+
+                  <div>
+                    <strong>{activeUser.name}</strong>
+
+                    <span>@{activeUser.username}</span>
+                  </div>
+                </div>
+
+                <div className="chat-messages">
+                  {getChatMessages(activeUser.username).length === 0 ? (
+                    <div className="empty-chat">
+                      <div className="small-avatar">{activeUser.avatar}</div>
+
+                      <h3>Say hello to {activeUser.name}</h3>
+
+                      <p>Start a new conversation.</p>
+                    </div>
+                  ) : (
+                    getChatMessages(activeUser.username).map((message) => {
+                      const own = message.sender === currentUser.username;
+
+                      return (
+                        <div
+                          className={`chat-message ${own ? "own" : "received"}`}
+                          key={message.id}
+                        >
+                          <div className="message-bubble">{message.text}</div>
+
+                          <span>{message.time}</span>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+
+                <div className="message-compose">
+                  <input
+                    type="text"
+                    placeholder={`Message @${activeUser.username}`}
+                    value={messageText}
+                    onChange={(e) => setMessageText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        sendMessage();
+                      }
+                    }}
+                  />
+
+                  <button onClick={sendMessage} disabled={!messageText.trim()}>
+                    Send
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  /* =========================
+     BOOKMARKS PAGE
+  ========================= */
+
+  const BookmarksPage = () => {
+    return (
+      <div className="bookmarks-page">
+        <div className="feed-header">
+          <div>
+            <h2>Bookmarks</h2>
+
+            <p>Posts you've saved for later</p>
+          </div>
+        </div>
+
+        {bookmarkedPosts.length === 0 ? (
+          <div className="empty-bookmarks">
+            <div className="empty-bookmarks-icon">🔖</div>
+
+            <h3>Save posts for later</h3>
+
+            <p>Bookmark posts to easily find them again.</p>
+
+            <button onClick={() => setActivePage("home")}>Browse posts</button>
+          </div>
+        ) : (
+          bookmarkedPosts.map((post) => (
+            <article className="post" key={post.id}>
+              <div className="avatar">{post.avatar}</div>
+
+              <div className="post-content">
+                <div className="post-header">
+                  <strong>{post.authorName}</strong>
+
+                  <span>@{post.username}</span>
+
+                  <span>·</span>
+
+                  <span>{post.time}</span>
+                </div>
+
+                <p className="post-text">{post.text}</p>
+
+                <div className="post-actions">
+                  <button
+                    onClick={() =>
+                      setActivePost(activePost === post.id ? null : post.id)
+                    }
+                  >
+                    💬 {(comments[post.id] || []).length}
+                  </button>
+
+                  <button onClick={() => handleRepost(post.id)}>
+                    🔁 {post.repostCount}
+                  </button>
+
+                  <button onClick={() => handleLike(post.id)}>
+                    {post.liked ? "❤️" : "♡"} {post.likeCount}
+                  </button>
+
+                  <button onClick={() => handleBookmark(post.id)}>
+                    🔖 Remove
+                  </button>
+                </div>
+              </div>
+            </article>
+          ))
         )}
       </div>
     );
@@ -911,17 +1322,17 @@ function App() {
           <div className="profile-stats">
             <div>
               <strong>{followedUsers.length}</strong>
+
               <span>Following</span>
             </div>
 
             <div>
               <strong>0</strong>
+
               <span>Followers</span>
             </div>
           </div>
         </div>
-
-        {/* EDIT PROFILE POPUP */}
 
         {isEditingProfile && (
           <div className="edit-profile-overlay">
@@ -945,10 +1356,8 @@ function App() {
                 <label>
                   Name
                   <input
-                    type="text"
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
-                    placeholder="Your name"
                     maxLength={50}
                   />
                 </label>
@@ -956,10 +1365,8 @@ function App() {
                 <label>
                   Username
                   <input
-                    type="text"
                     value={editUsername}
                     onChange={(e) => setEditUsername(e.target.value)}
-                    placeholder="username"
                     maxLength={30}
                   />
                 </label>
@@ -969,7 +1376,6 @@ function App() {
                   <textarea
                     value={editBio}
                     onChange={(e) => setEditBio(e.target.value)}
-                    placeholder="Tell people about yourself"
                     maxLength={160}
                     rows={4}
                   />
@@ -978,13 +1384,11 @@ function App() {
                 <label>
                   Avatar initial
                   <input
-                    type="text"
                     value={editAvatar}
                     onChange={(e) =>
                       setEditAvatar(e.target.value.charAt(0).toUpperCase())
                     }
                     maxLength={1}
-                    placeholder="A"
                   />
                 </label>
               </div>
@@ -1007,8 +1411,6 @@ function App() {
             </div>
           </div>
         )}
-
-        {/* PROFILE TABS */}
 
         <div className="profile-tabs">
           <button
@@ -1035,8 +1437,6 @@ function App() {
           </button>
         </div>
 
-        {/* PROFILE POSTS */}
-
         <div className="profile-posts">
           {profileTab === "posts" && (
             <>
@@ -1059,178 +1459,56 @@ function App() {
                   </button>
                 </div>
               ) : (
-                myPosts.map((post) => {
-                  const postComments = comments[post.id] || [];
+                myPosts.map((post) => (
+                  <article className="post" key={post.id}>
+                    <div className="avatar">{post.avatar}</div>
 
-                  return (
-                    <article className="post" key={post.id}>
-                      <div className="avatar">{post.avatar}</div>
+                    <div className="post-content">
+                      <div className="post-header">
+                        <strong>{post.authorName}</strong>
 
-                      <div className="post-content">
-                        <div className="post-header">
-                          <strong>{post.authorName}</strong>
+                        <span>@{post.username}</span>
 
-                          <span>@{post.username}</span>
+                        <span>·</span>
 
-                          <span>·</span>
+                        <span>{post.time}</span>
 
-                          <span>{post.time}</span>
-
-                          <button
-                            onClick={() => handleDeletePost(post.id)}
-                            style={{
-                              marginLeft: "auto",
-                              border: "none",
-                              background: "transparent",
-                              cursor: "pointer",
-                              color: "#f4212e",
-                            }}
-                            title="Delete post"
-                          >
-                            🗑️
-                          </button>
-                        </div>
-
-                        <p className="post-text">{post.text}</p>
-
-                        <div className="post-actions">
-                          <button
-                            onClick={() =>
-                              setActivePost(
-                                activePost === post.id ? null : post.id,
-                              )
-                            }
-                          >
-                            💬 {postComments.length}
-                          </button>
-
-                          <button
-                            onClick={() => handleRepost(post.id)}
-                            style={{
-                              color: post.reposted ? "#00ba7c" : "inherit",
-                            }}
-                          >
-                            🔁 {post.repostCount}
-                          </button>
-
-                          <button
-                            onClick={() => handleLike(post.id)}
-                            style={{
-                              color: post.liked ? "#f91880" : "inherit",
-                            }}
-                          >
-                            {post.liked ? "❤️" : "♡"} {post.likeCount}
-                          </button>
-
-                          <button
-                            onClick={() => handleBookmark(post.id)}
-                            style={{
-                              color: post.bookmarked ? "#1d9bf0" : "inherit",
-                            }}
-                          >
-                            {post.bookmarked ? "🔖" : "📑"}
-                          </button>
-
-                          <button>↗️</button>
-                        </div>
-
-                        {activePost === post.id && (
-                          <div
-                            style={{
-                              marginTop: "15px",
-                              borderTop: "1px solid #eff3f4",
-                              paddingTop: "15px",
-                            }}
-                          >
-                            <div
-                              style={{
-                                display: "flex",
-                                gap: "10px",
-                                marginBottom: "15px",
-                              }}
-                            >
-                              <div className="small-avatar">
-                                {currentUser.avatar ||
-                                  currentUser.name.charAt(0)}
-                              </div>
-
-                              <input
-                                type="text"
-                                placeholder="Post your reply"
-                                value={commentText[post.id] || ""}
-                                onChange={(e) =>
-                                  setCommentText((prev) => ({
-                                    ...prev,
-                                    [post.id]: e.target.value,
-                                  }))
-                                }
-                                onKeyDown={(e) => {
-                                  if (e.key === "Enter") {
-                                    handleComment(post.id);
-                                  }
-                                }}
-                                style={{
-                                  flex: 1,
-                                  border: "1px solid #cfd9de",
-                                  borderRadius: "20px",
-                                  padding: "10px 15px",
-                                  outline: "none",
-                                }}
-                              />
-
-                              <button
-                                onClick={() => handleComment(post.id)}
-                                style={{
-                                  border: "none",
-                                  borderRadius: "20px",
-                                  background: "#000",
-                                  color: "#fff",
-                                  padding: "8px 15px",
-                                  cursor: "pointer",
-                                }}
-                              >
-                                Reply
-                              </button>
-                            </div>
-
-                            {postComments.map((comment) => (
-                              <div
-                                key={comment.id}
-                                style={{
-                                  display: "flex",
-                                  gap: "10px",
-                                  marginBottom: "15px",
-                                }}
-                              >
-                                <div className="small-avatar">
-                                  {comment.avatar}
-                                </div>
-
-                                <div>
-                                  <strong>{comment.authorName}</strong>{" "}
-                                  <span
-                                    style={{
-                                      color: "#536471",
-                                    }}
-                                  >
-                                    @{comment.username}
-                                  </span>
-                                  <p
-                                    style={{
-                                      margin: "5px 0 0",
-                                    }}
-                                  >
-                                    {comment.text}
-                                  </p>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
+                        <button
+                          onClick={() => handleDeletePost(post.id)}
+                          className="delete-post-button"
+                        >
+                          🗑️
+                        </button>
                       </div>
-                    </article>
-                  );
-                })
+
+                      <p className="post-text">{post.text}</p>
+
+                      <div className="post-actions">
+                        <button
+                          onClick={() =>
+                            setActivePost(
+                              activePost === post.id ? null : post.id,
+                            )
+                          }
+                        >
+                          💬 {(comments[post.id] || []).length}
+                        </button>
+
+                        <button onClick={() => handleRepost(post.id)}>
+                          🔁 {post.repostCount}
+                        </button>
+
+                        <button onClick={() => handleLike(post.id)}>
+                          {post.liked ? "❤️" : "♡"} {post.likeCount}
+                        </button>
+
+                        <button onClick={() => handleBookmark(post.id)}>
+                          {post.bookmarked ? "🔖" : "📑"}
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                ))
               )}
             </>
           )}
@@ -1274,12 +1552,7 @@ function App() {
 
                         <button>🔁 {post.repostCount}</button>
 
-                        <button
-                          onClick={() => handleLike(post.id)}
-                          style={{
-                            color: "#f91880",
-                          }}
-                        >
+                        <button onClick={() => handleLike(post.id)}>
                           ❤️ {post.likeCount}
                         </button>
 
@@ -1299,13 +1572,183 @@ function App() {
   };
 
   /* =========================
+     HOME PAGE
+  ========================= */
+
+  const HomePage = () => (
+    <>
+      <header className="feed-header">
+        <h2>Home</h2>
+      </header>
+
+      <div className="compose">
+        <div className="avatar">
+          {currentUser.avatar || currentUser.name.charAt(0)}
+        </div>
+
+        <div className="compose-content">
+          <textarea
+            className="compose-input"
+            placeholder="What is happening?!"
+            value={postText}
+            onChange={(e) => setPostText(e.target.value)}
+          />
+
+          <div className="compose-bottom">
+            <div className="compose-icons">
+              <span>🖼️</span>
+              <span>GIF</span>
+              <span>😊</span>
+              <span>📍</span>
+            </div>
+
+            <button
+              onClick={handlePost}
+              disabled={!postText.trim()}
+              className="small-post-button"
+            >
+              Post
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="home-search">
+        <input
+          type="text"
+          placeholder="Search posts..."
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+        />
+      </div>
+
+      {filteredPosts.length === 0 ? (
+        <div className="empty-profile">
+          <h3>No posts found.</h3>
+
+          <p>Try a different search.</p>
+        </div>
+      ) : (
+        filteredPosts.map((post) => {
+          const postComments = comments[post.id] || [];
+
+          const isOwnPost = post.username === currentUser.username;
+
+          return (
+            <article className="post" key={post.id}>
+              <div className="avatar">{post.avatar}</div>
+
+              <div className="post-content">
+                <div className="post-header">
+                  <strong>{post.authorName}</strong>
+
+                  <span>@{post.username}</span>
+
+                  <span>·</span>
+
+                  <span>{post.time}</span>
+
+                  {isOwnPost && (
+                    <button
+                      onClick={() => handleDeletePost(post.id)}
+                      className="delete-post-button"
+                    >
+                      🗑️
+                    </button>
+                  )}
+                </div>
+
+                <p className="post-text">{post.text}</p>
+
+                <div className="post-actions">
+                  <button
+                    onClick={() =>
+                      setActivePost(activePost === post.id ? null : post.id)
+                    }
+                  >
+                    💬 {postComments.length}
+                  </button>
+
+                  <button onClick={() => handleRepost(post.id)}>
+                    🔁 {post.repostCount}
+                  </button>
+
+                  <button onClick={() => handleLike(post.id)}>
+                    {post.liked ? "❤️" : "♡"} {post.likeCount}
+                  </button>
+
+                  <button onClick={() => handleBookmark(post.id)}>
+                    {post.bookmarked ? "🔖" : "📑"}
+                  </button>
+                </div>
+
+                {activePost === post.id && (
+                  <div className="comments-box">
+                    <div className="small-avatar">
+                      {currentUser.avatar || currentUser.name.charAt(0)}
+                    </div>
+
+                    <input
+                      type="text"
+                      placeholder="Post your reply"
+                      value={commentText[post.id] || ""}
+                      onChange={(e) =>
+                        setCommentText((prev) => ({
+                          ...prev,
+                          [post.id]: e.target.value,
+                        }))
+                      }
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          handleComment(post.id);
+                        }
+                      }}
+                    />
+
+                    <button
+                      onClick={() => handleComment(post.id)}
+                      className="reply-button"
+                    >
+                      Reply
+                    </button>
+                  </div>
+                )}
+
+                {activePost === post.id && postComments.length > 0 && (
+                  <div className="comments-list">
+                    {postComments.map((comment) => (
+                      <div className="comment" key={comment.id}>
+                        <div className="small-avatar">{comment.avatar}</div>
+
+                        <div>
+                          <strong>{comment.authorName}</strong>
+
+                          <span className="comment-username">
+                            @{comment.username}
+                          </span>
+
+                          <p>{comment.text}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </article>
+          );
+        })
+      )}
+    </>
+  );
+
+  /* =========================
      MAIN RETURN
   ========================= */
 
   return (
     <div className="app">
       <div className="layout">
-        {/* LEFT SIDEBAR */}
+        {/* SIDEBAR */}
 
         <aside className="sidebar">
           <div className="logo">𝕏</div>
@@ -1319,7 +1762,10 @@ function App() {
               <strong>Home</strong>
             </div>
 
-            <div className="nav-item">
+            <div
+              className={`nav-item ${activePage === "explore" ? "active" : ""}`}
+              onClick={() => setActivePage("explore")}
+            >
               <span>🔍</span>
               <strong>Explore</strong>
             </div>
@@ -1345,13 +1791,32 @@ function App() {
               <strong>Notifications</strong>
             </div>
 
-            <div className="nav-item">
-              <span>✉️</span>
+            <div
+              className={`nav-item ${
+                activePage === "messages" ? "active" : ""
+              }`}
+              onClick={() => setActivePage("messages")}
+            >
+              <span className="notification-nav-icon">
+                ✉️
+                {totalUnreadMessages > 0 && (
+                  <span className="notification-badge">
+                    {totalUnreadMessages}
+                  </span>
+                )}
+              </span>
+
               <strong>Messages</strong>
             </div>
 
-            <div className="nav-item">
+            <div
+              className={`nav-item ${
+                activePage === "bookmarks" ? "active" : ""
+              }`}
+              onClick={() => setActivePage("bookmarks")}
+            >
               <span>🔖</span>
+
               <strong>Bookmarks</strong>
             </div>
 
@@ -1360,6 +1825,7 @@ function App() {
               onClick={() => setActivePage("profile")}
             >
               <span>👤</span>
+
               <strong>Profile</strong>
             </div>
           </nav>
@@ -1391,30 +1857,13 @@ function App() {
             <button
               onClick={handleLogout}
               title="Sign out"
-              style={{
-                border: "none",
-                background: "transparent",
-                cursor: "pointer",
-                fontSize: "18px",
-              }}
+              className="user-menu-button"
             >
               ⋯
             </button>
           </div>
 
-          <button
-            onClick={handleLogout}
-            style={{
-              width: "100%",
-              padding: "10px",
-              border: "1px solid #cfd9de",
-              borderRadius: "20px",
-              background: "#fff",
-              cursor: "pointer",
-              fontWeight: "bold",
-              marginTop: "10px",
-            }}
-          >
+          <button onClick={handleLogout} className="sign-out-button">
             Sign Out
           </button>
         </aside>
@@ -1422,267 +1871,17 @@ function App() {
         {/* CENTER */}
 
         <main className="feed">
-          {activePage === "profile" ? (
-            <ProfilePage />
-          ) : activePage === "notifications" ? (
-            <NotificationsPage />
-          ) : (
-            <>
-              <header className="feed-header">
-                <h2>Home</h2>
-              </header>
+          {activePage === "profile" && <ProfilePage />}
 
-              <div className="compose">
-                <div className="avatar">
-                  {currentUser.avatar || currentUser.name.charAt(0)}
-                </div>
+          {activePage === "notifications" && <NotificationsPage />}
 
-                <div className="compose-content">
-                  <textarea
-                    className="compose-input"
-                    placeholder="What is happening?!"
-                    value={postText}
-                    onChange={(e) => setPostText(e.target.value)}
-                  />
+          {activePage === "explore" && <ExplorePage />}
 
-                  <div className="compose-bottom">
-                    <div className="compose-icons">
-                      <span>🖼️</span>
-                      <span>GIF</span>
-                      <span>😊</span>
-                      <span>📍</span>
-                    </div>
+          {activePage === "messages" && <MessagesPage />}
 
-                    <button
-                      onClick={handlePost}
-                      disabled={!postText.trim()}
-                      className="small-post-button"
-                    >
-                      Post
-                    </button>
-                  </div>
-                </div>
-              </div>
+          {activePage === "bookmarks" && <BookmarksPage />}
 
-              {/* SEARCH */}
-
-              <div
-                style={{
-                  padding: "15px",
-                  borderBottom: "1px solid #eff3f4",
-                }}
-              >
-                <input
-                  type="text"
-                  placeholder="Search posts..."
-                  value={searchText}
-                  onChange={(e) => setSearchText(e.target.value)}
-                  style={{
-                    width: "100%",
-                    boxSizing: "border-box",
-                    padding: "12px 18px",
-                    borderRadius: "25px",
-                    border: "1px solid #cfd9de",
-                    outline: "none",
-                    fontSize: "15px",
-                  }}
-                />
-              </div>
-
-              {/* POSTS */}
-
-              {filteredPosts.length === 0 ? (
-                <div
-                  style={{
-                    textAlign: "center",
-                    padding: "40px",
-                    color: "#536471",
-                  }}
-                >
-                  No posts found.
-                </div>
-              ) : (
-                filteredPosts.map((post) => {
-                  const postComments = comments[post.id] || [];
-
-                  const isOwnPost = post.username === currentUser.username;
-
-                  return (
-                    <article className="post" key={post.id}>
-                      <div className="avatar">{post.avatar}</div>
-
-                      <div className="post-content">
-                        <div className="post-header">
-                          <strong>{post.authorName}</strong>
-
-                          <span>@{post.username}</span>
-
-                          <span>·</span>
-
-                          <span>{post.time}</span>
-
-                          {isOwnPost && (
-                            <button
-                              onClick={() => handleDeletePost(post.id)}
-                              style={{
-                                marginLeft: "auto",
-                                border: "none",
-                                background: "transparent",
-                                cursor: "pointer",
-                                color: "#f4212e",
-                              }}
-                              title="Delete post"
-                            >
-                              🗑️
-                            </button>
-                          )}
-                        </div>
-
-                        <p className="post-text">{post.text}</p>
-
-                        <div className="post-actions">
-                          <button
-                            onClick={() =>
-                              setActivePost(
-                                activePost === post.id ? null : post.id,
-                              )
-                            }
-                          >
-                            💬 {postComments.length}
-                          </button>
-
-                          <button
-                            onClick={() => handleRepost(post.id)}
-                            style={{
-                              color: post.reposted ? "#00ba7c" : "inherit",
-                            }}
-                          >
-                            🔁 {post.repostCount}
-                          </button>
-
-                          <button
-                            onClick={() => handleLike(post.id)}
-                            style={{
-                              color: post.liked ? "#f91880" : "inherit",
-                            }}
-                          >
-                            {post.liked ? "❤️" : "♡"} {post.likeCount}
-                          </button>
-
-                          <button
-                            onClick={() => handleBookmark(post.id)}
-                            style={{
-                              color: post.bookmarked ? "#1d9bf0" : "inherit",
-                            }}
-                          >
-                            {post.bookmarked ? "🔖" : "📑"}
-                          </button>
-
-                          <button>↗️</button>
-                        </div>
-
-                        {/* COMMENTS */}
-
-                        {activePost === post.id && (
-                          <div
-                            style={{
-                              marginTop: "15px",
-                              borderTop: "1px solid #eff3f4",
-                              paddingTop: "15px",
-                            }}
-                          >
-                            <div
-                              style={{
-                                display: "flex",
-                                gap: "10px",
-                                marginBottom: "15px",
-                              }}
-                            >
-                              <div className="small-avatar">
-                                {currentUser.avatar ||
-                                  currentUser.name.charAt(0)}
-                              </div>
-
-                              <input
-                                type="text"
-                                placeholder="Post your reply"
-                                value={commentText[post.id] || ""}
-                                onChange={(e) =>
-                                  setCommentText((prev) => ({
-                                    ...prev,
-                                    [post.id]: e.target.value,
-                                  }))
-                                }
-                                onKeyDown={(e) => {
-                                  if (e.key === "Enter") {
-                                    handleComment(post.id);
-                                  }
-                                }}
-                                style={{
-                                  flex: 1,
-                                  border: "1px solid #cfd9de",
-                                  borderRadius: "20px",
-                                  padding: "10px 15px",
-                                  outline: "none",
-                                }}
-                              />
-
-                              <button
-                                onClick={() => handleComment(post.id)}
-                                style={{
-                                  border: "none",
-                                  borderRadius: "20px",
-                                  background: "#000",
-                                  color: "#fff",
-                                  padding: "8px 15px",
-                                  cursor: "pointer",
-                                }}
-                              >
-                                Reply
-                              </button>
-                            </div>
-
-                            {postComments.map((comment) => (
-                              <div
-                                key={comment.id}
-                                style={{
-                                  display: "flex",
-                                  gap: "10px",
-                                  marginBottom: "15px",
-                                }}
-                              >
-                                <div className="small-avatar">
-                                  {comment.avatar}
-                                </div>
-
-                                <div>
-                                  <strong>{comment.authorName}</strong>{" "}
-                                  <span
-                                    style={{
-                                      color: "#536471",
-                                    }}
-                                  >
-                                    @{comment.username}
-                                  </span>
-                                  <p
-                                    style={{
-                                      margin: "5px 0 0",
-                                    }}
-                                  >
-                                    {comment.text}
-                                  </p>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </article>
-                  );
-                })
-              )}
-            </>
-          )}
+          {activePage === "home" && <HomePage />}
         </main>
 
         {/* RIGHT SIDEBAR */}
@@ -1696,50 +1895,29 @@ function App() {
               placeholder="Search"
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
-              style={{
-                width: "100%",
-                boxSizing: "border-box",
-                padding: "12px",
-                borderRadius: "20px",
-                border: "1px solid #cfd9de",
-              }}
             />
           </div>
 
           <div className="sidebar-card">
-            <h3>What’s happening</h3>
+            <h3>What's happening</h3>
 
-            <div className="trend">
-              <span>Trending in Nigeria</span>
+            {trends.slice(0, 4).map((trend) => (
+              <div
+                className="trend"
+                key={trend.title}
+                onClick={() => {
+                  setActivePage("explore");
 
-              <strong>#TechNigeria</strong>
+                  setSelectedTopic(trend.title);
+                }}
+              >
+                <span>{trend.category}</span>
 
-              <small>12.5K posts</small>
-            </div>
+                <strong>{trend.title}</strong>
 
-            <div className="trend">
-              <span>Trending</span>
-
-              <strong>React</strong>
-
-              <small>8,421 posts</small>
-            </div>
-
-            <div className="trend">
-              <span>Trending</span>
-
-              <strong>JavaScript</strong>
-
-              <small>6,892 posts</small>
-            </div>
-
-            <div className="trend">
-              <span>Trending</span>
-
-              <strong>#WebDevelopment</strong>
-
-              <small>4,321 posts</small>
-            </div>
+                <small>{trend.posts}</small>
+              </div>
+            ))}
           </div>
 
           <div className="sidebar-card">
@@ -1758,18 +1936,7 @@ function App() {
                     <span>@{user.username}</span>
                   </div>
 
-                  <button
-                    onClick={() => handleFollow(user.username)}
-                    style={{
-                      background: isFollowed ? "#fff" : "#000",
-                      color: isFollowed ? "#000" : "#fff",
-                      border: isFollowed ? "1px solid #cfd9de" : "none",
-                      borderRadius: "20px",
-                      padding: "8px 14px",
-                      cursor: "pointer",
-                      fontWeight: "bold",
-                    }}
-                  >
+                  <button onClick={() => handleFollow(user.username)}>
                     {isFollowed ? "Following" : "Follow"}
                   </button>
                 </div>
@@ -1782,9 +1949,19 @@ function App() {
       {/* MOBILE NAV */}
 
       <div className="mobile-nav">
-        <span onClick={() => setActivePage("home")}>⌂</span>
+        <span
+          className={activePage === "home" ? "mobile-active" : ""}
+          onClick={() => setActivePage("home")}
+        >
+          ⌂
+        </span>
 
-        <span>🔍</span>
+        <span
+          className={activePage === "explore" ? "mobile-active" : ""}
+          onClick={() => setActivePage("explore")}
+        >
+          🔍
+        </span>
 
         <span
           onClick={() => {
@@ -1798,9 +1975,19 @@ function App() {
           ＋
         </span>
 
-        <span onClick={() => setActivePage("notifications")}>🔔</span>
+        <span
+          className={activePage === "notifications" ? "mobile-active" : ""}
+          onClick={() => setActivePage("notifications")}
+        >
+          🔔
+        </span>
 
-        <span onClick={() => setActivePage("profile")}>👤</span>
+        <span
+          className={activePage === "profile" ? "mobile-active" : ""}
+          onClick={() => setActivePage("profile")}
+        >
+          👤
+        </span>
       </div>
     </div>
   );
