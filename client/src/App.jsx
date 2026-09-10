@@ -58,7 +58,7 @@ function getStoredData(key, fallback) {
 }
 
 /* =========================
-   CORRECTED USER STORAGE
+CORRECTED USER STORAGE
 ========================= */
 
 function getStoredUser() {
@@ -87,7 +87,7 @@ function getStoredUser() {
 }
 
 /* =========================
-   POST NORMALIZATION
+POST NORMALIZATION
 ========================= */
 
 function normalizePosts(posts) {
@@ -110,7 +110,7 @@ function normalizePosts(posts) {
 }
 
 /* =========================
-   POST IMAGE COMPONENT
+POST IMAGE COMPONENT
 ========================= */
 
 function PostImage({ image }) {
@@ -124,7 +124,7 @@ function PostImage({ image }) {
 }
 
 /* =========================
-   AUTH
+AUTH
 ========================= */
 
 function AuthScreen({ onLogin }) {
@@ -142,8 +142,8 @@ function AuthScreen({ onLogin }) {
     const users = getStoredData("users", []);
 
     /* =========================
-       CREATE ACCOUNT
-    ========================= */
+   CREATE ACCOUNT
+========================= */
 
     if (mode === "signup") {
       if (!name.trim() || !username.trim() || !email.trim() || !password) {
@@ -207,8 +207,8 @@ function AuthScreen({ onLogin }) {
     }
 
     /* =========================
-       SIGN IN
-    ========================= */
+   SIGN IN
+========================= */
 
     if (!email.trim() || !password) {
       setError("Please enter your email and password.");
@@ -339,7 +339,7 @@ function AuthScreen({ onLogin }) {
 }
 
 /* =========================
-   MAIN APP
+MAIN APP
 ========================= */
 
 function App() {
@@ -371,8 +371,8 @@ function App() {
   );
 
   /* =========================
-     MESSAGES
-  ========================= */
+MESSAGES
+========================= */
 
   const [messages, setMessages] = useState(() => getStoredData("messages", {}));
 
@@ -383,8 +383,8 @@ function App() {
   const [messageSearch, setMessageSearch] = useState("");
 
   /* =========================
-     EXPLORE
-  ========================= */
+EXPLORE
+========================= */
 
   const [exploreSearch, setExploreSearch] = useState("");
 
@@ -407,8 +407,8 @@ function App() {
   const [profileError, setProfileError] = useState("");
 
   /* =========================
-     SETTINGS
-  ========================= */
+SETTINGS
+========================= */
 
   const [darkMode, setDarkMode] = useState(() =>
     getStoredData("darkMode", false),
@@ -423,8 +423,8 @@ function App() {
   );
 
   /* =========================
-     LOCAL STORAGE
-  ========================= */
+LOCAL STORAGE
+========================= */
 
   useEffect(() => {
     localStorage.setItem("posts", JSON.stringify(posts));
@@ -462,8 +462,8 @@ function App() {
   }, [privateAccount]);
 
   /* =========================
-     LOGIN / LOGOUT
-  ========================= */
+LOGIN / LOGOUT
+========================= */
 
   const handleLogin = (user) => {
     localStorage.setItem("currentUser", JSON.stringify(user));
@@ -486,8 +486,8 @@ function App() {
   };
 
   /* =========================
-     NOTIFICATIONS
-  ========================= */
+NOTIFICATIONS
+========================= */
 
   const addNotification = (message, type = "activity") => {
     if (!notificationsEnabled) return;
@@ -504,8 +504,8 @@ function App() {
   };
 
   /* =========================
-     PROFILE
-  ========================= */
+PROFILE
+========================= */
 
   const handleOpenEditProfile = () => {
     setEditName(currentUser?.name || "");
@@ -605,8 +605,8 @@ function App() {
   };
 
   /* =========================
-     IMAGE UPLOAD
-  ========================= */
+IMAGE UPLOAD
+========================= */
 
   const handleImageSelect = (e) => {
     const file = e.target.files?.[0];
@@ -682,8 +682,8 @@ function App() {
   };
 
   /* =========================
-     POSTS
-  ========================= */
+POSTS
+========================= */
 
   const handlePost = () => {
     if (!postText.trim() && !postImage) return;
@@ -816,8 +816,8 @@ function App() {
   };
 
   /* =========================
-     USERS / FOLLOW
-  ========================= */
+USERS / FOLLOW
+========================= */
 
   const suggestedUsers = [
     {
@@ -858,8 +858,8 @@ function App() {
   };
 
   /* =========================
-     COMMENTS
-  ========================= */
+COMMENTS
+========================= */
 
   const handleComment = (postId) => {
     const text = commentText[postId]?.trim();
@@ -901,8 +901,8 @@ function App() {
   };
 
   /* =========================
-     SEARCH
-  ========================= */
+SEARCH
+========================= */
 
   const filteredPosts = posts.filter((post) => {
     const search = searchText.toLowerCase().trim();
@@ -917,8 +917,8 @@ function App() {
   });
 
   /* =========================
-     EXPLORE
-  ========================= */
+EXPLORE
+========================= */
 
   const trends = [
     {
@@ -965,8 +965,8 @@ function App() {
   });
 
   /* =========================
-     MESSAGES
-  ========================= */
+MESSAGES
+========================= */
 
   const messageUsers = suggestedUsers.filter(
     (user) => user.username !== currentUser?.username,
@@ -1041,16 +1041,16 @@ function App() {
   );
 
   /* =========================
-     AUTH CHECK
-  ========================= */
+AUTH CHECK
+========================= */
 
   if (!currentUser) {
     return <AuthScreen onLogin={handleLogin} />;
   }
 
   /* =========================
-     PROFILE DATA
-  ========================= */
+PROFILE DATA
+========================= */
 
   const myPosts = posts.filter(
     (post) => post.username === currentUser.username,
@@ -1061,8 +1061,8 @@ function App() {
   const bookmarkedPosts = posts.filter((post) => post.bookmarked);
 
   /* =========================
-     NOTIFICATIONS PAGE
-  ========================= */
+NOTIFICATIONS PAGE
+========================= */
 
   const NotificationsPage = () => {
     const unreadCount = notifications.filter(
@@ -1150,8 +1150,8 @@ function App() {
   };
 
   /* =========================
-     EXPLORE PAGE
-  ========================= */
+EXPLORE PAGE
+========================= */
 
   const ExplorePage = () => {
     return (
@@ -1303,8 +1303,8 @@ function App() {
   };
 
   /* =========================
-     MESSAGES PAGE
-  ========================= */
+MESSAGES PAGE
+========================= */
 
   const MessagesPage = () => {
     const filteredUsers = messageUsers.filter((user) => {
@@ -1447,8 +1447,8 @@ function App() {
   };
 
   /* =========================
-     BOOKMARKS PAGE
-  ========================= */
+BOOKMARKS PAGE
+========================= */
 
   const BookmarksPage = () => {
     return (
@@ -1521,8 +1521,8 @@ function App() {
   };
 
   /* =========================
-     PROFILE PAGE
-  ========================= */
+PROFILE PAGE
+========================= */
 
   const ProfilePage = () => {
     return (
@@ -1806,8 +1806,8 @@ function App() {
   };
 
   /* =========================
-     SETTINGS PAGE
-  ========================= */
+SETTINGS PAGE
+========================= */
 
   const SettingsPage = () => {
     return (
@@ -1922,8 +1922,8 @@ function App() {
   };
 
   /* =========================
-     HOME PAGE
-  ========================= */
+HOME PAGE
+========================= */
 
   const HomePage = () => (
     <>
@@ -2157,8 +2157,8 @@ function App() {
   );
 
   /* =========================
-     MAIN RETURN
-  ========================= */
+MAIN RETURN
+========================= */
 
   return (
     <div className={`app ${darkMode ? "dark-mode" : ""}`}>
@@ -2422,5 +2422,4 @@ function App() {
     </div>
   );
 }
-
 export default App;
