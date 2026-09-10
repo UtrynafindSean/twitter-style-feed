@@ -1,6 +1,6 @@
-/* ================================
-   RESET
-================================ */
+/* ========================================
+RESET
+======================================== */
 
 * {
   margin: 0;
@@ -16,6 +16,7 @@ body {
   font-family: Arial, Helvetica, sans-serif;
   background: #ffffff;
   color: #0f1419;
+  -webkit-font-smoothing: antialiased;
 }
 
 button,
@@ -38,9 +39,9 @@ a {
   text-decoration: none;
 }
 
-/* ================================
-   APP LAYOUT
-================================ */
+/* ========================================
+APP LAYOUT
+======================================== */
 
 .app {
   min-height: 100vh;
@@ -57,15 +58,15 @@ a {
   gap: 25px;
 }
 
-/* ================================
-   LEFT SIDEBAR
-================================ */
+/* ========================================
+LEFT SIDEBAR
+======================================== */
 
 .sidebar {
   position: sticky;
   top: 0;
   height: 100vh;
-  padding: 20px 12px;
+  padding: 18px 12px;
   display: flex;
   flex-direction: column;
 }
@@ -79,6 +80,15 @@ a {
   font-size: 32px;
   font-weight: 700;
   margin-bottom: 18px;
+  border-radius: 50%;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.logo:hover {
+  background: #eff3f4;
+  transform: scale(1.05);
 }
 
 .sidebar nav {
@@ -92,10 +102,13 @@ a {
   align-items: center;
   gap: 18px;
   width: fit-content;
+  min-width: 170px;
   padding: 13px 18px;
   border-radius: 30px;
   font-size: 18px;
-  transition: background 0.2s ease;
+  transition:
+    background 0.2s ease,
+    transform 0.15s ease;
 }
 
 .nav-item span {
@@ -106,6 +119,10 @@ a {
 
 .nav-item:hover {
   background: #eff3f4;
+}
+
+.nav-item:active {
+  transform: scale(0.97);
 }
 
 .nav-item.active {
@@ -122,22 +139,25 @@ a {
   color: #ffffff;
   font-size: 16px;
   font-weight: 700;
+  box-shadow: 0 5px 14px rgba(29, 155, 240, 0.18);
   transition:
     background 0.2s ease,
-    transform 0.15s ease;
+    transform 0.15s ease,
+    box-shadow 0.2s ease;
 }
 
 .post-button:hover {
   background: #1688d4;
+  box-shadow: 0 7px 18px rgba(29, 155, 240, 0.25);
 }
 
 .post-button:active {
   transform: scale(0.97);
 }
 
-/* ================================
-   CURRENT USER
-================================ */
+/* ========================================
+CURRENT USER
+======================================== */
 
 .current-user-card {
   display: flex;
@@ -146,6 +166,7 @@ a {
   margin-top: auto;
   padding: 12px;
   border-radius: 14px;
+  transition: background 0.2s ease;
 }
 
 .current-user-card:hover {
@@ -171,17 +192,9 @@ a {
   font-size: 13px;
 }
 
-.sidebar > button:last-child {
-  transition: background 0.2s ease;
-}
-
-.sidebar > button:last-child:hover {
-  background: #eff3f4 !important;
-}
-
-/* ================================
-   AVATARS
-================================ */
+/* ========================================
+AVATARS
+======================================== */
 
 .avatar,
 .small-avatar {
@@ -207,15 +220,16 @@ a {
   font-size: 15px;
 }
 
-/* ================================
-   MAIN FEED
-================================ */
+/* ========================================
+MAIN FEED
+======================================== */
 
 .feed {
   min-width: 0;
   border-left: 1px solid #eff3f4;
   border-right: 1px solid #eff3f4;
   min-height: 100vh;
+  background: #ffffff;
 }
 
 .feed-header {
@@ -227,17 +241,19 @@ a {
   align-items: center;
   padding: 0 20px;
   background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border-bottom: 1px solid #eff3f4;
 }
 
 .feed-header h2 {
   font-size: 20px;
+  letter-spacing: -0.2px;
 }
 
-/* ================================
-   COMPOSE
-================================ */
+/* ========================================
+COMPOSE
+======================================== */
 
 .compose {
   display: flex;
@@ -261,6 +277,7 @@ a {
   color: #0f1419;
   padding: 8px 0;
   background: transparent;
+  line-height: 1.5;
 }
 
 .compose-input::placeholder {
@@ -285,6 +302,11 @@ a {
 
 .compose-icons span {
   cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.compose-icons span:hover {
+  transform: scale(1.08);
 }
 
 .small-post-button {
@@ -294,43 +316,57 @@ a {
   background: #1d9bf0;
   color: #ffffff;
   font-weight: 700;
+  box-shadow: 0 4px 10px rgba(29, 155, 240, 0.16);
   transition:
     background 0.2s ease,
-    transform 0.15s ease;
+    transform 0.15s ease,
+    box-shadow 0.2s ease;
 }
 
 .small-post-button:hover:not(:disabled) {
   background: #1688d4;
+  box-shadow: 0 5px 13px rgba(29, 155, 240, 0.22);
 }
 
 .small-post-button:active:not(:disabled) {
   transform: scale(0.96);
 }
 
-/* ================================
-   SEARCH
-================================ */
+/* ========================================
+SEARCH
+======================================== */
 
-.feed > div[style*="border-bottom"] {
-  background: #ffffff;
+.home-search {
+  padding: 14px 20px;
+  border-bottom: 1px solid #eff3f4;
 }
 
-.feed input,
-.right-sidebar input {
+.home-search input {
+  width: 100%;
+  padding: 12px 18px;
+  border: 1px solid #cfd9de;
+  border-radius: 25px;
+  outline: none;
+  background: #ffffff;
+  color: #0f1419;
   transition:
     border 0.2s ease,
-    box-shadow 0.2s ease;
+    box-shadow 0.2s ease,
+    background 0.2s ease;
 }
 
-.feed input:focus,
-.right-sidebar input:focus {
-  border-color: #1d9bf0 !important;
-  box-shadow: 0 0 0 1px #1d9bf0;
+.home-search input::placeholder {
+  color: #536471;
 }
 
-/* ================================
-   POSTS
-================================ */
+.home-search input:focus {
+  border-color: #1d9bf0;
+  box-shadow: 0 0 0 3px rgba(29, 155, 240, 0.12);
+}
+
+/* ========================================
+POSTS
+======================================== */
 
 .post {
   display: flex;
@@ -367,14 +403,14 @@ a {
 
 .post-text {
   font-size: 15px;
-  line-height: 1.5;
+  line-height: 1.55;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 
-/* ================================
-   POST ACTIONS
-================================ */
+/* ========================================
+POST ACTIONS
+======================================== */
 
 .post-actions {
   display: flex;
@@ -407,9 +443,41 @@ a {
   transform: scale(0.9);
 }
 
-/* ================================
-   COMMENTS
-================================ */
+/* ========================================
+DELETE / USER MENU
+======================================== */
+
+.delete-post-button {
+  margin-left: auto;
+  border: none;
+  background: transparent;
+  color: #f4212e;
+  cursor: pointer;
+  border-radius: 50%;
+  padding: 6px;
+  transition:
+    background 0.2s ease,
+    transform 0.15s ease;
+}
+
+.delete-post-button:hover {
+  background: #fff0f1;
+}
+
+.delete-post-button:active {
+  transform: scale(0.9);
+}
+
+.user-menu-button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+/* ========================================
+COMMENTS
+======================================== */
 
 .comments-box {
   display: flex;
@@ -421,6 +489,16 @@ a {
 
 .comments-box input {
   flex: 1;
+  min-width: 0;
+  padding: 10px 14px;
+  border: 1px solid #cfd9de;
+  border-radius: 22px;
+  outline: none;
+}
+
+.comments-box input:focus {
+  border-color: #1d9bf0;
+  box-shadow: 0 0 0 3px rgba(29, 155, 240, 0.1);
 }
 
 .comments-list {
@@ -438,9 +516,34 @@ a {
   line-height: 1.4;
 }
 
-/* ================================
-   RIGHT SIDEBAR
-================================ */
+.comment-username {
+  margin-left: 5px;
+  color: #536471;
+}
+
+.reply-button {
+  border: none;
+  border-radius: 20px;
+  background: #000000;
+  color: #ffffff;
+  padding: 8px 15px;
+  font-weight: 700;
+  transition:
+    background 0.2s ease,
+    transform 0.15s ease;
+}
+
+.reply-button:hover {
+  background: #222222;
+}
+
+.reply-button:active {
+  transform: scale(0.96);
+}
+
+/* ========================================
+RIGHT SIDEBAR
+======================================== */
 
 .right-sidebar {
   padding: 20px 0;
@@ -451,24 +554,27 @@ a {
   border-radius: 18px;
   padding: 18px;
   margin-bottom: 18px;
+  overflow: hidden;
 }
 
 .sidebar-card h3 {
   font-size: 20px;
   margin-bottom: 15px;
+  letter-spacing: -0.2px;
 }
 
-/* ================================
-   TRENDS
-================================ */
+/* ========================================
+TRENDS
+======================================== */
 
 .trend {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 13px 0;
+  padding: 13px 8px;
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: 10px;
+  transition: background 0.2s ease;
 }
 
 .trend:hover {
@@ -496,9 +602,9 @@ a {
   text-decoration: underline;
 }
 
-/* ================================
-   WHO TO FOLLOW
-================================ */
+/* ========================================
+WHO TO FOLLOW
+======================================== */
 
 .follow-user {
   display: flex;
@@ -534,44 +640,56 @@ a {
   color: #ffffff;
   font-weight: 700;
   transition:
-    opacity 0.2s ease,
+    background 0.2s ease,
     transform 0.15s ease;
 }
 
 .follow-user button:hover {
-  opacity: 0.8;
+  background: #222222;
 }
 
 .follow-user button:active {
   transform: scale(0.95);
 }
 
-/* ================================
-   MOBILE NAV
-================================ */
+/* ========================================
+SIGN OUT
+======================================== */
+
+.sign-out-button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  border: 1px solid #cfd9de;
+  border-radius: 20px;
+  background: #ffffff;
+  color: #0f1419;
+  font-weight: 700;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.sign-out-button:hover {
+  background: #eff3f4;
+  border-color: #aab8c2;
+}
+
+/* ========================================
+MOBILE NAV
+======================================== */
 
 .mobile-nav {
   display: none;
 }
 
-/* ================================
-   LOGIN / SIGNUP
-================================ */
-
-form input {
-  transition:
-    border 0.2s ease,
-    box-shadow 0.2s ease;
+.mobile-active {
+  color: #1d9bf0;
 }
 
-form input:focus {
-  border-color: #1d9bf0 !important;
-  box-shadow: 0 0 0 1px #1d9bf0;
-}
-
-/* ================================
-   AUTH PAGE
-================================ */
+/* ========================================
+AUTH PAGE
+======================================== */
 
 .auth-page {
   min-height: 100vh;
@@ -579,7 +697,13 @@ form input:focus {
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: linear-gradient(135deg, #f7f9f9 0%, #ffffff 50%, #eef7ff 100%);
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(29, 155, 240, 0.12),
+      transparent 30%
+    ),
+    linear-gradient(135deg, #f7f9f9 0%, #ffffff 50%, #eef7ff 100%);
 }
 
 .auth-card {
@@ -589,7 +713,7 @@ form input:focus {
   background: #ffffff;
   border: 1px solid #eff3f4;
   border-radius: 22px;
-  box-shadow: 0 15px 50px rgba(15, 20, 25, 0.08);
+  box-shadow: 0 20px 60px rgba(15, 20, 25, 0.1);
 }
 
 .auth-logo {
@@ -645,7 +769,6 @@ form input:focus {
 .auth-field label {
   font-size: 14px;
   font-weight: 700;
-  color: #0f1419;
 }
 
 .auth-field input {
@@ -656,6 +779,14 @@ form input:focus {
   outline: none;
   background: #ffffff;
   color: #0f1419;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.auth-field input:focus {
+  border-color: #1d9bf0;
+  box-shadow: 0 0 0 3px rgba(29, 155, 240, 0.12);
 }
 
 .auth-submit {
@@ -708,9 +839,9 @@ form input:focus {
   line-height: 1.5;
 }
 
-/* ================================
-   PROFILE
-================================ */
+/* ========================================
+PROFILE
+======================================== */
 
 .profile-page {
   min-height: 100vh;
@@ -718,7 +849,13 @@ form input:focus {
 
 .profile-cover {
   height: 170px;
-  background: linear-gradient(135deg, #1d9bf0, #7856ff);
+  background:
+    radial-gradient(
+      circle at 80% 20%,
+      rgba(255, 255, 255, 0.22),
+      transparent 25%
+    ),
+    linear-gradient(135deg, #1d9bf0, #7856ff);
 }
 
 .profile-info {
@@ -741,6 +878,7 @@ form input:focus {
   border: 4px solid #ffffff;
   position: absolute;
   top: -45px;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
 }
 
 .edit-profile-button {
@@ -752,16 +890,23 @@ form input:focus {
   color: #0f1419;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition:
+    background 0.2s ease,
+    transform 0.15s ease;
 }
 
 .edit-profile-button:hover {
   background: #f7f9f9;
 }
 
+.edit-profile-button:active {
+  transform: scale(0.97);
+}
+
 .profile-info h2 {
   margin-top: 45px;
   margin-bottom: 3px;
+  font-size: 22px;
 }
 
 .profile-username {
@@ -802,7 +947,9 @@ form input:focus {
   font-weight: 700;
   color: #536471;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
 }
 
 .profile-tab:hover {
@@ -840,16 +987,15 @@ form input:focus {
   padding: 12px 22px;
   border-radius: 25px;
   font-weight: 700;
-  cursor: pointer;
 }
 
 .empty-profile button:hover {
-  opacity: 0.85;
+  background: #222222;
 }
 
-/* ================================
-   EDIT PROFILE MODAL
-================================ */
+/* ========================================
+EDIT PROFILE MODAL
+======================================== */
 
 .edit-profile-overlay {
   position: fixed;
@@ -860,6 +1006,7 @@ form input:focus {
   justify-content: center;
   padding: 20px;
   z-index: 1000;
+  backdrop-filter: blur(3px);
 }
 
 .edit-profile-card {
@@ -867,7 +1014,7 @@ form input:focus {
   max-width: 520px;
   background: #ffffff;
   border-radius: 18px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.25);
   overflow: hidden;
 }
 
@@ -882,7 +1029,6 @@ form input:focus {
 .edit-profile-header h2 {
   font-size: 20px;
   font-weight: 700;
-  color: #0f1419;
 }
 
 .close-edit-profile {
@@ -894,7 +1040,6 @@ form input:focus {
   color: #536471;
   font-size: 28px;
   line-height: 1;
-  cursor: pointer;
 }
 
 .close-edit-profile:hover {
@@ -971,7 +1116,6 @@ form input:focus {
   border-radius: 999px;
   padding: 10px 20px;
   font-weight: 700;
-  cursor: pointer;
 }
 
 .cancel-profile-button {
@@ -992,9 +1136,9 @@ form input:focus {
   background: #1a8cd8;
 }
 
-/* ================================
-   NOTIFICATIONS
-================================ */
+/* ========================================
+NOTIFICATIONS
+======================================== */
 
 .notifications-page {
   min-height: 100%;
@@ -1017,15 +1161,10 @@ form input:focus {
   background: transparent;
   color: #1d9bf0;
   font-weight: 700;
-  cursor: pointer;
 }
 
 .mark-read-button:hover {
   text-decoration: underline;
-}
-
-.notification-list {
-  width: 100%;
 }
 
 .notification-item {
@@ -1063,7 +1202,6 @@ form input:focus {
 }
 
 .notification-content p {
-  margin: 0;
   color: #0f1419;
   font-size: 15px;
   line-height: 1.4;
@@ -1129,184 +1267,9 @@ form input:focus {
   line-height: 1.5;
 }
 
-/* ================================
-   RESPONSIVE
-================================ */
-
-@media (max-width: 1100px) {
-  .layout {
-    grid-template-columns: 220px minmax(450px, 1fr);
-    max-width: 900px;
-  }
-
-  .right-sidebar {
-    display: none;
-  }
-}
-
-@media (max-width: 700px) {
-  .layout {
-    display: block;
-    max-width: 100%;
-  }
-
-  .sidebar {
-    display: none;
-  }
-
-  .feed {
-    border-left: none;
-    border-right: none;
-    padding-bottom: 65px;
-  }
-
-  .right-sidebar {
-    display: none;
-  }
-
-  .post {
-    padding: 15px;
-  }
-
-  .compose {
-    padding: 15px;
-  }
-
-  .feed-header {
-    min-height: 55px;
-    padding: 0 15px;
-  }
-
-  .compose-input {
-    font-size: 17px;
-  }
-
-  .mobile-nav {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 100;
-    height: 58px;
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
-    background: rgba(255, 255, 255, 0.96);
-    backdrop-filter: blur(10px);
-    border-top: 1px solid #eff3f4;
-  }
-
-  .mobile-nav span {
-    font-size: 22px;
-    cursor: pointer;
-    padding: 10px;
-  }
-
-  .post-actions {
-    max-width: 100%;
-  }
-
-  .notifications-header {
-    align-items: flex-start;
-    gap: 10px;
-  }
-
-  .notification-item {
-    padding: 16px;
-  }
-}
-
-@media (max-width: 600px) {
-  .auth-card {
-    padding: 28px 20px;
-    border-radius: 18px;
-  }
-
-  .edit-profile-overlay {
-    align-items: flex-end;
-    padding: 0;
-  }
-
-  .edit-profile-card {
-    max-width: none;
-    border-radius: 18px 18px 0 0;
-  }
-
-  .edit-profile-actions {
-    padding-bottom: 20px;
-  }
-}
-
-@media (max-width: 480px) {
-  .post {
-    gap: 9px;
-    padding: 14px 12px;
-  }
-
-  .avatar {
-    width: 40px;
-    height: 40px;
-    font-size: 16px;
-  }
-
-  .post-header {
-    font-size: 14px;
-  }
-
-  .post-text {
-    font-size: 14px;
-  }
-
-  .post-actions button {
-    min-width: 45px;
-    padding: 6px;
-  }
-
-  .compose {
-    gap: 9px;
-  }
-
-  .compose-icons {
-    gap: 8px;
-  }
-
-  .profile-cover {
-    height: 140px;
-  }
-
-  .profile-info {
-    padding: 18px 15px;
-  }
-
-  .profile-avatar {
-    width: 78px;
-    height: 78px;
-    top: -39px;
-    font-size: 30px;
-  }
-
-  .profile-info h2 {
-    margin-top: 40px;
-  }
-
-  .profile-tabs button {
-    padding: 15px 5px;
-  }
-
-  .notification-item {
-    gap: 10px;
-    padding: 14px 12px;
-  }
-
-  .notification-icon {
-    width: 40px;
-    height: 40px;
-    font-size: 18px;
-  }
-
-/* ================================
-   EXPLORE
-================================ */
+/* ========================================
+EXPLORE
+======================================== */
 
 .explore-page {
   min-height: 100vh;
@@ -1331,6 +1294,14 @@ form input:focus {
   padding: 11px 16px;
   border-radius: 25px;
   background: #eff3f4;
+  transition:
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.explore-search:focus-within {
+  background: #ffffff;
+  box-shadow: 0 0 0 2px #1d9bf0;
 }
 
 .explore-search span {
@@ -1415,6 +1386,9 @@ form input:focus {
   padding: 8px 16px;
   font-weight: 700;
   cursor: pointer;
+  transition:
+    background 0.2s ease,
+    transform 0.15s ease;
 }
 
 .follow-button {
@@ -1423,18 +1397,23 @@ form input:focus {
   color: #ffffff;
 }
 
+.follow-button:hover {
+  background: #222222;
+}
+
 .following-button {
   border: 1px solid #cfd9de;
   background: #ffffff;
   color: #0f1419;
 }
 
-.follow-button:hover {
-  opacity: 0.8;
-}
-
 .following-button:hover {
   background: #eff3f4;
+}
+
+.follow-button:active,
+.following-button:active {
+  transform: scale(0.96);
 }
 
 .clear-topic {
@@ -1443,12 +1422,15 @@ form input:focus {
   background: transparent;
   color: #1d9bf0;
   font-size: 13px;
-  cursor: pointer;
 }
 
-/* ================================
-   MESSAGES
-================================ */
+.clear-topic:hover {
+  text-decoration: underline;
+}
+
+/* ========================================
+MESSAGES
+======================================== */
 
 .messages-page {
   min-height: 100vh;
@@ -1492,6 +1474,14 @@ form input:focus {
   border-radius: 20px;
   background: #eff3f4;
   color: #536471;
+  transition:
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.message-search:focus-within {
+  background: #ffffff;
+  box-shadow: 0 0 0 2px #1d9bf0;
 }
 
 .message-search input {
@@ -1516,6 +1506,7 @@ form input:focus {
   border-bottom: 1px solid #eff3f4;
   background: #ffffff;
   text-align: left;
+  transition: background 0.2s ease;
 }
 
 .conversation:hover,
@@ -1585,6 +1576,7 @@ form input:focus {
   flex: 1;
   overflow-y: auto;
   padding: 20px;
+  scroll-behavior: smooth;
 }
 
 .chat-message {
@@ -1633,6 +1625,7 @@ form input:focus {
   gap: 10px;
   padding: 12px;
   border-top: 1px solid #eff3f4;
+  background: #ffffff;
 }
 
 .message-compose input {
@@ -1646,6 +1639,7 @@ form input:focus {
 
 .message-compose input:focus {
   border-color: #1d9bf0;
+  box-shadow: 0 0 0 3px rgba(29, 155, 240, 0.1);
 }
 
 .message-compose button {
@@ -1655,10 +1649,17 @@ form input:focus {
   background: #1d9bf0;
   color: #ffffff;
   font-weight: 700;
+  transition:
+    background 0.2s ease,
+    transform 0.15s ease;
 }
 
-.message-compose button:disabled {
-  opacity: 0.5;
+.message-compose button:hover:not(:disabled) {
+  background: #1688d4;
+}
+
+.message-compose button:active:not(:disabled) {
+  transform: scale(0.96);
 }
 
 .empty-chat {
@@ -1686,9 +1687,9 @@ form input:focus {
   font-size: 44px;
 }
 
-/* ================================
-   BOOKMARKS
-================================ */
+/* ========================================
+BOOKMARKS
+======================================== */
 
 .bookmarks-page {
   min-height: 100vh;
@@ -1734,91 +1735,120 @@ form input:focus {
   background: #000000;
   color: #ffffff;
   font-weight: 700;
+  transition:
+    background 0.2s ease,
+    transform 0.15s ease;
 }
 
 .empty-bookmarks button:hover {
-  opacity: 0.8;
+  background: #222222;
 }
 
-/* ================================
-   HOME SEARCH
-================================ */
-
-.home-search {
-  padding: 15px;
-  border-bottom: 1px solid #eff3f4;
+.empty-bookmarks button:active {
+  transform: scale(0.97);
 }
 
-.home-search input {
-  width: 100%;
-  padding: 12px 18px;
-  border: 1px solid #cfd9de;
-  border-radius: 25px;
-  outline: none;
+/* ========================================
+GENERAL INPUT FOCUS
+======================================== */
+
+.feed input:focus,
+.right-sidebar input:focus {
+  border-color: #1d9bf0 !important;
 }
 
-.home-search input:focus {
-  border-color: #1d9bf0;
-  box-shadow: 0 0 0 1px #1d9bf0;
-}
+/* ========================================
+RESPONSIVE
+======================================== */
 
-/* ================================
-   SMALL UI FIXES
-================================ */
+@media (max-width: 1100px) {
+  .layout {
+    grid-template-columns: 220px minmax(450px, 1fr);
+    max-width: 900px;
+  }
 
-.delete-post-button {
-  margin-left: auto;
-  border: none;
-  background: transparent;
-  color: #f4212e;
-  cursor: pointer;
-}
-
-.user-menu-button {
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  font-size: 18px;
-}
-
-.sign-out-button {
-  width: 100%;
-  padding: 10px;
-  margin-top: 10px;
-  border: 1px solid #cfd9de;
-  border-radius: 20px;
-  background: #ffffff;
-  color: #0f1419;
-  font-weight: 700;
-}
-
-.sign-out-button:hover {
-  background: #eff3f4;
-}
-
-.reply-button {
-  border: none;
-  border-radius: 20px;
-  background: #000000;
-  color: #ffffff;
-  padding: 8px 15px;
-  font-weight: 700;
-}
-
-.comment-username {
-  margin-left: 5px;
-  color: #536471;
-}
-
-/* ================================
-   MOBILE
-================================ */
-
-.mobile-active {
-  color: #1d9bf0;
+  .right-sidebar {
+    display: none;
+  }
 }
 
 @media (max-width: 700px) {
+  .layout {
+    display: block;
+    max-width: 100%;
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  .feed {
+    border-left: none;
+    border-right: none;
+    padding-bottom: 65px;
+  }
+
+  .right-sidebar {
+    display: none;
+  }
+
+  .post {
+    padding: 15px;
+  }
+
+  .compose {
+    padding: 15px;
+  }
+
+  .feed-header {
+    min-height: 55px;
+    padding: 0 15px;
+  }
+
+  .compose-input {
+    font-size: 17px;
+  }
+
+  .mobile-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 100;
+    height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid #eff3f4;
+  }
+
+  .mobile-nav span {
+    font-size: 22px;
+    cursor: pointer;
+    padding: 10px;
+    transition: transform 0.15s ease;
+  }
+
+  .mobile-nav span:active {
+    transform: scale(0.9);
+  }
+
+  .post-actions {
+    max-width: 100%;
+  }
+
+  .notifications-header {
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .notification-item {
+    padding: 16px;
+  }
+
   .messages-layout {
     display: block;
     height: auto;
@@ -1859,7 +1889,108 @@ form input:focus {
   }
 }
 
+@media (max-width: 600px) {
+  .auth-page {
+    padding: 15px;
+  }
+
+  .auth-card {
+    padding: 28px 20px;
+    border-radius: 18px;
+  }
+
+  .edit-profile-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .edit-profile-card {
+    max-width: none;
+    border-radius: 18px 18px 0 0;
+  }
+
+  .edit-profile-actions {
+    padding-bottom: 20px;
+  }
+}
+
 @media (max-width: 480px) {
+  .post {
+    gap: 9px;
+    padding: 14px 12px;
+  }
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+
+  .small-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+
+  .post-header {
+    font-size: 14px;
+  }
+
+  .post-text {
+    font-size: 14px;
+  }
+
+  .post-actions button {
+    min-width: 45px;
+    padding: 6px;
+  }
+
+  .compose {
+    gap: 9px;
+  }
+
+  .compose-icons {
+    gap: 8px;
+  }
+
+  .compose-icons span {
+    font-size: 13px;
+  }
+
+  .profile-cover {
+    height: 140px;
+  }
+
+  .profile-info {
+    padding: 18px 15px;
+  }
+
+  .profile-avatar {
+    width: 78px;
+    height: 78px;
+    top: -39px;
+    font-size: 30px;
+  }
+
+  .profile-info h2 {
+    margin-top: 40px;
+  }
+
+  .profile-tabs button {
+    padding: 15px 5px;
+  }
+
+  .notification-item {
+    gap: 10px;
+    padding: 14px 12px;
+  }
+
+  .notification-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+
   .messages-header h2 {
     font-size: 18px;
   }
