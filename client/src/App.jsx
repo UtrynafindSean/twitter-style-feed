@@ -751,7 +751,7 @@ function App() {
   ========================= */
 
   const messageUsers = suggestedUsers.filter(
-    (user) => user.username !== currentUser.username,
+    (user) => user.username !== currentUser?.username,
   );
 
   const getChatMessages = (username) => messages[username] || [];
