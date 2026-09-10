@@ -283,6 +283,12 @@ function App() {
   /* PROFILE PAGE STATE */
   const [activePage, setActivePage] = useState("home");
   const [profileTab, setProfileTab] = useState("posts");
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editUsername, setEditUsername] = useState("");
+  const [editBio, setEditBio] = useState("");
+  const [editAvatar, setEditAvatar] = useState("");
+  const [profileError, setProfileError] = useState("");
 
   useEffect(() => {
     localStorage.setItem("posts", JSON.stringify(posts));
@@ -304,6 +310,79 @@ function App() {
   const handleLogout = () => {
     localStorage.removeItem("currentUser");
     setCurrentUser(null);
+  };
+  const handleOpenEditProfile = () => {
+    setEditName(currentUser?.name || "");
+    setEditUsername(currentUser?.username || "");
+    setEditBio(currentUser?.bio || "");
+    setEditAvatar(currentUser?.avatar || currentUser?.name?.charAt(0) || "");
+    setProfileError("");
+    setIsEditingProfile(true);
+  };
+
+  const handleSaveProfile = () => {
+    const newName = editName.trim();
+    const newUsername = editUsername.trim().replace(/\s+/g, "").toLowerCase();
+    const newBio = editBio.trim();
+    const newAvatar =
+      editAvatar.trim().charAt(0).toUpperCase() ||
+      newName.charAt(0).toUpperCase();
+
+    if (!newName) {
+      setProfileError("Please enter your name.");
+      return;
+    }
+
+    if (!newUsername) {
+      setProfileError("Please enter a username.");
+      return;
+    }
+
+    const users = getStoredData("users", []);
+
+    const usernameTaken = users.some(
+      (user) =>
+        user.id !== currentUser.id &&
+        user.username?.toLowerCase() === newUsername,
+    );
+
+    if (usernameTaken) {
+      setProfileError("That username is already taken.");
+      return;
+    }
+
+    const oldUsername = currentUser.username;
+
+    const updatedUser = {
+      ...currentUser,
+      name: newName,
+      username: newUsername,
+      bio: newBio,
+      avatar: newAvatar,
+    };
+
+    const updatedUsers = users.map((user) =>
+      user.id === currentUser.id ? updatedUser : user,
+    );
+
+    localStorage.setItem("users", JSON.stringify(updatedUsers));
+    localStorage.setItem("currentUser", JSON.stringify(updatedUser));
+
+    const updatedPosts = posts.map((post) =>
+      post.username === oldUsername
+        ? {
+            ...post,
+            authorName: newName,
+            username: newUsername,
+            avatar: newAvatar,
+          }
+        : post,
+    );
+
+    setPosts(updatedPosts);
+    setCurrentUser(updatedUser);
+    setIsEditingProfile(false);
+    setProfileError("");
   };
 
   /* =========================
@@ -525,7 +604,12 @@ function App() {
 
         {/* PROFILE INFORMATION */}
         <div className="profile-info">
-          <button className="edit-profile-button">Edit profile</button>
+          <button
+            className="edit-profile-button"
+            onClick={handleOpenEditProfile}
+          >
+            Edit profile
+          </button>
 
           <div className="profile-avatar">
             {currentUser.avatar || currentUser.name.charAt(0).toUpperCase()}
@@ -546,6 +630,92 @@ function App() {
             <div>
               <strong>0</strong>
               <span>Followers</span>
+              {isEditingProfile && (
+                <div className="edit-profile-overlay">
+                  <div className="edit-profile-card">
+                    <div className="edit-profile-header">
+                      <h2>Edit profile</h2>
+
+                      <button
+                        className="close-edit-profile"
+                        onClick={() => setIsEditingProfile(false)}
+                      >
+                        ×
+                      </button>
+                    </div>
+
+                    {profileError && (
+                      <div className="profile-error">{profileError}</div>
+                    )}
+
+                    <div className="edit-profile-form">
+                      <label>
+                        Name
+                        <input
+                          type="text"
+                          value={editName}
+                          onChange={(e) => setEditName(e.target.value)}
+                          placeholder="Your name"
+                          maxLength={50}
+                        />
+                      </label>
+
+                      <label>
+                        Username
+                        <input
+                          type="text"
+                          value={editUsername}
+                          onChange={(e) => setEditUsername(e.target.value)}
+                          placeholder="username"
+                          maxLength={30}
+                        />
+                      </label>
+
+                      <label>
+                        Bio
+                        <textarea
+                          value={editBio}
+                          onChange={(e) => setEditBio(e.target.value)}
+                          placeholder="Tell people about yourself"
+                          maxLength={160}
+                          rows={4}
+                        />
+                      </label>
+
+                      <label>
+                        Avatar initial
+                        <input
+                          type="text"
+                          value={editAvatar}
+                          onChange={(e) =>
+                            setEditAvatar(
+                              e.target.value.charAt(0).toUpperCase(),
+                            )
+                          }
+                          maxLength={1}
+                          placeholder="A"
+                        />
+                      </label>
+                    </div>
+
+                    <div className="edit-profile-actions">
+                      <button
+                        className="cancel-profile-button"
+                        onClick={() => setIsEditingProfile(false)}
+                      >
+                        Cancel
+                      </button>
+
+                      <button
+                        className="save-profile-button"
+                        onClick={handleSaveProfile}
+                      >
+                        Save
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
