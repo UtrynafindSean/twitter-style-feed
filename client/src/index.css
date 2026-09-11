@@ -1,6 +1,6 @@
 /* =========================================================
    BUTTON SYSTEM
-   Clean unified button styling
+   Clean, consistent styling
 ========================================================= */
 
 button {
@@ -67,15 +67,15 @@ button:disabled {
 .explore-follow-button,
 .save-button,
 .edit-profile-save {
-  border-color: var(--accent);
+  min-height: 40px;
+  padding: 10px 18px;
 
-  background: linear-gradient(145deg, #2ca8f5, #1d9bf0);
+  border: 1px solid var(--accent);
 
+  background: var(--accent);
   color: #ffffff;
 
-  box-shadow:
-    0 5px 12px rgba(29, 155, 240, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 10px rgba(29, 155, 240, 0.16);
 }
 
 .primary-button:hover,
@@ -86,11 +86,10 @@ button:disabled {
 .explore-follow-button:hover,
 .save-button:hover,
 .edit-profile-save:hover {
-  background: linear-gradient(145deg, #38adf5, #1688d4);
+  background: var(--accent-dark);
+  border-color: var(--accent-dark);
 
-  box-shadow:
-    0 8px 17px rgba(29, 155, 240, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  box-shadow: 0 7px 16px rgba(29, 155, 240, 0.22);
 }
 
 /* =========================================================
@@ -101,14 +100,15 @@ button:disabled {
 .profile-edit-button,
 .cancel-button,
 .settings-button {
+  min-height: 38px;
+  padding: 9px 16px;
+
   border: 1px solid var(--border);
 
   background: var(--surface);
   color: var(--text);
 
-  box-shadow:
-    0 3px 8px rgba(15, 20, 25, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  box-shadow: 0 2px 6px rgba(15, 20, 25, 0.05);
 }
 
 .secondary-button:hover,
@@ -116,10 +116,9 @@ button:disabled {
 .cancel-button:hover,
 .settings-button:hover {
   background: var(--surface-hover);
-
   border-color: #cbd5da;
 
-  box-shadow: 0 6px 12px rgba(15, 20, 25, 0.08);
+  box-shadow: 0 5px 12px rgba(15, 20, 25, 0.08);
 }
 
 /* =========================================================
@@ -131,37 +130,15 @@ button:disabled {
   justify-content: flex-end;
   align-items: center;
   gap: 10px;
-
-  margin-top: 5px;
+  margin-top: 8px;
 }
 
 .edit-profile-actions .cancel-button {
-  border: 1px solid var(--border);
-
-  background: var(--surface);
-  color: var(--text-secondary);
-
-  box-shadow: var(--shadow-xs);
-}
-
-.edit-profile-actions .cancel-button:hover {
-  background: var(--surface-hover);
-  color: var(--text);
+  min-height: 40px;
 }
 
 .edit-profile-actions .edit-profile-save {
-  border: 1px solid var(--accent);
-
-  background: var(--accent);
-  color: #ffffff;
-
-  box-shadow: 0 5px 12px rgba(29, 155, 240, 0.2);
-}
-
-.edit-profile-actions .edit-profile-save:hover {
-  background: var(--accent-dark);
-
-  box-shadow: 0 8px 16px rgba(29, 155, 240, 0.25);
+  min-height: 40px;
 }
 
 /* =========================================================
@@ -170,20 +147,21 @@ button:disabled {
 
 .follow-button {
   min-height: 34px;
-  padding: 8px 15px;
+  padding: 8px 16px;
 
   border: 1px solid var(--text);
 
   background: var(--text);
   color: var(--surface);
 
-  box-shadow: 0 4px 10px rgba(15, 20, 25, 0.12);
+  box-shadow: 0 3px 8px rgba(15, 20, 25, 0.12);
 }
 
 .follow-button:hover {
-  background: var(--text);
+  background: #000000;
+  border-color: #000000;
 
-  box-shadow: 0 7px 15px rgba(15, 20, 25, 0.16);
+  box-shadow: 0 6px 13px rgba(15, 20, 25, 0.16);
 }
 
 /* =========================================================
@@ -191,20 +169,22 @@ button:disabled {
 ========================================================= */
 
 .profile-follow-button.following {
+  min-height: 38px;
+  padding: 9px 16px;
+
   border: 1px solid var(--border);
 
   background: var(--surface);
   color: var(--text);
 
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 2px 7px rgba(15, 20, 25, 0.05);
 }
 
 .profile-follow-button.following:hover {
   background: var(--surface-hover);
-
   border-color: #cbd5da;
 
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 5px 12px rgba(15, 20, 25, 0.08);
 }
 
 /* =========================================================
@@ -212,6 +192,9 @@ button:disabled {
 ========================================================= */
 
 .dark-button {
+  min-height: 38px;
+  padding: 9px 16px;
+
   border: 1px solid var(--text);
 
   background: var(--text);
@@ -221,7 +204,8 @@ button:disabled {
 }
 
 .dark-button:hover {
-  background: var(--text);
+  background: #000000;
+  border-color: #000000;
 
   box-shadow: 0 7px 15px rgba(15, 20, 25, 0.16);
 }
@@ -232,9 +216,10 @@ button:disabled {
 
 .text-button,
 .link-button {
+  min-height: 34px;
   padding: 7px 10px;
 
-  border-color: transparent;
+  border: 1px solid transparent;
 
   background: transparent;
   color: var(--accent);
@@ -264,12 +249,10 @@ button:disabled {
 .mobile-nav button {
   width: 38px;
   height: 38px;
-
   min-width: 38px;
 
-  flex-shrink: 0;
-
   padding: 0;
+  flex-shrink: 0;
 
   border: none;
   border-radius: 50%;
@@ -311,6 +294,9 @@ button:disabled {
 
 .delete-button,
 .danger-button {
+  min-height: 36px;
+  padding: 8px 13px;
+
   border: 1px solid transparent;
 
   background: rgba(244, 33, 46, 0.08);
@@ -324,7 +310,7 @@ button:disabled {
   background: rgba(244, 33, 46, 0.14);
   color: var(--danger);
 
-  box-shadow: 0 4px 10px rgba(244, 33, 46, 0.1);
+  box-shadow: 0 4px 10px rgba(244, 33, 46, 0.08);
 }
 
 /* =========================================================
@@ -333,13 +319,12 @@ button:disabled {
 
 .settings-button {
   min-height: 38px;
-
-  padding: 8px 15px;
+  padding: 9px 16px;
 }
 
 /* =========================================================
    TOGGLE
-   Completely isolated from normal button behaviour
+   Isolated from normal button behaviour
 ========================================================= */
 
 .toggle {
@@ -411,7 +396,7 @@ button:disabled {
   background: var(--surface);
   color: var(--text);
 
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
 }
 
 .dark-mode .secondary-button:hover,
@@ -420,10 +405,9 @@ button:disabled {
 .dark-mode .settings-button:hover,
 .dark-mode .profile-follow-button.following:hover {
   background: var(--surface-hover);
-
   border-color: #394650;
 
-  box-shadow: 0 7px 15px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 7px 15px rgba(0, 0, 0, 0.25);
 }
 
 /* =========================================================
@@ -434,15 +418,45 @@ button:disabled {
 .dark-mode .follow-button {
   background: #f7f9f9;
   color: #0f1419;
-
   border-color: #f7f9f9;
 }
 
 .dark-mode .dark-button:hover,
 .dark-mode .follow-button:hover {
   background: #ffffff;
+  border-color: #ffffff;
 
-  box-shadow: 0 7px 15px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 7px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* =========================================================
+   DARK MODE — PRIMARY BUTTONS
+========================================================= */
+
+.dark-mode .primary-button,
+.dark-mode .post-button,
+.dark-mode .compose-submit,
+.dark-mode .auth-submit,
+.dark-mode .profile-follow-button:not(.following),
+.dark-mode .explore-follow-button,
+.dark-mode .save-button,
+.dark-mode .edit-profile-save {
+  background: var(--accent);
+  border-color: var(--accent);
+
+  color: #ffffff;
+}
+
+.dark-mode .primary-button:hover,
+.dark-mode .post-button:hover,
+.dark-mode .compose-submit:hover,
+.dark-mode .auth-submit:hover,
+.dark-mode .profile-follow-button:not(.following):hover,
+.dark-mode .explore-follow-button:hover,
+.dark-mode .save-button:hover,
+.dark-mode .edit-profile-save:hover {
+  background: var(--accent-dark);
+  border-color: var(--accent-dark);
 }
 
 /* =========================================================
