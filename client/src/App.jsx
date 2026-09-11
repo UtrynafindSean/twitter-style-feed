@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import "./index.css";
 
 const DEFAULT_POSTS = [
   {
