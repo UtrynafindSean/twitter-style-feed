@@ -1,6 +1,6 @@
 /* =========================================================
    BUTTON SYSTEM
-   One consistent button foundation for the whole app
+   Clean unified button styling
 ========================================================= */
 
 button {
@@ -45,7 +45,6 @@ button:active {
 
 button:focus-visible {
   outline: none;
-
   box-shadow: 0 0 0 3px rgba(29, 155, 240, 0.18);
 }
 
@@ -57,7 +56,7 @@ button:disabled {
 }
 
 /* =========================================================
-   PRIMARY BUTTON
+   PRIMARY BUTTONS
 ========================================================= */
 
 .primary-button,
@@ -65,7 +64,9 @@ button:disabled {
 .compose-submit,
 .auth-submit,
 .profile-follow-button:not(.following),
-.explore-follow-button {
+.explore-follow-button,
+.save-button,
+.edit-profile-save {
   border-color: var(--accent);
 
   background: linear-gradient(145deg, #2ca8f5, #1d9bf0);
@@ -82,7 +83,9 @@ button:disabled {
 .compose-submit:hover,
 .auth-submit:hover,
 .profile-follow-button:not(.following):hover,
-.explore-follow-button:hover {
+.explore-follow-button:hover,
+.save-button:hover,
+.edit-profile-save:hover {
   background: linear-gradient(145deg, #38adf5, #1688d4);
 
   box-shadow:
@@ -91,17 +94,16 @@ button:disabled {
 }
 
 /* =========================================================
-   SECONDARY BUTTON
+   SECONDARY BUTTONS
 ========================================================= */
 
 .secondary-button,
 .profile-edit-button,
-.edit-profile-actions button,
-.follow-button {
-  border-color: var(--border);
+.cancel-button,
+.settings-button {
+  border: 1px solid var(--border);
 
   background: var(--surface);
-
   color: var(--text);
 
   box-shadow:
@@ -111,8 +113,8 @@ button:disabled {
 
 .secondary-button:hover,
 .profile-edit-button:hover,
-.edit-profile-actions button:hover,
-.follow-button:hover {
+.cancel-button:hover,
+.settings-button:hover {
   background: var(--surface-hover);
 
   border-color: #cbd5da;
@@ -121,23 +123,106 @@ button:disabled {
 }
 
 /* =========================================================
-   DARK / BLACK BUTTON
+   EDIT PROFILE ACTIONS
 ========================================================= */
 
-.dark-button,
-.follow-button,
-.profile-follow-button.following {
+.edit-profile-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+
+  margin-top: 5px;
+}
+
+.edit-profile-actions .cancel-button {
+  border: 1px solid var(--border);
+
+  background: var(--surface);
+  color: var(--text-secondary);
+
+  box-shadow: var(--shadow-xs);
+}
+
+.edit-profile-actions .cancel-button:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.edit-profile-actions .edit-profile-save {
+  border: 1px solid var(--accent);
+
+  background: var(--accent);
+  color: #ffffff;
+
+  box-shadow: 0 5px 12px rgba(29, 155, 240, 0.2);
+}
+
+.edit-profile-actions .edit-profile-save:hover {
+  background: var(--accent-dark);
+
+  box-shadow: 0 8px 16px rgba(29, 155, 240, 0.25);
+}
+
+/* =========================================================
+   FOLLOW BUTTON
+========================================================= */
+
+.follow-button {
+  min-height: 34px;
+  padding: 8px 15px;
+
+  border: 1px solid var(--text);
+
   background: var(--text);
   color: var(--surface);
-
-  border-color: var(--text);
 
   box-shadow: 0 4px 10px rgba(15, 20, 25, 0.12);
 }
 
-.dark-button:hover,
-.follow-button:hover,
+.follow-button:hover {
+  background: var(--text);
+
+  box-shadow: 0 7px 15px rgba(15, 20, 25, 0.16);
+}
+
+/* =========================================================
+   FOLLOWING STATE
+========================================================= */
+
+.profile-follow-button.following {
+  border: 1px solid var(--border);
+
+  background: var(--surface);
+  color: var(--text);
+
+  box-shadow: var(--shadow-sm);
+}
+
 .profile-follow-button.following:hover {
+  background: var(--surface-hover);
+
+  border-color: #cbd5da;
+
+  box-shadow: var(--shadow-md);
+}
+
+/* =========================================================
+   DARK / BLACK BUTTON
+========================================================= */
+
+.dark-button {
+  border: 1px solid var(--text);
+
+  background: var(--text);
+  color: var(--surface);
+
+  box-shadow: 0 4px 10px rgba(15, 20, 25, 0.12);
+}
+
+.dark-button:hover {
+  background: var(--text);
+
   box-shadow: 0 7px 15px rgba(15, 20, 25, 0.16);
 }
 
@@ -180,6 +265,8 @@ button:disabled {
   width: 38px;
   height: 38px;
 
+  min-width: 38px;
+
   flex-shrink: 0;
 
   padding: 0;
@@ -207,13 +294,24 @@ button:disabled {
   box-shadow: none;
 }
 
+.icon-button:active,
+.compose-icons button:active,
+.post-actions button:active,
+.current-user-menu button:active,
+.notification-button:active,
+.close-button:active,
+.modal-close:active,
+.mobile-nav button:active {
+  transform: scale(0.94);
+}
+
 /* =========================================================
-   DELETE / DANGER BUTTON
+   DELETE / DANGER
 ========================================================= */
 
 .delete-button,
 .danger-button {
-  border-color: transparent;
+  border: 1px solid transparent;
 
   background: rgba(244, 33, 46, 0.08);
   color: var(--danger);
@@ -230,81 +328,28 @@ button:disabled {
 }
 
 /* =========================================================
-   SAVE BUTTON
-========================================================= */
-
-.save-button,
-.edit-profile-save {
-  border-color: var(--accent);
-
-  background: var(--accent);
-  color: #ffffff;
-
-  box-shadow: 0 5px 12px rgba(29, 155, 240, 0.2);
-}
-
-.save-button:hover,
-.edit-profile-save:hover {
-  background: var(--accent-dark);
-
-  box-shadow: 0 8px 16px rgba(29, 155, 240, 0.25);
-}
-
-/* =========================================================
-   CANCEL BUTTON
-========================================================= */
-
-.cancel-button {
-  border-color: var(--border);
-
-  background: var(--surface);
-
-  color: var(--text-secondary);
-
-  box-shadow: var(--shadow-xs);
-}
-
-.cancel-button:hover {
-  background: var(--surface-hover);
-  color: var(--text);
-}
-
-/* =========================================================
-   SETTINGS BUTTONS
+   SETTINGS BUTTON
 ========================================================= */
 
 .settings-button {
   min-height: 38px;
+
   padding: 8px 15px;
-
-  border: 1px solid var(--border);
-  border-radius: 999px;
-
-  background: var(--surface);
-  color: var(--text);
-
-  box-shadow: var(--shadow-xs);
-}
-
-.settings-button:hover {
-  background: var(--surface-hover);
-
-  box-shadow: var(--shadow-sm);
 }
 
 /* =========================================================
    TOGGLE
-   Kept separate so the global button styling doesn't
-   distort its shape.
+   Completely isolated from normal button behaviour
 ========================================================= */
 
 .toggle {
   position: relative;
 
-  width: 48px;
-  height: 27px;
+  display: block;
 
+  width: 48px;
   min-width: 48px;
+  height: 27px;
 
   padding: 0;
 
@@ -318,7 +363,8 @@ button:disabled {
   transform: none;
 }
 
-.toggle:hover {
+.toggle:hover,
+.toggle:active {
   transform: none;
   box-shadow: none;
 }
@@ -352,19 +398,17 @@ button:disabled {
 }
 
 /* =========================================================
-   DARK MODE BUTTON DETAILS
+   DARK MODE
 ========================================================= */
 
 .dark-mode .secondary-button,
 .dark-mode .profile-edit-button,
-.dark-mode .edit-profile-actions button,
-.dark-mode .follow-button,
 .dark-mode .cancel-button,
-.dark-mode .settings-button {
+.dark-mode .settings-button,
+.dark-mode .profile-follow-button.following {
   border-color: var(--border);
 
   background: var(--surface);
-
   color: var(--text);
 
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
@@ -372,22 +416,38 @@ button:disabled {
 
 .dark-mode .secondary-button:hover,
 .dark-mode .profile-edit-button:hover,
-.dark-mode .edit-profile-actions button:hover,
-.dark-mode .follow-button:hover,
 .dark-mode .cancel-button:hover,
-.dark-mode .settings-button:hover {
+.dark-mode .settings-button:hover,
+.dark-mode .profile-follow-button.following:hover {
   background: var(--surface-hover);
 
   border-color: #394650;
+
+  box-shadow: 0 7px 15px rgba(0, 0, 0, 0.3);
 }
 
+/* =========================================================
+   DARK MODE — BLACK BUTTONS
+========================================================= */
+
 .dark-mode .dark-button,
-.dark-mode .profile-follow-button.following {
+.dark-mode .follow-button {
   background: #f7f9f9;
   color: #0f1419;
 
   border-color: #f7f9f9;
 }
+
+.dark-mode .dark-button:hover,
+.dark-mode .follow-button:hover {
+  background: #ffffff;
+
+  box-shadow: 0 7px 15px rgba(0, 0, 0, 0.35);
+}
+
+/* =========================================================
+   DARK MODE — ICON BUTTONS
+========================================================= */
 
 .dark-mode .icon-button,
 .dark-mode .compose-icons button,
@@ -413,4 +473,18 @@ button:disabled {
 .dark-mode .mobile-nav button:hover {
   background: var(--accent-soft);
   color: var(--accent);
+
+  box-shadow: none;
+}
+
+/* =========================================================
+   DARK MODE — TOGGLE
+========================================================= */
+
+.dark-mode .toggle {
+  background: #3b4650;
+}
+
+.dark-mode .toggle.active {
+  background: var(--accent);
 }
