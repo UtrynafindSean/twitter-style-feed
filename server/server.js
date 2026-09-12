@@ -3,17 +3,17 @@ const cors = require("cors");
 require("dotenv").config();
 
 const app = express();
+const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
 
-app.get("/", (req, res) => {
+app.get("/api/health", (req, res) => {
   res.json({
-    message: "Twitter Style Feed API is running",
+    success: true,
+    message: "Twitter-style backend is running",
   });
 });
-
-const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
