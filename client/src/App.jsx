@@ -465,13 +465,36 @@ LOCAL STORAGE
 LOGIN / LOGOUT
 ========================= */
 
-  const handleLogin = (user) => {
-    localStorage.setItem("currentUser", JSON.stringify(user));
+  const handleLogin = async (email, password) => {
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
 
-    setCurrentUser(user);
-    setActivePage("home");
-    setIsEditingProfile(false);
-    setProfileError("");
+      const data = await response.json();
+
+      if (!response.ok) {
+        setProfileError(data.message || "Login failed");
+        return;
+      }
+
+      localStorage.setItem("currentUser", JSON.stringify(data.user));
+
+      setCurrentUser(data.user);
+      setActivePage("home");
+      setIsEditingProfile(false);
+      setProfileError("");
+    } catch (error) {
+      console.error("Login error:", error);
+      setProfileError("Unable to connect to the server");
+    }
   };
 
   const handleLogout = () => {
