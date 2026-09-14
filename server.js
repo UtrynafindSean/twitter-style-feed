@@ -1,14 +1,9 @@
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
-const path = require("path");
 const dotenv = require("dotenv");
 
-const envPath = path.join(__dirname, ".env");
-dotenv.config({ path: envPath });
-
-console.log("Loading .env from:", envPath);
-console.log("MONGO_URI:", process.env.MONGO_URI ? "loaded" : "missing");
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -25,6 +20,8 @@ app.get("/api/health", (req, res) => {
 
 async function startServer() {
   try {
+    console.log("MONGO_URI:", process.env.MONGO_URI ? "loaded" : "missing");
+
     await mongoose.connect(process.env.MONGO_URI);
 
     console.log("MongoDB connected successfully");
