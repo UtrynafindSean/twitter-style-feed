@@ -1,8 +1,17 @@
 const express = require("express");
 const cors = require("cors");
+const mongoose = require("mongoose");
+const path = require("path");
+const dotenv = require("dotenv");
+
+const envPath = path.join(__dirname, ".env");
+dotenv.config({ path: envPath });
+
+console.log("Loading .env from:", envPath);
+console.log("MONGO_URI:", process.env.MONGO_URI ? "loaded" : "missing");
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
@@ -10,10 +19,23 @@ app.use(express.json());
 app.get("/api/health", (req, res) => {
   res.json({
     success: true,
-    message: "Twitter-style backend is running"
+    message: "Twitter-style backend is running",
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+async function startServer() {
+  try {
+    await mongoose.connect(process.env.MONGO_URI);
+
+    console.log("MongoDB connected successfully");
+
+    app.listen(PORT, () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+    });
+  } catch (error) {
+    console.error("MongoDB connection failed:");
+    console.error(error.message);
+  }
+}
+
+startServer();
