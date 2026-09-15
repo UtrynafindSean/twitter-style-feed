@@ -688,45 +688,55 @@ IMAGE UPLOAD
 POSTS
 ========================= */
 
-  const handlePost = () => {
+  const handlePost = async () => {
     if (!postText.trim() && !postImage) return;
 
-    const newPost = {
-      id: Date.now().toString(),
+    try {
+      const response = await fetch("http://localhost:5000/api/posts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          authorId: currentUser.id,
+          authorName: currentUser.name,
+          username: currentUser.username,
+          avatar:
+            currentUser.avatar ||
+            currentUser.name?.charAt(0).toUpperCase() ||
+            "U",
+          text: postText.trim(),
+          image: postImage,
+        }),
+      });
 
-      authorName: currentUser.name,
+      const data = await response.json();
 
-      username: currentUser.username,
+      if (!response.ok) {
+        console.error("Create post failed:", data.message);
+        return;
+      }
 
-      avatar: currentUser.avatar || currentUser.name.charAt(0).toUpperCase(),
+      const savedPost = {
+        ...data.post,
+        id: data.post._id,
+        time: "now",
+        liked: false,
+        reposted: false,
+        bookmarked: false,
+        isUserPost: true,
+      };
 
-      text: postText.trim(),
+      setPosts((prev) => [savedPost, ...prev]);
 
-      image: postImage,
+      setPostText("");
+      setPostImage("");
 
-      time: "now",
-
-      likeCount: 0,
-
-      liked: false,
-
-      repostCount: 0,
-
-      reposted: false,
-
-      bookmarked: false,
-
-      isUserPost: true,
-    };
-
-    setPosts((prev) => [newPost, ...prev]);
-
-    setPostText("");
-
-    setPostImage("");
-
-    if (imageInputRef.current) {
-      imageInputRef.current.value = "";
+      if (imageInputRef.current) {
+        imageInputRef.current.value = "";
+      }
+    } catch (error) {
+      console.error("Create post error:", error);
     }
   };
 
