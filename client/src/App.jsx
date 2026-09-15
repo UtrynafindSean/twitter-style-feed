@@ -310,7 +310,11 @@ function AuthScreen({ onLogin }) {
             />
           </div>
 
-          <button type="submit" className="auth-submit" disabled={isSubmitting}>
+          <button
+            type="submit"
+            className="auth-submit"
+            disabled={isSubmitting}
+          >
             {isSubmitting
               ? mode === "signin"
                 ? "Signing in..."
@@ -369,6 +373,7 @@ function HomePage({
   handleComment,
 }) {
   return (
+
     <>
       <header className="feed-header">
         <h2>Home</h2>
@@ -724,11 +729,13 @@ LOCAL STORAGE
   ========================= */
 
   useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUser?.id) return;
 
     const loadPosts = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/posts");
+        const response = await fetch(
+          `http://localhost:5000/api/posts?userId=${encodeURIComponent(currentUser.id)}`,
+        );
         const data = await response.json();
 
         if (!response.ok) {
@@ -738,7 +745,7 @@ LOCAL STORAGE
 
         const mongoPosts = (data.posts || []).map((post) => ({
           ...post,
-          id: post._id,
+          id: post._id || post.id,
           time: post.createdAt
             ? new Date(post.createdAt).toLocaleString()
             : "now",
@@ -748,20 +755,42 @@ LOCAL STORAGE
           isUserPost: post.username === currentUser.username,
         }));
 
-        if (mongoPosts.length > 0) {
-          setPosts(mongoPosts);
-        }
+        setPosts(mongoPosts);
+
+        const nextComments = {};
+        mongoPosts.forEach((post) => {
+          nextComments[post.id] = Array.isArray(post.comments) ? post.comments : [];
+        });
+        setComments(nextComments);
       } catch (error) {
         console.error("Load posts error:", error);
       }
     };
 
+    const loadFollowing = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:5000/api/users/${encodeURIComponent(currentUser.id)}/following`,
+        );
+        const data = await response.json();
+
+        if (response.ok) {
+          setFollowedUsers(Array.isArray(data.following) ? data.following : []);
+        }
+      } catch (error) {
+        console.error("Load following error:", error);
+      }
+    };
+
     loadPosts();
+    loadFollowing();
   }, [currentUser]);
 
   /* =========================
 LOGIN / LOGOUT
 ========================= */
+
+  
 
   const handleLogin = (user) => {
     localStorage.setItem("currentUser", JSON.stringify(user));
@@ -1035,92 +1064,134 @@ POSTS
     }
   };
 
-  const handleDeletePost = (postId) => {
-    setPosts((prev) =>
-      prev.filter((post) => {
-        if (post.id !== postId) {
-          return true;
-        }
+  const handleDeletePost = async (postId) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/posts/${postId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId: currentUser.id }),
+      });
 
-        return post.username !== currentUser.username;
-      }),
-    );
+      const data = await response.json();
 
-    setComments((prev) => {
-      const updated = { ...prev };
+      if (!response.ok) {
+        console.error("Delete post failed:", data.message);
+        return;
+      }
 
-      delete updated[postId];
-
-      return updated;
-    });
-  };
-
-  const handleLike = (postId) => {
-    const targetPost = posts.find((post) => post.id === postId);
-
-    if (!targetPost) return;
-
-    const wasLiked = Boolean(targetPost.liked);
-
-    setPosts((prev) =>
-      prev.map((post) =>
-        post.id === postId
-          ? {
-              ...post,
-              liked: !wasLiked,
-              likeCount: wasLiked
-                ? Math.max((post.likeCount || 0) - 1, 0)
-                : (post.likeCount || 0) + 1,
-            }
-          : post,
-      ),
-    );
-
-    if (!wasLiked) {
-      addNotification(`You liked a post by @${targetPost.username}.`, "like");
+      setPosts((prev) => prev.filter((post) => post.id !== postId));
+      setComments((prev) => {
+        const updated = { ...prev };
+        delete updated[postId];
+        return updated;
+      });
+    } catch (error) {
+      console.error("Delete post error:", error);
     }
   };
 
-  const handleRepost = (postId) => {
+  const handleLike = async (postId) => {
     const targetPost = posts.find((post) => post.id === postId);
-
     if (!targetPost) return;
 
-    const wasReposted = Boolean(targetPost.reposted);
-
-    setPosts((prev) =>
-      prev.map((post) =>
-        post.id === postId
-          ? {
-              ...post,
-              reposted: !wasReposted,
-              repostCount: wasReposted
-                ? Math.max(0, (post.repostCount || 0) - 1)
-                : (post.repostCount || 0) + 1,
-            }
-          : post,
-      ),
-    );
-
-    if (!wasReposted && targetPost.username !== currentUser.username) {
-      addNotification(
-        `${currentUser.name} reposted ${targetPost.authorName}'s post.`,
-        "repost",
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/posts/${postId}/like`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: currentUser.id }),
+        },
       );
+
+      const data = await response.json();
+      if (!response.ok) {
+        console.error("Like failed:", data.message);
+        return;
+      }
+
+      setPosts((prev) =>
+        prev.map((post) =>
+          post.id === postId
+            ? { ...post, liked: data.liked, likeCount: data.likeCount }
+            : post,
+        ),
+      );
+
+      if (data.liked) {
+        addNotification(`You liked a post by @${targetPost.username}.`, "like");
+      }
+    } catch (error) {
+      console.error("Like post error:", error);
     }
   };
 
-  const handleBookmark = (postId) => {
-    setPosts((prev) =>
-      prev.map((post) =>
-        post.id === postId
-          ? {
-              ...post,
-              bookmarked: !post.bookmarked,
-            }
-          : post,
-      ),
-    );
+  const handleRepost = async (postId) => {
+    const targetPost = posts.find((post) => post.id === postId);
+    if (!targetPost) return;
+
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/posts/${postId}/repost`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: currentUser.id }),
+        },
+      );
+
+      const data = await response.json();
+      if (!response.ok) {
+        console.error("Repost failed:", data.message);
+        return;
+      }
+
+      setPosts((prev) =>
+        prev.map((post) =>
+          post.id === postId
+            ? { ...post, reposted: data.reposted, repostCount: data.repostCount }
+            : post,
+        ),
+      );
+
+      if (data.reposted && targetPost.username !== currentUser.username) {
+        addNotification(
+          `${currentUser.name} reposted ${targetPost.authorName}'s post.`,
+          "repost",
+        );
+      }
+    } catch (error) {
+      console.error("Repost error:", error);
+    }
+  };
+
+  const handleBookmark = async (postId) => {
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/posts/${postId}/bookmark`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: currentUser.id }),
+        },
+      );
+
+      const data = await response.json();
+      if (!response.ok) {
+        console.error("Bookmark failed:", data.message);
+        return;
+      }
+
+      setPosts((prev) =>
+        prev.map((post) =>
+          post.id === postId ? { ...post, bookmarked: data.bookmarked } : post,
+        ),
+      );
+    } catch (error) {
+      console.error("Bookmark error:", error);
+    }
   };
 
   /* =========================
@@ -1145,23 +1216,34 @@ USERS / FOLLOW
     },
   ];
 
-  const handleFollow = (username) => {
-    const alreadyFollowing = followedUsers.includes(username);
-
-    if (alreadyFollowing) {
-      setFollowedUsers((prev) => prev.filter((item) => item !== username));
-
-      return;
-    }
-
+  const handleFollow = async (username) => {
     const followedUser = suggestedUsers.find(
       (user) => user.username === username,
     );
 
-    setFollowedUsers((prev) => [...prev, username]);
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/users/${currentUser.id}/follow`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username }),
+        },
+      );
 
-    if (followedUser) {
-      addNotification(`You are now following ${followedUser.name}.`, "follow");
+      const data = await response.json();
+      if (!response.ok) {
+        console.error("Follow failed:", data.message);
+        return;
+      }
+
+      setFollowedUsers(Array.isArray(data.following) ? data.following : []);
+
+      if (data.isFollowing && followedUser) {
+        addNotification(`You are now following ${followedUser.name}.`, "follow");
+      }
+    } catch (error) {
+      console.error("Follow error:", error);
     }
   };
 
@@ -1169,43 +1251,54 @@ USERS / FOLLOW
 COMMENTS
 ========================= */
 
-  const handleComment = (postId) => {
+  const handleComment = async (postId) => {
     const text = commentText[postId]?.trim();
-
     if (!text) return;
 
     const post = posts.find((item) => item.id === postId);
+    if (!post) return;
 
-    const newComment = {
-      id: Date.now().toString(),
-
-      text,
-
-      authorName: currentUser.name,
-
-      username: currentUser.username,
-
-      avatar: currentUser.avatar || currentUser.name.charAt(0).toUpperCase(),
-    };
-
-    if (post && post.username !== currentUser.username) {
-      addNotification(
-        `${currentUser.name} replied to ${post.authorName}'s post.`,
-        "comment",
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/posts/${postId}/comments`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            authorId: currentUser.id,
+            authorName: currentUser.name,
+            username: currentUser.username,
+            avatar: currentUser.avatar || currentUser.name.charAt(0).toUpperCase(),
+            text,
+          }),
+        },
       );
+
+      const data = await response.json();
+      if (!response.ok) {
+        console.error("Comment failed:", data.message);
+        return;
+      }
+
+      setComments((prev) => ({
+        ...prev,
+        [postId]: [...(prev[postId] || []), data.comment],
+      }));
+
+      setCommentText((prev) => ({
+        ...prev,
+        [postId]: "",
+      }));
+
+      if (post.username !== currentUser.username) {
+        addNotification(
+          `${currentUser.name} replied to ${post.authorName}'s post.`,
+          "comment",
+        );
+      }
+    } catch (error) {
+      console.error("Comment error:", error);
     }
-
-    setComments((prev) => ({
-      ...prev,
-
-      [postId]: [...(prev[postId] || []), newComment],
-    }));
-
-    setCommentText((prev) => ({
-      ...prev,
-
-      [postId]: "",
-    }));
   };
 
   /* =========================
