@@ -310,11 +310,7 @@ function AuthScreen({ onLogin }) {
             />
           </div>
 
-          <button
-            type="submit"
-            className="auth-submit"
-            disabled={isSubmitting}
-          >
+          <button type="submit" className="auth-submit" disabled={isSubmitting}>
             {isSubmitting
               ? mode === "signin"
                 ? "Signing in..."
@@ -373,7 +369,6 @@ function HomePage({
   handleComment,
 }) {
   return (
-
     <>
       <header className="feed-header">
         <h2>Home</h2>
@@ -759,7 +754,9 @@ LOCAL STORAGE
 
         const nextComments = {};
         mongoPosts.forEach((post) => {
-          nextComments[post.id] = Array.isArray(post.comments) ? post.comments : [];
+          nextComments[post.id] = Array.isArray(post.comments)
+            ? post.comments
+            : [];
         });
         setComments(nextComments);
       } catch (error) {
@@ -789,8 +786,6 @@ LOCAL STORAGE
   /* =========================
 LOGIN / LOGOUT
 ========================= */
-
-  
 
   const handleLogin = (user) => {
     localStorage.setItem("currentUser", JSON.stringify(user));
@@ -1066,13 +1061,16 @@ POSTS
 
   const handleDeletePost = async (postId) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/posts/${postId}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `http://localhost:5000/api/posts/${postId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ userId: currentUser.id }),
         },
-        body: JSON.stringify({ userId: currentUser.id }),
-      });
+      );
 
       const data = await response.json();
 
@@ -1151,7 +1149,11 @@ POSTS
       setPosts((prev) =>
         prev.map((post) =>
           post.id === postId
-            ? { ...post, reposted: data.reposted, repostCount: data.repostCount }
+            ? {
+                ...post,
+                reposted: data.reposted,
+                repostCount: data.repostCount,
+              }
             : post,
         ),
       );
@@ -1240,7 +1242,10 @@ USERS / FOLLOW
       setFollowedUsers(Array.isArray(data.following) ? data.following : []);
 
       if (data.isFollowing && followedUser) {
-        addNotification(`You are now following ${followedUser.name}.`, "follow");
+        addNotification(
+          `You are now following ${followedUser.name}.`,
+          "follow",
+        );
       }
     } catch (error) {
       console.error("Follow error:", error);
@@ -1268,7 +1273,8 @@ COMMENTS
             authorId: currentUser.id,
             authorName: currentUser.name,
             username: currentUser.username,
-            avatar: currentUser.avatar || currentUser.name.charAt(0).toUpperCase(),
+            avatar:
+              currentUser.avatar || currentUser.name.charAt(0).toUpperCase(),
             text,
           }),
         },
