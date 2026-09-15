@@ -1938,7 +1938,7 @@ SETTINGS PAGE
 HOME PAGE
 ========================= */
 
-  const HomePage = () => (
+  const renderHomePage = () => (
     <>
       <header className="feed-header">
         <h2>Home</h2>
@@ -2324,7 +2324,7 @@ MAIN RETURN
 
           {activePage === "settings" && <SettingsPage />}
 
-          {activePage === "home" && <HomePage />}
+          {activePage === "home" && <renderHomePage />}
         </main>
 
         {/* RIGHT SIDEBAR */}
