@@ -345,6 +345,261 @@ function AuthScreen({ onLogin }) {
 MAIN APP
 ========================= */
 
+function HomePage({
+  currentUser,
+  postText,
+  setPostText,
+  postImage,
+  removePostImage,
+  imageInputRef,
+  handleImageSelect,
+  handlePost,
+  searchText,
+  setSearchText,
+  filteredPosts,
+  comments,
+  activePost,
+  setActivePost,
+  handleDeletePost,
+  handleRepost,
+  handleLike,
+  handleBookmark,
+  commentText,
+  setCommentText,
+  handleComment,
+}) {
+  return (
+    <>
+      <header className="feed-header">
+        <h2>Home</h2>
+      </header>
+
+      <div className="compose">
+        <div className="avatar">
+          {currentUser.avatar || currentUser.name.charAt(0)}
+        </div>
+
+        <div className="compose-content">
+          <textarea
+            className="compose-input"
+            placeholder="What is happening?!"
+            value={postText}
+            onChange={(e) => setPostText(e.target.value)}
+          />
+
+          {postImage && (
+            <div className="compose-image-preview">
+              <img src={postImage} alt="Selected upload" />
+
+              <button
+                type="button"
+                className="remove-image-button"
+                onClick={removePostImage}
+                aria-label="Remove image"
+              >
+                ×
+              </button>
+            </div>
+          )}
+
+          <div className="compose-bottom">
+            <div className="compose-icons">
+              <button
+                type="button"
+                className="compose-image-button"
+                onClick={() => imageInputRef.current?.click()}
+                title="Add image"
+                aria-label="Add image"
+              >
+                🖼️
+              </button>
+
+              <button
+                type="button"
+                className="compose-tool-button"
+                onClick={() =>
+                  setPostText((prev) => prev + (prev ? " " : "") + "GIF")
+                }
+                title="Add GIF text"
+              >
+                GIF
+              </button>
+
+              <button
+                type="button"
+                className="compose-tool-button"
+                onClick={() =>
+                  setPostText((prev) => prev + (prev ? " " : "") + "😊")
+                }
+                title="Add emoji"
+              >
+                😊
+              </button>
+
+              <button
+                type="button"
+                className="compose-tool-button"
+                onClick={() =>
+                  setPostText((prev) => prev + (prev ? " " : "") + "📍")
+                }
+                title="Add location"
+              >
+                📍
+              </button>
+
+              <input
+                ref={imageInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageSelect}
+                style={{
+                  display: "none",
+                }}
+              />
+            </div>
+
+            <button
+              onClick={handlePost}
+              disabled={!postText.trim() && !postImage}
+              className="small-post-button"
+            >
+              Post
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="home-search">
+        <input
+          type="text"
+          placeholder="Search posts..."
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+        />
+      </div>
+
+      {filteredPosts.length === 0 ? (
+        <div className="empty-profile">
+          <h3>No posts found.</h3>
+
+          <p>Try a different search.</p>
+        </div>
+      ) : (
+        filteredPosts.map((post) => {
+          const postComments = comments[post.id] || [];
+
+          const isOwnPost = post.username === currentUser.username;
+
+          return (
+            <article className="post" key={post.id}>
+              <div className="avatar">{post.avatar}</div>
+
+              <div className="post-content">
+                <div className="post-header">
+                  <strong>{post.authorName}</strong>
+
+                  <span>@{post.username}</span>
+
+                  <span>·</span>
+
+                  <span>{post.time}</span>
+
+                  {isOwnPost && (
+                    <button
+                      onClick={() => handleDeletePost(post.id)}
+                      className="delete-post-button"
+                    >
+                      🗑️
+                    </button>
+                  )}
+                </div>
+
+                {post.text && <p className="post-text">{post.text}</p>}
+
+                <PostImage image={post.image} />
+
+                <div className="post-actions">
+                  <button
+                    onClick={() =>
+                      setActivePost(activePost === post.id ? null : post.id)
+                    }
+                  >
+                    💬 {postComments.length}
+                  </button>
+
+                  <button onClick={() => handleRepost(post.id)}>
+                    🔁 {post.repostCount}
+                  </button>
+
+                  <button onClick={() => handleLike(post.id)}>
+                    {post.liked ? "❤️" : "♡"} {post.likeCount}
+                  </button>
+
+                  <button onClick={() => handleBookmark(post.id)}>
+                    {post.bookmarked ? "🔖" : "📑"}
+                  </button>
+                </div>
+
+                {activePost === post.id && (
+                  <div className="comments-box">
+                    <div className="small-avatar">
+                      {currentUser.avatar || currentUser.name.charAt(0)}
+                    </div>
+
+                    <input
+                      type="text"
+                      placeholder="Post your reply"
+                      value={commentText[post.id] || ""}
+                      onChange={(e) =>
+                        setCommentText((prev) => ({
+                          ...prev,
+                          [post.id]: e.target.value,
+                        }))
+                      }
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          handleComment(post.id);
+                        }
+                      }}
+                    />
+
+                    <button
+                      onClick={() => handleComment(post.id)}
+                      className="reply-button"
+                    >
+                      Reply
+                    </button>
+                  </div>
+                )}
+
+                {activePost === post.id && postComments.length > 0 && (
+                  <div className="comments-list">
+                    {postComments.map((comment) => (
+                      <div className="comment" key={comment.id}>
+                        <div className="small-avatar">{comment.avatar}</div>
+
+                        <div>
+                          <strong>{comment.authorName}</strong>
+
+                          <span className="comment-username">
+                            @{comment.username}
+                          </span>
+
+                          <p>{comment.text}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </article>
+          );
+        })
+      )}
+    </>
+  );
+}
+
 function App() {
   const [currentUser, setCurrentUser] = useState(getStoredUser);
 
@@ -1935,241 +2190,6 @@ SETTINGS PAGE
   };
 
   /* =========================
-HOME PAGE
-========================= */
-
-  const renderHomePage = () => (
-    <>
-      <header className="feed-header">
-        <h2>Home</h2>
-      </header>
-
-      <div className="compose">
-        <div className="avatar">
-          {currentUser.avatar || currentUser.name.charAt(0)}
-        </div>
-
-        <div className="compose-content">
-          <textarea
-            className="compose-input"
-            placeholder="What is happening?!"
-            value={postText}
-            onChange={(e) => setPostText(e.target.value)}
-          />
-
-          {postImage && (
-            <div className="compose-image-preview">
-              <img src={postImage} alt="Selected upload" />
-
-              <button
-                type="button"
-                className="remove-image-button"
-                onClick={removePostImage}
-                aria-label="Remove image"
-              >
-                ×
-              </button>
-            </div>
-          )}
-
-          <div className="compose-bottom">
-            <div className="compose-icons">
-              <button
-                type="button"
-                className="compose-image-button"
-                onClick={() => imageInputRef.current?.click()}
-                title="Add image"
-                aria-label="Add image"
-              >
-                🖼️
-              </button>
-
-              <button
-                type="button"
-                className="compose-tool-button"
-                onClick={() =>
-                  setPostText((prev) => prev + (prev ? " " : "") + "GIF")
-                }
-                title="Add GIF text"
-              >
-                GIF
-              </button>
-
-              <button
-                type="button"
-                className="compose-tool-button"
-                onClick={() =>
-                  setPostText((prev) => prev + (prev ? " " : "") + "😊")
-                }
-                title="Add emoji"
-              >
-                😊
-              </button>
-
-              <button
-                type="button"
-                className="compose-tool-button"
-                onClick={() =>
-                  setPostText((prev) => prev + (prev ? " " : "") + "📍")
-                }
-                title="Add location"
-              >
-                📍
-              </button>
-
-              <input
-                ref={imageInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleImageSelect}
-                style={{
-                  display: "none",
-                }}
-              />
-            </div>
-
-            <button
-              onClick={handlePost}
-              disabled={!postText.trim() && !postImage}
-              className="small-post-button"
-            >
-              Post
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className="home-search">
-        <input
-          type="text"
-          placeholder="Search posts..."
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-        />
-      </div>
-
-      {filteredPosts.length === 0 ? (
-        <div className="empty-profile">
-          <h3>No posts found.</h3>
-
-          <p>Try a different search.</p>
-        </div>
-      ) : (
-        filteredPosts.map((post) => {
-          const postComments = comments[post.id] || [];
-
-          const isOwnPost = post.username === currentUser.username;
-
-          return (
-            <article className="post" key={post.id}>
-              <div className="avatar">{post.avatar}</div>
-
-              <div className="post-content">
-                <div className="post-header">
-                  <strong>{post.authorName}</strong>
-
-                  <span>@{post.username}</span>
-
-                  <span>·</span>
-
-                  <span>{post.time}</span>
-
-                  {isOwnPost && (
-                    <button
-                      onClick={() => handleDeletePost(post.id)}
-                      className="delete-post-button"
-                    >
-                      🗑️
-                    </button>
-                  )}
-                </div>
-
-                {post.text && <p className="post-text">{post.text}</p>}
-
-                <PostImage image={post.image} />
-
-                <div className="post-actions">
-                  <button
-                    onClick={() =>
-                      setActivePost(activePost === post.id ? null : post.id)
-                    }
-                  >
-                    💬 {postComments.length}
-                  </button>
-
-                  <button onClick={() => handleRepost(post.id)}>
-                    🔁 {post.repostCount}
-                  </button>
-
-                  <button onClick={() => handleLike(post.id)}>
-                    {post.liked ? "❤️" : "♡"} {post.likeCount}
-                  </button>
-
-                  <button onClick={() => handleBookmark(post.id)}>
-                    {post.bookmarked ? "🔖" : "📑"}
-                  </button>
-                </div>
-
-                {activePost === post.id && (
-                  <div className="comments-box">
-                    <div className="small-avatar">
-                      {currentUser.avatar || currentUser.name.charAt(0)}
-                    </div>
-
-                    <input
-                      type="text"
-                      placeholder="Post your reply"
-                      value={commentText[post.id] || ""}
-                      onChange={(e) =>
-                        setCommentText((prev) => ({
-                          ...prev,
-                          [post.id]: e.target.value,
-                        }))
-                      }
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          handleComment(post.id);
-                        }
-                      }}
-                    />
-
-                    <button
-                      onClick={() => handleComment(post.id)}
-                      className="reply-button"
-                    >
-                      Reply
-                    </button>
-                  </div>
-                )}
-
-                {activePost === post.id && postComments.length > 0 && (
-                  <div className="comments-list">
-                    {postComments.map((comment) => (
-                      <div className="comment" key={comment.id}>
-                        <div className="small-avatar">{comment.avatar}</div>
-
-                        <div>
-                          <strong>{comment.authorName}</strong>
-
-                          <span className="comment-username">
-                            @{comment.username}
-                          </span>
-
-                          <p>{comment.text}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </article>
-          );
-        })
-      )}
-    </>
-  );
-
-  /* =========================
 MAIN RETURN
 ========================= */
 
@@ -2324,7 +2344,31 @@ MAIN RETURN
 
           {activePage === "settings" && <SettingsPage />}
 
-          {activePage === "home" && <renderHomePage />}
+          {activePage === "home" && (
+            <HomePage
+              currentUser={currentUser}
+              postText={postText}
+              setPostText={setPostText}
+              postImage={postImage}
+              removePostImage={removePostImage}
+              imageInputRef={imageInputRef}
+              handleImageSelect={handleImageSelect}
+              handlePost={handlePost}
+              searchText={searchText}
+              setSearchText={setSearchText}
+              filteredPosts={filteredPosts}
+              comments={comments}
+              activePost={activePost}
+              setActivePost={setActivePost}
+              handleDeletePost={handleDeletePost}
+              handleRepost={handleRepost}
+              handleLike={handleLike}
+              handleBookmark={handleBookmark}
+              commentText={commentText}
+              setCommentText={setCommentText}
+              handleComment={handleComment}
+            />
+          )}
         </main>
 
         {/* RIGHT SIDEBAR */}
