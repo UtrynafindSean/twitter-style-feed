@@ -720,6 +720,46 @@ LOCAL STORAGE
   }, [privateAccount]);
 
   /* =========================
+  LOAD POSTS FROM MONGODB
+  ========================= */
+
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const loadPosts = async () => {
+      try {
+        const response = await fetch("http://localhost:5000/api/posts");
+        const data = await response.json();
+
+        if (!response.ok) {
+          console.error("Failed to load posts:", data.message);
+          return;
+        }
+
+        const mongoPosts = (data.posts || []).map((post) => ({
+          ...post,
+          id: post._id,
+          time: post.createdAt
+            ? new Date(post.createdAt).toLocaleString()
+            : "now",
+          liked: Boolean(post.liked),
+          reposted: Boolean(post.reposted),
+          bookmarked: Boolean(post.bookmarked),
+          isUserPost: post.username === currentUser.username,
+        }));
+
+        if (mongoPosts.length > 0) {
+          setPosts(mongoPosts);
+        }
+      } catch (error) {
+        console.error("Load posts error:", error);
+      }
+    };
+
+    loadPosts();
+  }, [currentUser]);
+
+  /* =========================
 LOGIN / LOGOUT
 ========================= */
 
