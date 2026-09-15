@@ -134,19 +134,21 @@ function AuthScreen({ onLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
-    const users = getStoredData("users", []);
+    const cleanEmail = email.trim().toLowerCase();
 
-    /* =========================
-   CREATE ACCOUNT
-========================= */
+    if (!cleanEmail || !password) {
+      setError("Please enter your email and password.");
+      return;
+    }
 
     if (mode === "signup") {
-      if (!name.trim() || !username.trim() || !email.trim() || !password) {
+      if (!name.trim() || !username.trim()) {
         setError("Please fill in all fields.");
         return;
       }
@@ -156,15 +158,11 @@ function AuthScreen({ onLogin }) {
         return;
       }
 
-      const cleanName = name.trim();
-
       const cleanUsername = username
         .trim()
         .replace(/\s+/g, "")
         .toLowerCase()
         .replace(/^@/, "");
-
-      const cleanEmail = email.trim().toLowerCase();
 
       if (!/^[a-zA-Z0-9._-]+$/.test(cleanUsername)) {
         setError(
@@ -172,63 +170,62 @@ function AuthScreen({ onLogin }) {
         );
         return;
       }
+    }
 
-      if (users.some((user) => user.email?.toLowerCase() === cleanEmail)) {
-        setError("An account with this email already exists.");
+    setIsSubmitting(true);
+
+    try {
+      const endpoint =
+        mode === "signin"
+          ? "http://localhost:5000/api/auth/login"
+          : "http://localhost:5000/api/auth/register";
+
+      const body =
+        mode === "signin"
+          ? {
+              email: cleanEmail,
+              password,
+            }
+          : {
+              name: name.trim(),
+              username: username
+                .trim()
+                .replace(/\s+/g, "")
+                .toLowerCase()
+                .replace(/^@/, ""),
+              email: cleanEmail,
+              password,
+            };
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(
+          data.message ||
+            (mode === "signin"
+              ? "Incorrect email or password."
+              : "Unable to create your account."),
+        );
         return;
       }
 
-      if (
-        users.some((user) => user.username?.toLowerCase() === cleanUsername)
-      ) {
-        setError("That username is already taken.");
-        return;
-      }
-
-      const newUser = {
-        id: Date.now().toString(),
-        name: cleanName,
-        username: cleanUsername,
-        email: cleanEmail,
-        password,
-        avatar: cleanName.charAt(0).toUpperCase(),
-        bio: "",
-      };
-
-      const updatedUsers = [...users, newUser];
-
-      localStorage.setItem("users", JSON.stringify(updatedUsers));
-
-      localStorage.setItem("currentUser", JSON.stringify(newUser));
-
-      onLogin(newUser);
-
-      return;
+      onLogin(data.user);
+    } catch (requestError) {
+      console.error("Authentication error:", requestError);
+      setError(
+        "Unable to connect to the server. Make sure the backend is running on port 5000.",
+      );
+    } finally {
+      setIsSubmitting(false);
     }
-
-    /* =========================
-   SIGN IN
-========================= */
-
-    if (!email.trim() || !password) {
-      setError("Please enter your email and password.");
-      return;
-    }
-
-    const user = users.find(
-      (item) =>
-        item.email?.toLowerCase() === email.trim().toLowerCase() &&
-        item.password === password,
-    );
-
-    if (!user) {
-      setError("Incorrect email or password.");
-      return;
-    }
-
-    localStorage.setItem("currentUser", JSON.stringify(user));
-
-    onLogin(user);
   };
 
   const switchMode = () => {
@@ -313,8 +310,14 @@ function AuthScreen({ onLogin }) {
             />
           </div>
 
-          <button type="submit" className="auth-submit">
-            {mode === "signin" ? "Sign In" : "Create Account"}
+          <button type="submit" className="auth-submit" disabled={isSubmitting}>
+            {isSubmitting
+              ? mode === "signin"
+                ? "Signing in..."
+                : "Creating account..."
+              : mode === "signin"
+                ? "Sign In"
+                : "Create Account"}
           </button>
         </form>
 
@@ -325,7 +328,7 @@ function AuthScreen({ onLogin }) {
               : "Already have an account?"}
           </span>
 
-          <button type="button" onClick={switchMode}>
+          <button type="button" onClick={switchMode} disabled={isSubmitting}>
             {mode === "signin" ? "Sign up" : "Sign in"}
           </button>
         </div>
@@ -465,36 +468,13 @@ LOCAL STORAGE
 LOGIN / LOGOUT
 ========================= */
 
-  const handleLogin = async (email, password) => {
-    try {
-      const response = await fetch("http://localhost:5000/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          password,
-        }),
-      });
+  const handleLogin = (user) => {
+    localStorage.setItem("currentUser", JSON.stringify(user));
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        setProfileError(data.message || "Login failed");
-        return;
-      }
-
-      localStorage.setItem("currentUser", JSON.stringify(data.user));
-
-      setCurrentUser(data.user);
-      setActivePage("home");
-      setIsEditingProfile(false);
-      setProfileError("");
-    } catch (error) {
-      console.error("Login error:", error);
-      setProfileError("Unable to connect to the server");
-    }
+    setCurrentUser(user);
+    setActivePage("home");
+    setIsEditingProfile(false);
+    setProfileError("");
   };
 
   const handleLogout = () => {
