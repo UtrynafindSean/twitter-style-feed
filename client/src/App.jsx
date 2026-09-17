@@ -1302,71 +1302,61 @@ COMMENTS
 ========================= */
 
   const handleComment = async (postId) => {
-    const text = commentText[postId]?.trim();
-    if (!text) return;
+  const text = commentText[postId]?.trim();
 
-    const post = posts.find((item) => item.id === postId);
-    if (!post) return;
+  if (!text || !currentUser?.id) return;
 
-    try {
-      const response = await fetch(
-        `http://localhost:5000/api/posts/${postId}/comments`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            authorId: currentUser.id,
-            authorName: currentUser.name,
-            username: currentUser.username,
-            avatar:
-              currentUser.avatar || currentUser.name.charAt(0).toUpperCase(),
-            text,
-          }),
+  try {
+    const response = await fetch(
+      `http://localhost:5000/api/posts/${postId}/comments`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
-
-      const data = await response.json();
-      if (!response.ok) {
-        console.error("Comment failed:", data.message);
-        return;
-      }
-
-      setComments((prev) => ({
-        ...prev,
-        [postId]: [...(prev[postId] || []), data.comment],
-      }));
-
-      setCommentText((prev) => ({
-        ...prev,
-        [postId]: "",
-      }));
-
-      if (post.username !== currentUser.username) {
-        addNotification(
-          `${currentUser.name} replied to ${post.authorName}'s post.`,
-          "comment",
-        );
-      }
-    } catch (error) {
-      console.error("Comment error:", error);
-    }
-  };
-
-  /* =========================
-SEARCH
-========================= */
-
-  const filteredPosts = posts.filter((post) => {
-    const search = searchText.toLowerCase().trim();
-
-    if (!search) return true;
-
-    return (
-      post.text.toLowerCase().includes(search) ||
-      post.authorName.toLowerCase().includes(search) ||
-      post.username.toLowerCase().includes(search)
+        body: JSON.stringify({
+          authorId: currentUser.id,
+          authorName: currentUser.name,
+          username: currentUser.username,
+          avatar:
+            currentUser.avatar ||
+            currentUser.name
+              .charAt(0)
+              .toUpperCase(),
+          text,
+        }),
+      },
     );
-  });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error(
+        "Comment failed:",
+        data.message,
+      );
+      return;
+    }
+
+    setComments((prev) => ({
+      ...prev,
+      [postId]: [
+        ...(prev[postId] || []),
+        data.comment,
+      ],
+    }));
+
+    setCommentText((prev) => ({
+      ...prev,
+      [postId]: "",
+    }));
+  } catch (error) {
+    console.error(
+      "Comment error:",
+      error,
+    );
+  }
+};
 
   /* =========================
 EXPLORE
