@@ -27,6 +27,22 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+
+    following: {
+      type: [String],
+      default: [],
+    },
+
+    bio: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    avatar: {
+      type: String,
+      default: "U",
+    },
   },
   {
     timestamps: true,
