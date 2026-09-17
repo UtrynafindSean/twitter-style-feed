@@ -543,7 +543,15 @@ function HomePage({
 
                   <button
                     onClick={() => handleBookmark(post.id)}
-                    aria-label="Bookmark"
+                    className="bookmark-button"
+                    style={{
+                      color: post.bookmarked ? "#1d9bf0" : "inherit",
+                      transform: post.bookmarked ? "scale(1.08)" : "scale(1)",
+                    }}
+                    aria-label={
+                      post.bookmarked ? "Remove bookmark" : "Bookmark"
+                    }
+                    aria-pressed={post.bookmarked}
                   >
                     <Icon name="bookmark" size={18} />
                   </button>
@@ -1355,13 +1363,36 @@ POSTS
   const handleBookmark = async (postId) => {
     if (!currentUser?.id) return;
 
+    const targetPost = posts.find((post) => String(post.id) === String(postId));
+
+    if (!targetPost) return;
+
+    const previousBookmarked = Boolean(targetPost.bookmarked);
+    const optimisticBookmarked = !previousBookmarked;
+
+    // Update the interface immediately.
+    setPosts((prev) =>
+      prev.map((post) =>
+        String(post.id) === String(postId)
+          ? {
+              ...post,
+              bookmarked: optimisticBookmarked,
+            }
+          : post,
+      ),
+    );
+
     try {
       const response = await fetch(
         `http://localhost:5000/api/posts/${postId}/bookmark`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId: currentUser.id }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId: currentUser.id,
+          }),
         },
       );
 
@@ -1369,35 +1400,51 @@ POSTS
 
       if (!response.ok) {
         console.error("Bookmark failed:", data.message);
+
+        // Restore the previous state if the backend rejects the request.
+        setPosts((prev) =>
+          prev.map((post) =>
+            String(post.id) === String(postId)
+              ? {
+                  ...post,
+                  bookmarked: previousBookmarked,
+                }
+              : post,
+          ),
+        );
+
         return;
       }
 
-      const returnedPost = data.post;
+      const serverBookmarked = Boolean(
+        data.post?.bookmarked ?? data.bookmarked ?? optimisticBookmarked,
+      );
 
+      // Sync the interface with the backend response.
       setPosts((prev) =>
         prev.map((post) =>
           String(post.id) === String(postId)
             ? {
                 ...post,
-                ...(returnedPost || {}),
-                id: returnedPost?.id || post.id,
-                liked: Boolean(returnedPost?.liked ?? post.liked),
-                likeCount: Number(
-                  returnedPost?.likeCount ?? post.likeCount ?? 0,
-                ),
-                reposted: Boolean(returnedPost?.reposted ?? post.reposted),
-                repostCount: Number(
-                  returnedPost?.repostCount ?? post.repostCount ?? 0,
-                ),
-                bookmarked: Boolean(
-                  returnedPost?.bookmarked ?? data.bookmarked,
-                ),
+                bookmarked: serverBookmarked,
               }
             : post,
         ),
       );
     } catch (error) {
       console.error("Bookmark error:", error);
+
+      // Restore the previous state if the request fails.
+      setPosts((prev) =>
+        prev.map((post) =>
+          String(post.id) === String(postId)
+            ? {
+                ...post,
+                bookmarked: previousBookmarked,
+              }
+            : post,
+        ),
+      );
     }
   };
 
@@ -1937,7 +1984,15 @@ EXPLORE PAGE
 
                     <button
                       onClick={() => handleBookmark(post.id)}
-                      aria-label="Bookmark"
+                      className="bookmark-button"
+                      style={{
+                        color: post.bookmarked ? "#1d9bf0" : "inherit",
+                        transform: post.bookmarked ? "scale(1.08)" : "scale(1)",
+                      }}
+                      aria-label={
+                        post.bookmarked ? "Remove bookmark" : "Bookmark"
+                      }
+                      aria-pressed={post.bookmarked}
                     >
                       <Icon name="bookmark" size={18} />
                     </button>
@@ -2170,7 +2225,15 @@ BOOKMARKS PAGE
 
                   <button
                     onClick={() => handleBookmark(post.id)}
-                    aria-label="Bookmark"
+                    className="bookmark-button"
+                    style={{
+                      color: post.bookmarked ? "#1d9bf0" : "inherit",
+                      transform: post.bookmarked ? "scale(1.08)" : "scale(1)",
+                    }}
+                    aria-label={
+                      post.bookmarked ? "Remove bookmark" : "Bookmark"
+                    }
+                    aria-pressed={post.bookmarked}
                   >
                     <Icon name="bookmark" size={18} />
                   </button>
@@ -2187,7 +2250,7 @@ BOOKMARKS PAGE
 PROFILE PAGE
 ========================= */
 
-  const ProfilePage = () => {
+  const renderProfilePage = () => {
     return (
       <div className="profile-page">
         <div className="profile-cover"></div>
@@ -2410,7 +2473,17 @@ PROFILE PAGE
 
                         <button
                           onClick={() => handleBookmark(post.id)}
-                          aria-label="Bookmark"
+                          className="bookmark-button"
+                          style={{
+                            color: post.bookmarked ? "#1d9bf0" : "inherit",
+                            transform: post.bookmarked
+                              ? "scale(1.08)"
+                              : "scale(1)",
+                          }}
+                          aria-label={
+                            post.bookmarked ? "Remove bookmark" : "Bookmark"
+                          }
+                          aria-pressed={post.bookmarked}
                         >
                           <Icon name="bookmark" size={18} />
                         </button>
@@ -2479,7 +2552,17 @@ PROFILE PAGE
 
                         <button
                           onClick={() => handleBookmark(post.id)}
-                          aria-label="Bookmark"
+                          className="bookmark-button"
+                          style={{
+                            color: post.bookmarked ? "#1d9bf0" : "inherit",
+                            transform: post.bookmarked
+                              ? "scale(1.08)"
+                              : "scale(1)",
+                          }}
+                          aria-label={
+                            post.bookmarked ? "Remove bookmark" : "Bookmark"
+                          }
+                          aria-pressed={post.bookmarked}
                         >
                           <Icon name="bookmark" size={18} />
                         </button>
@@ -2764,7 +2847,7 @@ MAIN RETURN
         {/* CENTER */}
 
         <main className="feed">
-          {activePage === "profile" && <ProfilePage />}
+          {activePage === "profile" && renderProfilePage()}
 
           {activePage === "notifications" && <NotificationsPage />}
 
