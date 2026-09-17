@@ -1,9 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 
-/* =========================
-DEFAULT DATA
-========================= */
-
 const DEFAULT_POSTS = [
   {
     id: "sample-1",
@@ -52,56 +48,6 @@ const DEFAULT_POSTS = [
   },
 ];
 
-const SUGGESTED_USERS = [
-  {
-    name: "John Smith",
-    username: "johnsmith",
-    avatar: "J",
-  },
-  {
-    name: "Sarah Williams",
-    username: "sarahw",
-    avatar: "S",
-  },
-  {
-    name: "Michael Brown",
-    username: "michaelb",
-    avatar: "M",
-  },
-];
-
-const TRENDS = [
-  {
-    category: "Technology · Trending",
-    title: "#TechNigeria",
-    posts: "12.5K posts",
-  },
-  {
-    category: "Technology · Trending",
-    title: "React",
-    posts: "8,421 posts",
-  },
-  {
-    category: "Programming · Trending",
-    title: "JavaScript",
-    posts: "6,892 posts",
-  },
-  {
-    category: "Web Development · Trending",
-    title: "#WebDevelopment",
-    posts: "4,321 posts",
-  },
-  {
-    category: "Trending in Nigeria",
-    title: "#Nigeria",
-    posts: "18.7K posts",
-  },
-];
-
-/* =========================
-HELPERS
-========================= */
-
 function getStoredData(key, fallback) {
   try {
     const saved = localStorage.getItem(key);
@@ -111,9 +57,9 @@ function getStoredData(key, fallback) {
   }
 }
 
-function isMongoObjectId(value) {
-  return /^[a-f\d]{24}$/i.test(String(value));
-}
+/* =========================
+CORRECTED USER STORAGE
+========================= */
 
 function getStoredUser() {
   try {
@@ -133,21 +79,16 @@ function getStoredUser() {
       return null;
     }
 
-    /*
-      Prevent old localStorage users with fake/timestamp IDs
-      from breaking MongoDB requests.
-    */
-    if (!isMongoObjectId(user.id)) {
-      localStorage.removeItem("currentUser");
-      return null;
-    }
-
     return user;
   } catch {
     localStorage.removeItem("currentUser");
     return null;
   }
 }
+
+/* =========================
+POST NORMALIZATION
+========================= */
 
 function normalizePosts(posts) {
   if (!Array.isArray(posts)) return DEFAULT_POSTS;
@@ -165,12 +106,11 @@ function normalizePosts(posts) {
     repostCount: Number(post.repostCount) || 0,
     reposted: Boolean(post.reposted),
     bookmarked: Boolean(post.bookmarked),
-    comments: Array.isArray(post.comments) ? post.comments : [],
   }));
 }
 
 /* =========================
-POST IMAGE
+POST IMAGE COMPONENT
 ========================= */
 
 function PostImage({ image }) {
@@ -207,8 +147,6 @@ function AuthScreen({ onLogin }) {
       return;
     }
 
-    let cleanUsername = "";
-
     if (mode === "signup") {
       if (!name.trim() || !username.trim()) {
         setError("Please fill in all fields.");
@@ -220,7 +158,7 @@ function AuthScreen({ onLogin }) {
         return;
       }
 
-      cleanUsername = username
+      const cleanUsername = username
         .trim()
         .replace(/\s+/g, "")
         .toLowerCase()
@@ -250,7 +188,11 @@ function AuthScreen({ onLogin }) {
             }
           : {
               name: name.trim(),
-              username: cleanUsername,
+              username: username
+                .trim()
+                .replace(/\s+/g, "")
+                .toLowerCase()
+                .replace(/^@/, ""),
               email: cleanEmail,
               password,
             };
@@ -275,15 +217,9 @@ function AuthScreen({ onLogin }) {
         return;
       }
 
-      if (!data.user?.id) {
-        setError("The server returned an invalid user account.");
-        return;
-      }
-
       onLogin(data.user);
     } catch (requestError) {
       console.error("Authentication error:", requestError);
-
       setError(
         "Unable to connect to the server. Make sure the backend is running on port 5000.",
       );
@@ -406,7 +342,7 @@ function AuthScreen({ onLogin }) {
 }
 
 /* =========================
-HOME PAGE
+MAIN APP
 ========================= */
 
 function HomePage({
@@ -440,7 +376,7 @@ function HomePage({
 
       <div className="compose">
         <div className="avatar">
-          {currentUser.avatar || currentUser.name?.charAt(0).toUpperCase()}
+          {currentUser.avatar || currentUser.name.charAt(0)}
         </div>
 
         <div className="compose-content">
@@ -516,12 +452,13 @@ function HomePage({
                 type="file"
                 accept="image/*"
                 onChange={handleImageSelect}
-                style={{ display: "none" }}
+                style={{
+                  display: "none",
+                }}
               />
             </div>
 
             <button
-              type="button"
               onClick={handlePost}
               disabled={!postText.trim() && !postImage}
               className="small-post-button"
@@ -544,11 +481,13 @@ function HomePage({
       {filteredPosts.length === 0 ? (
         <div className="empty-profile">
           <h3>No posts found.</h3>
+
           <p>Try a different search.</p>
         </div>
       ) : (
         filteredPosts.map((post) => {
           const postComments = comments[post.id] || [];
+
           const isOwnPost = post.username === currentUser.username;
 
           return (
@@ -567,7 +506,6 @@ function HomePage({
 
                   {isOwnPost && (
                     <button
-                      type="button"
                       onClick={() => handleDeletePost(post.id)}
                       className="delete-post-button"
                     >
@@ -582,7 +520,6 @@ function HomePage({
 
                 <div className="post-actions">
                   <button
-                    type="button"
                     onClick={() =>
                       setActivePost(activePost === post.id ? null : post.id)
                     }
@@ -590,15 +527,15 @@ function HomePage({
                     💬 {postComments.length}
                   </button>
 
-                  <button type="button" onClick={() => handleRepost(post.id)}>
+                  <button onClick={() => handleRepost(post.id)}>
                     🔁 {post.repostCount}
                   </button>
 
-                  <button type="button" onClick={() => handleLike(post.id)}>
+                  <button onClick={() => handleLike(post.id)}>
                     {post.liked ? "❤️" : "♡"} {post.likeCount}
                   </button>
 
-                  <button type="button" onClick={() => handleBookmark(post.id)}>
+                  <button onClick={() => handleBookmark(post.id)}>
                     {post.bookmarked ? "🔖" : "📑"}
                   </button>
                 </div>
@@ -606,8 +543,7 @@ function HomePage({
                 {activePost === post.id && (
                   <div className="comments-box">
                     <div className="small-avatar">
-                      {currentUser.avatar ||
-                        currentUser.name?.charAt(0).toUpperCase()}
+                      {currentUser.avatar || currentUser.name.charAt(0)}
                     </div>
 
                     <input
@@ -622,14 +558,12 @@ function HomePage({
                       }
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
-                          e.preventDefault();
                           handleComment(post.id);
                         }
                       }}
                     />
 
                     <button
-                      type="button"
                       onClick={() => handleComment(post.id)}
                       className="reply-button"
                     >
@@ -642,9 +576,7 @@ function HomePage({
                   <div className="comments-list">
                     {postComments.map((comment) => (
                       <div className="comment" key={comment.id}>
-                        <div className="small-avatar">
-                          {comment.avatar || "U"}
-                        </div>
+                        <div className="small-avatar">{comment.avatar}</div>
 
                         <div>
                           <strong>{comment.authorName}</strong>
@@ -668,10 +600,6 @@ function HomePage({
   );
 }
 
-/* =========================
-APP
-========================= */
-
 function App() {
   const [currentUser, setCurrentUser] = useState(getStoredUser);
 
@@ -680,6 +608,7 @@ function App() {
   );
 
   const [postText, setPostText] = useState("");
+
   const [postImage, setPostImage] = useState("");
 
   const imageInputRef = useRef(null);
@@ -700,40 +629,53 @@ function App() {
   );
 
   /* =========================
-  MESSAGES
-  ========================= */
+MESSAGES
+========================= */
 
   const [messages, setMessages] = useState(() => getStoredData("messages", {}));
 
   const [selectedChat, setSelectedChat] = useState(null);
+
   const [messageText, setMessageText] = useState("");
+  const messageInputRef = useRef(null);
+
   const [messageSearch, setMessageSearch] = useState("");
 
+  useEffect(() => {
+    if (activePage === "messages" && selectedChat) {
+      requestAnimationFrame(() => {
+        messageInputRef.current?.focus();
+      });
+    }
+  }, [messageText, activePage, selectedChat]);
+
   /* =========================
-  EXPLORE
-  ========================= */
+EXPLORE
+========================= */
 
   const [exploreSearch, setExploreSearch] = useState("");
+
   const [selectedTopic, setSelectedTopic] = useState("");
 
   const [activePage, setActivePage] = useState("home");
 
-  /* =========================
-  PROFILE
-  ========================= */
-
   const [profileTab, setProfileTab] = useState("posts");
+
   const [isEditingProfile, setIsEditingProfile] = useState(false);
 
   const [editName, setEditName] = useState("");
+
   const [editUsername, setEditUsername] = useState("");
+
   const [editBio, setEditBio] = useState("");
+
   const [editAvatar, setEditAvatar] = useState("");
+
   const [profileError, setProfileError] = useState("");
 
   /* =========================
-  SETTINGS
-  ========================= */
+SETTINGS
+========================= */
 
   const [darkMode, setDarkMode] = useState(() =>
     getStoredData("darkMode", false),
@@ -748,8 +690,8 @@ function App() {
   );
 
   /* =========================
-  LOCAL STORAGE
-  ========================= */
+LOCAL STORAGE
+========================= */
 
   useEffect(() => {
     localStorage.setItem("posts", JSON.stringify(posts));
@@ -787,26 +729,17 @@ function App() {
   }, [privateAccount]);
 
   /* =========================
-  LOAD MONGODB DATA
+  LOAD POSTS FROM MONGODB
   ========================= */
 
   useEffect(() => {
-    if (!currentUser?.id || !isMongoObjectId(currentUser.id)) return;
+    if (!currentUser?.id) return;
 
     const loadPosts = async () => {
       try {
-        /*
-          Clear old sample/local posts while real MongoDB
-          posts are being loaded.
-        */
-        setPosts([]);
-
         const response = await fetch(
-          `http://localhost:5000/api/posts?userId=${encodeURIComponent(
-            currentUser.id,
-          )}`,
+          `http://localhost:5000/api/posts?userId=${encodeURIComponent(currentUser.id)}`,
         );
-
         const data = await response.json();
 
         if (!response.ok) {
@@ -814,35 +747,26 @@ function App() {
           return;
         }
 
-        const mongoPosts = (data.posts || []).map((post) => {
-          const postId = post._id || post.id;
-
-          return {
-            ...post,
-            id: String(postId),
-            time: post.createdAt
-              ? new Date(post.createdAt).toLocaleString()
-              : "now",
-            likeCount: Number(post.likeCount) || 0,
-            repostCount: Number(post.repostCount) || 0,
-            liked: Boolean(post.liked),
-            reposted: Boolean(post.reposted),
-            bookmarked: Boolean(post.bookmarked),
-            isUserPost: post.username === currentUser.username,
-            comments: Array.isArray(post.comments) ? post.comments : [],
-          };
-        });
+        const mongoPosts = (data.posts || []).map((post) => ({
+          ...post,
+          id: post._id || post.id,
+          time: post.createdAt
+            ? new Date(post.createdAt).toLocaleString()
+            : "now",
+          liked: Boolean(post.liked),
+          reposted: Boolean(post.reposted),
+          bookmarked: Boolean(post.bookmarked),
+          isUserPost: post.username === currentUser.username,
+        }));
 
         setPosts(mongoPosts);
 
         const nextComments = {};
-
         mongoPosts.forEach((post) => {
           nextComments[post.id] = Array.isArray(post.comments)
             ? post.comments
             : [];
         });
-
         setComments(nextComments);
       } catch (error) {
         console.error("Load posts error:", error);
@@ -850,17 +774,27 @@ function App() {
     };
 
     const loadFollowing = async () => {
+      const localFollowing = getStoredData("followedUsers", []);
+
+      if (Array.isArray(localFollowing)) {
+        setFollowedUsers(localFollowing);
+      }
+
       try {
         const response = await fetch(
-          `http://localhost:5000/api/users/${encodeURIComponent(
-            currentUser.id,
-          )}/following`,
+          `http://localhost:5000/api/users/${encodeURIComponent(currentUser.id)}/following`,
         );
-
         const data = await response.json();
 
-        if (response.ok) {
-          setFollowedUsers(Array.isArray(data.following) ? data.following : []);
+        if (!response.ok) {
+          console.error("Load following failed:", data.message);
+          return;
+        }
+
+        if (Array.isArray(data.following)) {
+          setFollowedUsers(data.following);
+
+          localStorage.setItem("followedUsers", JSON.stringify(data.following));
         }
       } catch (error) {
         console.error("Load following error:", error);
@@ -872,8 +806,8 @@ function App() {
   }, [currentUser]);
 
   /* =========================
-  LOGIN / LOGOUT
-  ========================= */
+LOGIN / LOGOUT
+========================= */
 
   const handleLogin = (user) => {
     localStorage.setItem("currentUser", JSON.stringify(user));
@@ -896,8 +830,8 @@ function App() {
   };
 
   /* =========================
-  NOTIFICATIONS
-  ========================= */
+NOTIFICATIONS
+========================= */
 
   const addNotification = (message, type = "activity") => {
     if (!notificationsEnabled) return;
@@ -914,21 +848,22 @@ function App() {
   };
 
   /* =========================
-  PROFILE
-  ========================= */
+PROFILE
+========================= */
 
   const handleOpenEditProfile = () => {
     setEditName(currentUser?.name || "");
+
     setEditUsername(currentUser?.username || "");
+
     setEditBio(currentUser?.bio || "");
-    setEditAvatar(
-      currentUser?.avatar || currentUser?.name?.charAt(0).toUpperCase() || "",
-    );
+
+    setEditAvatar(currentUser?.avatar || currentUser?.name?.charAt(0) || "");
 
     setProfileError("");
+
     setIsEditingProfile(true);
   };
-
   const handleSaveProfile = async () => {
     const newName = editName.trim();
 
@@ -953,11 +888,6 @@ function App() {
       setProfileError(
         "Username can only contain letters, numbers, dots, underscores, and hyphens.",
       );
-      return;
-    }
-
-    if (!currentUser?.id || !isMongoObjectId(currentUser.id)) {
-      setProfileError("Your login session is invalid. Please sign in again.");
       return;
     }
 
@@ -988,23 +918,6 @@ function App() {
       localStorage.setItem("currentUser", JSON.stringify(data.user));
 
       setCurrentUser(data.user);
-
-      /*
-        Update posts already visible on screen immediately.
-      */
-      setPosts((prev) =>
-        prev.map((post) =>
-          post.username === currentUser.username
-            ? {
-                ...post,
-                authorName: data.user.name,
-                username: data.user.username,
-                avatar: data.user.avatar,
-              }
-            : post,
-        ),
-      );
-
       setIsEditingProfile(false);
       setProfileError("");
     } catch (error) {
@@ -1013,10 +926,9 @@ function App() {
       setProfileError("Unable to connect to the server.");
     }
   };
-
   /* =========================
-  IMAGE UPLOAD
-  ========================= */
+IMAGE UPLOAD
+========================= */
 
   const handleImageSelect = (e) => {
     const file = e.target.files?.[0];
@@ -1054,6 +966,7 @@ function App() {
         const canvas = document.createElement("canvas");
 
         canvas.width = Math.round(img.width * scale);
+
         canvas.height = Math.round(img.height * scale);
 
         const context = canvas.getContext("2d");
@@ -1091,16 +1004,11 @@ function App() {
   };
 
   /* =========================
-  CREATE POST
-  ========================= */
+POSTS
+========================= */
 
   const handlePost = async () => {
     if (!postText.trim() && !postImage) return;
-
-    if (!currentUser?.id || !isMongoObjectId(currentUser.id)) {
-      alert("Your login session is invalid. Please sign in again.");
-      return;
-    }
 
     try {
       const response = await fetch("http://localhost:5000/api/posts", {
@@ -1128,27 +1036,17 @@ function App() {
         return;
       }
 
-      const created = data.post;
-
       const savedPost = {
-        ...created,
-        id: String(created._id || created.id),
+        ...data.post,
+        id: data.post._id,
         time: "now",
-        likeCount: Number(created.likeCount) || 0,
-        repostCount: Number(created.repostCount) || 0,
         liked: false,
         reposted: false,
         bookmarked: false,
         isUserPost: true,
-        comments: Array.isArray(created.comments) ? created.comments : [],
       };
 
       setPosts((prev) => [savedPost, ...prev]);
-
-      setComments((prev) => ({
-        ...prev,
-        [savedPost.id]: [],
-      }));
 
       setPostText("");
       setPostImage("");
@@ -1161,13 +1059,7 @@ function App() {
     }
   };
 
-  /* =========================
-  DELETE POST
-  ========================= */
-
   const handleDeletePost = async (postId) => {
-    if (!postId || !currentUser?.id) return;
-
     try {
       const response = await fetch(
         `http://localhost:5000/api/posts/${postId}`,
@@ -1176,9 +1068,7 @@ function App() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            userId: currentUser.id,
-          }),
+          body: JSON.stringify({ userId: currentUser.id }),
         },
       );
 
@@ -1190,7 +1080,6 @@ function App() {
       }
 
       setPosts((prev) => prev.filter((post) => post.id !== postId));
-
       setComments((prev) => {
         const updated = { ...prev };
         delete updated[postId];
@@ -1201,17 +1090,8 @@ function App() {
     }
   };
 
-  /* =========================
-  LIKE
-  ========================= */
-
   const handleLike = async (postId) => {
     if (!currentUser?.id) return;
-
-    if (!isMongoObjectId(postId)) {
-      console.error("Cannot like a non-MongoDB sample post.");
-      return;
-    }
 
     try {
       const response = await fetch(
@@ -1240,42 +1120,18 @@ function App() {
             ? {
                 ...post,
                 liked: Boolean(data.liked),
-                likeCount: Number(data.likeCount) || 0,
+                likeCount: Number(data.likeCount),
               }
             : post,
         ),
       );
-
-      const likedPost = posts.find(
-        (post) => String(post.id) === String(postId),
-      );
-
-      if (
-        data.liked &&
-        likedPost &&
-        likedPost.username !== currentUser.username
-      ) {
-        addNotification(
-          `${currentUser.name} liked ${likedPost.authorName}'s post.`,
-          "like",
-        );
-      }
     } catch (error) {
       console.error("Like error:", error);
     }
   };
 
-  /* =========================
-  REPOST
-  ========================= */
-
   const handleRepost = async (postId) => {
     if (!currentUser?.id) return;
-
-    if (!isMongoObjectId(postId)) {
-      console.error("Cannot repost a non-MongoDB sample post.");
-      return;
-    }
 
     try {
       const response = await fetch(
@@ -1304,42 +1160,18 @@ function App() {
             ? {
                 ...post,
                 reposted: Boolean(data.reposted),
-                repostCount: Number(data.repostCount) || 0,
+                repostCount: Number(data.repostCount),
               }
             : post,
         ),
       );
-
-      const targetPost = posts.find(
-        (post) => String(post.id) === String(postId),
-      );
-
-      if (
-        data.reposted &&
-        targetPost &&
-        targetPost.username !== currentUser.username
-      ) {
-        addNotification(
-          `${currentUser.name} reposted ${targetPost.authorName}'s post.`,
-          "repost",
-        );
-      }
     } catch (error) {
       console.error("Repost error:", error);
     }
   };
 
-  /* =========================
-  BOOKMARK
-  ========================= */
-
   const handleBookmark = async (postId) => {
     if (!currentUser?.id) return;
-
-    if (!isMongoObjectId(postId)) {
-      console.error("Cannot bookmark a non-MongoDB sample post.");
-      return;
-    }
 
     try {
       const response = await fetch(
@@ -1378,13 +1210,40 @@ function App() {
   };
 
   /* =========================
-  FOLLOW
-  ========================= */
+USERS / FOLLOW
+========================= */
+
+  const suggestedUsers = [
+    {
+      name: "John Smith",
+      username: "johnsmith",
+      avatar: "J",
+    },
+    {
+      name: "Sarah Williams",
+      username: "sarahw",
+      avatar: "S",
+    },
+    {
+      name: "Michael Brown",
+      username: "michaelb",
+      avatar: "M",
+    },
+  ];
 
   const handleFollow = async (username) => {
-    if (!currentUser?.id) return;
+    if (!currentUser?.id || !username) return;
 
-    if (username === currentUser.username) return;
+    const isCurrentlyFollowing = followedUsers.includes(username);
+
+    const updatedFollowing = isCurrentlyFollowing
+      ? followedUsers.filter((item) => item !== username)
+      : [...followedUsers, username];
+
+    // Update the UI immediately.
+    setFollowedUsers(updatedFollowing);
+
+    localStorage.setItem("followedUsers", JSON.stringify(updatedFollowing));
 
     try {
       const response = await fetch(
@@ -1404,43 +1263,73 @@ function App() {
 
       if (!response.ok) {
         console.error("Follow failed:", data.message);
+
+        // Roll the optimistic UI change back if the server rejects it.
+        setFollowedUsers(
+          isCurrentlyFollowing
+            ? [...followedUsers]
+            : followedUsers.filter((item) => item !== username),
+        );
+
+        localStorage.setItem(
+          "followedUsers",
+          JSON.stringify(
+            isCurrentlyFollowing
+              ? followedUsers
+              : followedUsers.filter((item) => item !== username),
+          ),
+        );
+
         return;
       }
 
-      const nextFollowing = Array.isArray(data.following) ? data.following : [];
+      if (Array.isArray(data.following)) {
+        setFollowedUsers(data.following);
 
-      setFollowedUsers(nextFollowing);
+        localStorage.setItem("followedUsers", JSON.stringify(data.following));
+      }
 
-      const followed = nextFollowing.includes(username);
-
-      const targetUser = SUGGESTED_USERS.find(
-        (user) => user.username === username,
-      );
-
-      if (followed && targetUser) {
-        addNotification(
-          `${currentUser.name} is now following ${targetUser.name}.`,
-          "follow",
+      if (data.isFollowing) {
+        const followedUser = SUGGESTED_USERS.find(
+          (user) => user.username === username,
         );
+
+        if (followedUser) {
+          addNotification(
+            `You are now following ${followedUser.name}.`,
+            "follow",
+          );
+        }
       }
     } catch (error) {
-      console.error("Follow error:", error);
+      console.error("Follow request error:", error);
+
+      // Roll the optimistic UI change back if the request fails.
+      setFollowedUsers(
+        isCurrentlyFollowing
+          ? [...followedUsers]
+          : followedUsers.filter((item) => item !== username),
+      );
+
+      localStorage.setItem(
+        "followedUsers",
+        JSON.stringify(
+          isCurrentlyFollowing
+            ? followedUsers
+            : followedUsers.filter((item) => item !== username),
+        ),
+      );
     }
   };
 
   /* =========================
-  COMMENTS
-  ========================= */
+COMMENTS
+========================= */
 
   const handleComment = async (postId) => {
     const text = commentText[postId]?.trim();
 
     if (!text || !currentUser?.id) return;
-
-    if (!isMongoObjectId(postId)) {
-      console.error("Cannot comment on a non-MongoDB sample post.");
-      return;
-    }
 
     try {
       const response = await fetch(
@@ -1455,9 +1344,7 @@ function App() {
             authorName: currentUser.name,
             username: currentUser.username,
             avatar:
-              currentUser.avatar ||
-              currentUser.name?.charAt(0).toUpperCase() ||
-              "U",
+              currentUser.avatar || currentUser.name.charAt(0).toUpperCase(),
             text,
           }),
         },
@@ -1479,59 +1366,64 @@ function App() {
         ...prev,
         [postId]: "",
       }));
-
-      const targetPost = posts.find(
-        (post) => String(post.id) === String(postId),
-      );
-
-      if (targetPost && targetPost.username !== currentUser.username) {
-        addNotification(
-          `${currentUser.name} commented on ${targetPost.authorName}'s post.`,
-          "comment",
-        );
-      }
     } catch (error) {
       console.error("Comment error:", error);
     }
   };
 
   /* =========================
-  SEARCH / EXPLORE DATA
-  ========================= */
+EXPLORE
+========================= */
 
-  const filteredPosts = posts.filter((post) => {
-    const search = searchText.toLowerCase().trim();
-
-    if (!search) return true;
-
-    return (
-      post.text?.toLowerCase().includes(search) ||
-      post.authorName?.toLowerCase().includes(search) ||
-      post.username?.toLowerCase().includes(search)
-    );
-  });
+  const trends = [
+    {
+      category: "Technology · Trending",
+      title: "#TechNigeria",
+      posts: "12.5K posts",
+    },
+    {
+      category: "Technology · Trending",
+      title: "React",
+      posts: "8,421 posts",
+    },
+    {
+      category: "Programming · Trending",
+      title: "JavaScript",
+      posts: "6,892 posts",
+    },
+    {
+      category: "Web Development · Trending",
+      title: "#WebDevelopment",
+      posts: "4,321 posts",
+    },
+    {
+      category: "Trending in Nigeria",
+      title: "#Nigeria",
+      posts: "18.7K posts",
+    },
+  ];
 
   const explorePosts = posts.filter((post) => {
     const search = exploreSearch.toLowerCase().trim();
 
     const matchesSearch =
       !search ||
-      post.text?.toLowerCase().includes(search) ||
-      post.authorName?.toLowerCase().includes(search) ||
-      post.username?.toLowerCase().includes(search);
+      post.text.toLowerCase().includes(search) ||
+      post.authorName.toLowerCase().includes(search) ||
+      post.username.toLowerCase().includes(search);
 
     const matchesTopic =
       !selectedTopic ||
-      post.text?.toLowerCase().includes(selectedTopic.toLowerCase());
+      post.text.toLowerCase().includes(selectedTopic.toLowerCase());
 
     return matchesSearch && matchesTopic;
   });
 
   /* =========================
-  MESSAGES DATA
-  ========================= */
+MESSAGES
+========================= */
 
-  const messageUsers = SUGGESTED_USERS.filter(
+  const messageUsers = suggestedUsers.filter(
     (user) => user.username !== currentUser?.username,
   );
 
@@ -1544,14 +1436,19 @@ function App() {
 
     const newMessage = {
       id: Date.now().toString() + Math.random().toString(36).slice(2),
+
       sender: currentUser.username,
+
       text,
+
       time: "now",
+
       read: true,
     };
 
     setMessages((prev) => ({
       ...prev,
+
       [selectedChat]: [...(prev[selectedChat] || []), newMessage],
     }));
 
@@ -1581,6 +1478,7 @@ function App() {
 
     setMessages((prev) => ({
       ...prev,
+
       [username]: (prev[username] || []).map((message) =>
         message.sender !== currentUser.username
           ? {
@@ -1598,16 +1496,16 @@ function App() {
   );
 
   /* =========================
-  AUTH CHECK
-  ========================= */
+AUTH CHECK
+========================= */
 
   if (!currentUser) {
     return <AuthScreen onLogin={handleLogin} />;
   }
 
   /* =========================
-  PROFILE DATA
-  ========================= */
+PROFILE DATA
+========================= */
 
   const myPosts = posts.filter(
     (post) => post.username === currentUser.username,
@@ -1618,8 +1516,8 @@ function App() {
   const bookmarkedPosts = posts.filter((post) => post.bookmarked);
 
   /* =========================
-  NOTIFICATIONS PAGE
-  ========================= */
+NOTIFICATIONS PAGE
+========================= */
 
   const renderNotificationsPage = () => {
     const unreadCount = notifications.filter(
@@ -1651,11 +1549,7 @@ function App() {
           </div>
 
           {unreadCount > 0 && (
-            <button
-              type="button"
-              className="mark-read-button"
-              onClick={markAllRead}
-            >
+            <button className="mark-read-button" onClick={markAllRead}>
               Mark all as read
             </button>
           )}
@@ -1683,14 +1577,19 @@ function App() {
               >
                 <div className="notification-icon">
                   {notification.type === "like" && "❤️"}
+
                   {notification.type === "repost" && "🔁"}
+
                   {notification.type === "comment" && "💬"}
+
                   {notification.type === "follow" && "👤"}
+
                   {notification.type === "activity" && "🔔"}
                 </div>
 
                 <div className="notification-content">
                   <p>{notification.message}</p>
+
                   <span>{notification.time}</span>
                 </div>
 
@@ -1706,8 +1605,8 @@ function App() {
   };
 
   /* =========================
-  EXPLORE PAGE
-  ========================= */
+EXPLORE PAGE
+========================= */
 
   const renderExplorePage = () => {
     return (
@@ -1715,6 +1614,7 @@ function App() {
         <div className="feed-header explore-header">
           <div>
             <h2>Explore</h2>
+
             <p>Discover what's happening</p>
           </div>
         </div>
@@ -1735,9 +1635,8 @@ function App() {
             <h3>What's happening</h3>
           </div>
 
-          {TRENDS.map((trend) => (
+          {trends.map((trend) => (
             <button
-              type="button"
               className={`explore-trend ${
                 selectedTopic === trend.title ? "selected" : ""
               }`}
@@ -1749,7 +1648,9 @@ function App() {
               }
             >
               <span>{trend.category}</span>
+
               <strong>{trend.title}</strong>
+
               <small>{trend.posts}</small>
             </button>
           ))}
@@ -1760,9 +1661,7 @@ function App() {
             <h3>Who to follow</h3>
           </div>
 
-          {SUGGESTED_USERS.map((user) => {
-            const isOwnUser = user.username === currentUser.username;
-
+          {suggestedUsers.map((user) => {
             const isFollowed = followedUsers.includes(user.username);
 
             return (
@@ -1771,20 +1670,16 @@ function App() {
 
                 <div className="explore-user-info">
                   <strong>{user.name}</strong>
+
                   <span>@{user.username}</span>
                 </div>
 
-                {!isOwnUser && (
-                  <button
-                    type="button"
-                    onClick={() => handleFollow(user.username)}
-                    className={
-                      isFollowed ? "following-button" : "follow-button"
-                    }
-                  >
-                    {isFollowed ? "Following" : "Follow"}
-                  </button>
-                )}
+                <button
+                  onClick={() => handleFollow(user.username)}
+                  className={isFollowed ? "following-button" : "follow-button"}
+                >
+                  {isFollowed ? "Following" : "Follow"}
+                </button>
               </div>
             );
           })}
@@ -1797,7 +1692,6 @@ function App() {
 
               {selectedTopic && (
                 <button
-                  type="button"
                   className="clear-topic"
                   onClick={() => setSelectedTopic("")}
                 >
@@ -1810,6 +1704,7 @@ function App() {
           {explorePosts.length === 0 ? (
             <div className="empty-profile">
               <h3>No posts found</h3>
+
               <p>Try another search or trending topic.</p>
             </div>
           ) : (
@@ -1834,7 +1729,6 @@ function App() {
 
                   <div className="post-actions">
                     <button
-                      type="button"
                       onClick={() =>
                         setActivePost(activePost === post.id ? null : post.id)
                       }
@@ -1842,18 +1736,15 @@ function App() {
                       💬 {(comments[post.id] || []).length}
                     </button>
 
-                    <button type="button" onClick={() => handleRepost(post.id)}>
+                    <button onClick={() => handleRepost(post.id)}>
                       🔁 {post.repostCount}
                     </button>
 
-                    <button type="button" onClick={() => handleLike(post.id)}>
+                    <button onClick={() => handleLike(post.id)}>
                       {post.liked ? "❤️" : "♡"} {post.likeCount}
                     </button>
 
-                    <button
-                      type="button"
-                      onClick={() => handleBookmark(post.id)}
-                    >
+                    <button onClick={() => handleBookmark(post.id)}>
                       {post.bookmarked ? "🔖" : "📑"}
                     </button>
                   </div>
@@ -1867,8 +1758,8 @@ function App() {
   };
 
   /* =========================
-  MESSAGES PAGE
-  ========================= */
+MESSAGES PAGE
+========================= */
 
   const renderMessagesPage = () => {
     const filteredUsers = messageUsers.filter((user) => {
@@ -1891,6 +1782,7 @@ function App() {
         <div className="messages-header">
           <div>
             <h2>Messages</h2>
+
             <p>Chat with people you know</p>
           </div>
         </div>
@@ -1898,8 +1790,7 @@ function App() {
         <div className="messages-layout">
           <div className="conversation-panel">
             <div className="message-search">
-              <span>🔍</span>
-
+              🔍
               <input
                 type="text"
                 placeholder="Search messages"
@@ -1914,7 +1805,6 @@ function App() {
 
                 return (
                   <button
-                    type="button"
                     className={`conversation ${
                       selectedChat === user.username ? "active" : ""
                     }`}
@@ -1925,6 +1815,7 @@ function App() {
 
                     <div className="conversation-info">
                       <strong>{user.name}</strong>
+
                       <span>{getLastMessage(user.username)}</span>
                     </div>
 
@@ -1953,6 +1844,7 @@ function App() {
 
                   <div>
                     <strong>{activeUser.name}</strong>
+
                     <span>@{activeUser.username}</span>
                   </div>
                 </div>
@@ -1992,17 +1884,12 @@ function App() {
                     onChange={(e) => setMessageText(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
-                        e.preventDefault();
                         sendMessage();
                       }
                     }}
                   />
 
-                  <button
-                    type="button"
-                    onClick={sendMessage}
-                    disabled={!messageText.trim()}
-                  >
+                  <button onClick={sendMessage} disabled={!messageText.trim()}>
                     Send
                   </button>
                 </div>
@@ -2015,8 +1902,8 @@ function App() {
   };
 
   /* =========================
-  BOOKMARKS PAGE
-  ========================= */
+BOOKMARKS PAGE
+========================= */
 
   const renderBookmarksPage = () => {
     return (
@@ -2024,6 +1911,7 @@ function App() {
         <div className="feed-header">
           <div>
             <h2>Bookmarks</h2>
+
             <p>Posts you've saved for later</p>
           </div>
         </div>
@@ -2036,9 +1924,7 @@ function App() {
 
             <p>Bookmark posts to easily find them again.</p>
 
-            <button type="button" onClick={() => setActivePage("home")}>
-              Browse posts
-            </button>
+            <button onClick={() => setActivePage("home")}>Browse posts</button>
           </div>
         ) : (
           bookmarkedPosts.map((post) => (
@@ -2062,7 +1948,6 @@ function App() {
 
                 <div className="post-actions">
                   <button
-                    type="button"
                     onClick={() =>
                       setActivePost(activePost === post.id ? null : post.id)
                     }
@@ -2070,15 +1955,15 @@ function App() {
                     💬 {(comments[post.id] || []).length}
                   </button>
 
-                  <button type="button" onClick={() => handleRepost(post.id)}>
+                  <button onClick={() => handleRepost(post.id)}>
                     🔁 {post.repostCount}
                   </button>
 
-                  <button type="button" onClick={() => handleLike(post.id)}>
+                  <button onClick={() => handleLike(post.id)}>
                     {post.liked ? "❤️" : "♡"} {post.likeCount}
                   </button>
 
-                  <button type="button" onClick={() => handleBookmark(post.id)}>
+                  <button onClick={() => handleBookmark(post.id)}>
                     🔖 Remove
                   </button>
                 </div>
@@ -2091,8 +1976,8 @@ function App() {
   };
 
   /* =========================
-  PROFILE PAGE
-  ========================= */
+PROFILE PAGE
+========================= */
 
   const renderProfilePage = () => {
     return (
@@ -2101,7 +1986,6 @@ function App() {
 
         <div className="profile-info">
           <button
-            type="button"
             className="edit-profile-button"
             onClick={handleOpenEditProfile}
           >
@@ -2129,6 +2013,7 @@ function App() {
 
             <div>
               <strong>0</strong>
+
               <span>Followers</span>
             </div>
           </div>
@@ -2141,7 +2026,6 @@ function App() {
                 <h2>Edit profile</h2>
 
                 <button
-                  type="button"
                   className="close-edit-profile"
                   onClick={() => setIsEditingProfile(false)}
                 >
@@ -2157,7 +2041,6 @@ function App() {
                 <label>
                   Name
                   <input
-                    type="text"
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
                     maxLength={50}
@@ -2167,7 +2050,6 @@ function App() {
                 <label>
                   Username
                   <input
-                    type="text"
                     value={editUsername}
                     onChange={(e) => setEditUsername(e.target.value)}
                     maxLength={30}
@@ -2187,7 +2069,6 @@ function App() {
                 <label>
                   Avatar initial
                   <input
-                    type="text"
                     value={editAvatar}
                     onChange={(e) =>
                       setEditAvatar(e.target.value.charAt(0).toUpperCase())
@@ -2199,7 +2080,6 @@ function App() {
 
               <div className="edit-profile-actions">
                 <button
-                  type="button"
                   className="cancel-profile-button"
                   onClick={() => setIsEditingProfile(false)}
                 >
@@ -2207,7 +2087,6 @@ function App() {
                 </button>
 
                 <button
-                  type="button"
                   className="save-profile-button"
                   onClick={handleSaveProfile}
                 >
@@ -2220,7 +2099,6 @@ function App() {
 
         <div className="profile-tabs">
           <button
-            type="button"
             className={`profile-tab ${profileTab === "posts" ? "active" : ""}`}
             onClick={() => setProfileTab("posts")}
           >
@@ -2228,7 +2106,6 @@ function App() {
           </button>
 
           <button
-            type="button"
             className={`profile-tab ${
               profileTab === "replies" ? "active" : ""
             }`}
@@ -2238,7 +2115,6 @@ function App() {
           </button>
 
           <button
-            type="button"
             className={`profile-tab ${profileTab === "likes" ? "active" : ""}`}
             onClick={() => setProfileTab("likes")}
           >
@@ -2256,7 +2132,6 @@ function App() {
                   <p>When you post something, it will appear here.</p>
 
                   <button
-                    type="button"
                     onClick={() => {
                       setActivePage("home");
 
@@ -2284,7 +2159,6 @@ function App() {
                         <span>{post.time}</span>
 
                         <button
-                          type="button"
                           onClick={() => handleDeletePost(post.id)}
                           className="delete-post-button"
                         >
@@ -2298,7 +2172,6 @@ function App() {
 
                       <div className="post-actions">
                         <button
-                          type="button"
                           onClick={() =>
                             setActivePost(
                               activePost === post.id ? null : post.id,
@@ -2308,24 +2181,15 @@ function App() {
                           💬 {(comments[post.id] || []).length}
                         </button>
 
-                        <button
-                          type="button"
-                          onClick={() => handleRepost(post.id)}
-                        >
+                        <button onClick={() => handleRepost(post.id)}>
                           🔁 {post.repostCount}
                         </button>
 
-                        <button
-                          type="button"
-                          onClick={() => handleLike(post.id)}
-                        >
+                        <button onClick={() => handleLike(post.id)}>
                           {post.liked ? "❤️" : "♡"} {post.likeCount}
                         </button>
 
-                        <button
-                          type="button"
-                          onClick={() => handleBookmark(post.id)}
-                        >
+                        <button onClick={() => handleBookmark(post.id)}>
                           {post.bookmarked ? "🔖" : "📑"}
                         </button>
                       </div>
@@ -2373,35 +2237,15 @@ function App() {
                       <PostImage image={post.image} />
 
                       <div className="post-actions">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setActivePost(
-                              activePost === post.id ? null : post.id,
-                            )
-                          }
-                        >
-                          💬 {(comments[post.id] || []).length}
-                        </button>
+                        <button>💬 {(comments[post.id] || []).length}</button>
 
-                        <button
-                          type="button"
-                          onClick={() => handleRepost(post.id)}
-                        >
-                          🔁 {post.repostCount}
-                        </button>
+                        <button>🔁 {post.repostCount}</button>
 
-                        <button
-                          type="button"
-                          onClick={() => handleLike(post.id)}
-                        >
+                        <button onClick={() => handleLike(post.id)}>
                           ❤️ {post.likeCount}
                         </button>
 
-                        <button
-                          type="button"
-                          onClick={() => handleBookmark(post.id)}
-                        >
+                        <button onClick={() => handleBookmark(post.id)}>
                           {post.bookmarked ? "🔖" : "📑"}
                         </button>
                       </div>
@@ -2417,8 +2261,8 @@ function App() {
   };
 
   /* =========================
-  SETTINGS PAGE
-  ========================= */
+SETTINGS PAGE
+========================= */
 
   const renderSettingsPage = () => {
     return (
@@ -2450,7 +2294,6 @@ function App() {
             </div>
 
             <button
-              type="button"
               className={`settings-toggle ${darkMode ? "enabled" : ""}`}
               onClick={() => setDarkMode((prev) => !prev)}
               aria-label="Toggle dark mode"
@@ -2479,7 +2322,6 @@ function App() {
             </div>
 
             <button
-              type="button"
               className={`settings-toggle ${
                 notificationsEnabled ? "enabled" : ""
               }`}
@@ -2510,7 +2352,6 @@ function App() {
             </div>
 
             <button
-              type="button"
               className={`settings-toggle ${privateAccount ? "enabled" : ""}`}
               onClick={() => setPrivateAccount((prev) => !prev)}
               aria-label="Toggle private account"
@@ -2527,11 +2368,7 @@ function App() {
             <p>Manage your account session.</p>
           </div>
 
-          <button
-            type="button"
-            className="settings-sign-out"
-            onClick={handleLogout}
-          >
+          <button className="settings-sign-out" onClick={handleLogout}>
             Sign Out
           </button>
         </div>
@@ -2540,8 +2377,8 @@ function App() {
   };
 
   /* =========================
-  MAIN RETURN
-  ========================= */
+MAIN RETURN
+========================= */
 
   return (
     <div className={`app ${darkMode ? "dark-mode" : ""}`}>
@@ -2557,6 +2394,7 @@ function App() {
               onClick={() => setActivePage("home")}
             >
               <span>⌂</span>
+
               <strong>Home</strong>
             </div>
 
@@ -2565,6 +2403,7 @@ function App() {
               onClick={() => setActivePage("explore")}
             >
               <span>🔍</span>
+
               <strong>Explore</strong>
             </div>
 
@@ -2614,6 +2453,7 @@ function App() {
               onClick={() => setActivePage("bookmarks")}
             >
               <span>🔖</span>
+
               <strong>Bookmarks</strong>
             </div>
 
@@ -2622,6 +2462,7 @@ function App() {
               onClick={() => setActivePage("profile")}
             >
               <span>👤</span>
+
               <strong>Profile</strong>
             </div>
 
@@ -2632,12 +2473,12 @@ function App() {
               onClick={() => setActivePage("settings")}
             >
               <span>⚙️</span>
+
               <strong>Settings</strong>
             </div>
           </nav>
 
           <button
-            type="button"
             className="post-button"
             onClick={() => {
               setActivePage("home");
@@ -2652,7 +2493,7 @@ function App() {
 
           <div className="current-user-card">
             <div className="avatar">
-              {currentUser.avatar || currentUser.name?.charAt(0).toUpperCase()}
+              {currentUser.avatar || currentUser.name.charAt(0)}
             </div>
 
             <div className="current-user-info">
@@ -2662,7 +2503,6 @@ function App() {
             </div>
 
             <button
-              type="button"
               onClick={handleLogout}
               title="Sign out"
               className="user-menu-button"
@@ -2671,11 +2511,7 @@ function App() {
             </button>
           </div>
 
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="sign-out-button"
-          >
+          <button onClick={handleLogout} className="sign-out-button">
             Sign Out
           </button>
         </aside>
@@ -2739,12 +2575,13 @@ function App() {
           <div className="sidebar-card">
             <h3>What's happening</h3>
 
-            {TRENDS.slice(0, 4).map((trend) => (
+            {trends.slice(0, 4).map((trend) => (
               <div
                 className="trend"
                 key={trend.title}
                 onClick={() => {
                   setActivePage("explore");
+
                   setSelectedTopic(trend.title);
                 }}
               >
@@ -2760,9 +2597,7 @@ function App() {
           <div className="sidebar-card">
             <h3>Who to follow</h3>
 
-            {SUGGESTED_USERS.map((user) => {
-              const isOwnUser = user.username === currentUser.username;
-
+            {suggestedUsers.map((user) => {
               const isFollowed = followedUsers.includes(user.username);
 
               return (
@@ -2775,14 +2610,9 @@ function App() {
                     <span>@{user.username}</span>
                   </div>
 
-                  {!isOwnUser && (
-                    <button
-                      type="button"
-                      onClick={() => handleFollow(user.username)}
-                    >
-                      {isFollowed ? "Following" : "Follow"}
-                    </button>
-                  )}
+                  <button onClick={() => handleFollow(user.username)}>
+                    {isFollowed ? "Following" : "Follow"}
+                  </button>
                 </div>
               );
             })}
@@ -2836,5 +2666,4 @@ function App() {
     </div>
   );
 }
-
 export default App;
