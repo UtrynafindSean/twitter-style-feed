@@ -1131,36 +1131,49 @@ POSTS
   };
 
   const handleRepost = async (postId) => {
-    const targetPost = posts.find((post) => post.id === postId);
-    if (!targetPost) return;
+  if (!currentUser?.id) return;
 
-    try {
-      const response = await fetch(
-        `http://localhost:5000/api/posts/${postId}/repost`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId: currentUser.id }),
+  try {
+    const response = await fetch(
+      `http://localhost:5000/api/posts/${postId}/repost`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify({
+          userId: currentUser.id,
+        }),
+      },
+    );
 
-      const data = await response.json();
-      if (!response.ok) {
-        console.error("Repost failed:", data.message);
-        return;
-      }
+    const data = await response.json();
 
-      setPosts((prev) =>
-        prev.map((post) =>
-          post.id === postId
-            ? {
-                ...post,
-                reposted: data.reposted,
-                repostCount: data.repostCount,
-              }
-            : post,
-        ),
+    if (!response.ok) {
+      console.error(
+        "Repost failed:",
+        data.message,
       );
+      return;
+    }
+
+    setPosts((prev) =>
+      prev.map((post) =>
+        String(post.id) === String(postId)
+          ? {
+              ...post,
+              reposted: Boolean(data.reposted),
+              repostCount: Number(
+                data.repostCount,
+              ),
+            }
+          : post,
+      ),
+    );
+  } catch (error) {
+    console.error("Repost error:", error);
+  }
+};
 
       if (data.reposted && targetPost.username !== currentUser.username) {
         addNotification(
