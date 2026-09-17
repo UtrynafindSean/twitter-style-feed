@@ -1091,20 +1091,24 @@ POSTS
   };
 
   const handleLike = async (postId) => {
-    const targetPost = posts.find((post) => post.id === postId);
-    if (!targetPost) return;
+    if (!currentUser?.id) return;
 
     try {
       const response = await fetch(
         `http://localhost:5000/api/posts/${postId}/like`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId: currentUser.id }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId: currentUser.id,
+          }),
         },
       );
 
       const data = await response.json();
+
       if (!response.ok) {
         console.error("Like failed:", data.message);
         return;
@@ -1112,17 +1116,17 @@ POSTS
 
       setPosts((prev) =>
         prev.map((post) =>
-          post.id === postId
-            ? { ...post, liked: data.liked, likeCount: data.likeCount }
+          String(post.id) === String(postId)
+            ? {
+                ...post,
+                liked: Boolean(data.liked),
+                likeCount: Number(data.likeCount),
+              }
             : post,
         ),
       );
-
-      if (data.liked) {
-        addNotification(`You liked a post by @${targetPost.username}.`, "like");
-      }
     } catch (error) {
-      console.error("Like post error:", error);
+      console.error("Like error:", error);
     }
   };
 
