@@ -1184,34 +1184,56 @@ POSTS
     } catch (error) {
       console.error("Repost error:", error);
     }
-  };
+  ;
 
   const handleBookmark = async (postId) => {
-    try {
-      const response = await fetch(
-        `http://localhost:5000/api/posts/${postId}/bookmark`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId: currentUser.id }),
+  if (!currentUser?.id) return;
+
+  try {
+    const response = await fetch(
+      `http://localhost:5000/api/posts/${postId}/bookmark`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify({
+          userId: currentUser.id,
+        }),
+      },
+    );
 
-      const data = await response.json();
-      if (!response.ok) {
-        console.error("Bookmark failed:", data.message);
-        return;
-      }
+    const data = await response.json();
 
-      setPosts((prev) =>
-        prev.map((post) =>
-          post.id === postId ? { ...post, bookmarked: data.bookmarked } : post,
-        ),
+    if (!response.ok) {
+      console.error(
+        "Bookmark failed:",
+        data.message,
       );
-    } catch (error) {
-      console.error("Bookmark error:", error);
+      return;
     }
-  };
+
+    setPosts((prev) =>
+      prev.map((post) =>
+        String(post.id) === String(postId)
+          ? {
+              ...post,
+              bookmarked: Boolean(
+                data.bookmarked,
+              ),
+            }
+          : post,
+      ),
+    );
+  } catch (error) {
+    console.error(
+      "Bookmark error:",
+      error,
+    );
+  }
+};
+  
+
 
   /* =========================
 USERS / FOLLOW
@@ -1236,38 +1258,44 @@ USERS / FOLLOW
   ];
 
   const handleFollow = async (username) => {
-    const followedUser = suggestedUsers.find(
-      (user) => user.username === username,
+  if (!currentUser?.id) return;
+
+  try {
+    const response = await fetch(
+      `http://localhost:5000/api/users/${currentUser.id}/follow`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username,
+        }),
+      },
     );
 
-    try {
-      const response = await fetch(
-        `http://localhost:5000/api/users/${currentUser.id}/follow`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username }),
-        },
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error(
+        "Follow failed:",
+        data.message,
       );
-
-      const data = await response.json();
-      if (!response.ok) {
-        console.error("Follow failed:", data.message);
-        return;
-      }
-
-      setFollowedUsers(Array.isArray(data.following) ? data.following : []);
-
-      if (data.isFollowing && followedUser) {
-        addNotification(
-          `You are now following ${followedUser.name}.`,
-          "follow",
-        );
-      }
-    } catch (error) {
-      console.error("Follow error:", error);
+      return;
     }
-  };
+
+    setFollowedUsers(
+      Array.isArray(data.following)
+        ? data.following
+        : [],
+    );
+  } catch (error) {
+    console.error(
+      "Follow error:",
+      error,
+    );
+  }
+};
 
   /* =========================
 COMMENTS
