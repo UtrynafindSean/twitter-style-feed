@@ -5,6 +5,7 @@ const dotenv = require("dotenv");
 
 const authRoutes = require("./routes/auth");
 const postRoutes = require("./routes/posts");
+const userRoutes = require("./routes/users");
 
 dotenv.config();
 
@@ -16,7 +17,7 @@ app.use(express.json());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/posts", postRoutes);
-
+app.use("/api/users", userRoutes);
 app.get("/api/health", (req, res) => {
   res.json({
     success: true,
@@ -26,10 +27,7 @@ app.get("/api/health", (req, res) => {
 
 async function startServer() {
   try {
-    console.log(
-      "MONGO_URI:",
-      process.env.MONGO_URI ? "loaded" : "missing"
-    );
+    console.log("MONGO_URI:", process.env.MONGO_URI ? "loaded" : "missing");
 
     await mongoose.connect(process.env.MONGO_URI);
 
