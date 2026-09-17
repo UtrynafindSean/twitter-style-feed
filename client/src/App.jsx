@@ -842,90 +842,86 @@ PROFILE
 
     setIsEditingProfile(true);
   };
+const handleSaveProfile = async () => {
+  const newName = editName.trim();
 
-  const handleSaveProfile = () => {
-    const newName = editName.trim();
+  const newUsername = editUsername
+    .trim()
+    .replace(/\s+/g, "")
+    .replace(/^@/, "")
+    .toLowerCase();
 
-    const newUsername = editUsername
-      .trim()
-      .replace(/\s+/g, "")
-      .toLowerCase()
-      .replace(/^@/, "");
+  const newBio = editBio.trim();
 
-    const newBio = editBio.trim();
+  const newAvatar =
+    editAvatar.trim().charAt(0).toUpperCase() ||
+    newName.charAt(0).toUpperCase();
 
-    const newAvatar =
-      editAvatar.trim().charAt(0).toUpperCase() ||
-      newName.charAt(0).toUpperCase();
+  if (!newName || !newUsername) {
+    setProfileError(
+      "Name and username are required.",
+    );
+    return;
+  }
 
-    if (!newName) {
-      setProfileError("Please enter your name.");
-      return;
-    }
+  if (
+    !/^[a-zA-Z0-9._-]+$/.test(
+      newUsername,
+    )
+  ) {
+    setProfileError(
+      "Username can only contain letters, numbers, dots, underscores, and hyphens.",
+    );
+    return;
+  }
 
-    if (!newUsername) {
-      setProfileError("Please enter a username.");
-      return;
-    }
+  try {
+    const response = await fetch(
+      `http://localhost:5000/api/users/${currentUser.id}/profile`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type":
+            "application/json",
+        },
+        body: JSON.stringify({
+          name: newName,
+          username: newUsername,
+          bio: newBio,
+          avatar: newAvatar,
+        }),
+      },
+    );
 
-    if (!/^[a-zA-Z0-9._-]+$/.test(newUsername)) {
+    const data = await response.json();
+
+    if (!response.ok) {
       setProfileError(
-        "Username can only contain letters, numbers, dots, underscores, and hyphens.",
+        data.message ||
+          "Unable to update profile.",
       );
       return;
     }
 
-    const users = getStoredData("users", []);
-
-    const usernameTaken = users.some(
-      (user) =>
-        user.id !== currentUser.id &&
-        user.username?.toLowerCase() === newUsername,
+    localStorage.setItem(
+      "currentUser",
+      JSON.stringify(data.user),
     );
 
-    if (usernameTaken) {
-      setProfileError("That username is already taken.");
-      return;
-    }
-
-    const oldUsername = currentUser.username;
-
-    const updatedUser = {
-      ...currentUser,
-      name: newName,
-      username: newUsername,
-      bio: newBio,
-      avatar: newAvatar,
-    };
-
-    const updatedUsers = users.map((user) =>
-      user.id === currentUser.id ? updatedUser : user,
-    );
-
-    localStorage.setItem("users", JSON.stringify(updatedUsers));
-
-    localStorage.setItem("currentUser", JSON.stringify(updatedUser));
-
-    setPosts((prev) =>
-      prev.map((post) =>
-        post.username === oldUsername
-          ? {
-              ...post,
-              authorName: newName,
-              username: newUsername,
-              avatar: newAvatar,
-            }
-          : post,
-      ),
-    );
-
-    setCurrentUser(updatedUser);
-
+    setCurrentUser(data.user);
     setIsEditingProfile(false);
-
     setProfileError("");
-  };
+  } catch (error) {
+    console.error(
+      "Profile update error:",
+      error,
+    );
 
+    setProfileError(
+      "Unable to connect to the server.",
+    );
+  }
+};
   /* =========================
 IMAGE UPLOAD
 ========================= */
