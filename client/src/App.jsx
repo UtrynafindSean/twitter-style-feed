@@ -47,31 +47,6 @@ const DEFAULT_POSTS = [
     isUserPost: false,
   },
 ];
-const SUGGESTED_USERS = [
-  { name: "John Smith", username: "johnsmith", avatar: "J" },
-  { name: "Sarah Williams", username: "sarahw", avatar: "S" },
-  { name: "Michael Brown", username: "michaelb", avatar: "M" },
-];
-
-const TRENDS = [
-  {
-    category: "Technology · Trending",
-    title: "#TechNigeria",
-    posts: "12.5K posts",
-  },
-  { category: "Technology · Trending", title: "React", posts: "8,421 posts" },
-  {
-    category: "Programming · Trending",
-    title: "JavaScript",
-    posts: "6,892 posts",
-  },
-  {
-    category: "Web Development · Trending",
-    title: "#WebDevelopment",
-    posts: "4,321 posts",
-  },
-  { category: "Trending in Nigeria", title: "#Nigeria", posts: "18.7K posts" },
-];
 
 function getStoredData(key, fallback) {
   try {
@@ -436,7 +411,7 @@ function HomePage({
                 title="Add image"
                 aria-label="Add image"
               >
-                🖼️
+                <Icon name="image" size={18} />
               </button>
 
               <button
@@ -458,7 +433,7 @@ function HomePage({
                 }
                 title="Add emoji"
               >
-                😊
+                <Icon name="smile" size={18} />
               </button>
 
               <button
@@ -469,7 +444,7 @@ function HomePage({
                 }
                 title="Add location"
               >
-                📍
+                <Icon name="pin" size={18} />
               </button>
 
               <input
@@ -534,7 +509,7 @@ function HomePage({
                       onClick={() => handleDeletePost(post.id)}
                       className="delete-post-button"
                     >
-                      🗑️
+                      <Icon name="trash" size={17} />
                     </button>
                   )}
                 </div>
@@ -549,19 +524,28 @@ function HomePage({
                       setActivePost(activePost === post.id ? null : post.id)
                     }
                   >
-                    💬 {postComments.length}
+                    <Icon name="comment" size={18} />
+                    <span>{postComments.length}</span>
                   </button>
 
-                  <button onClick={() => handleRepost(post.id)}>
-                    🔁 {post.repostCount}
+                  <button
+                    onClick={() => handleRepost(post.id)}
+                    aria-label="Repost"
+                  >
+                    <Icon name="repost" size={18} />
+                    <span>{post.repostCount}</span>
                   </button>
 
-                  <button onClick={() => handleLike(post.id)}>
-                    {post.liked ? "❤️" : "♡"} {post.likeCount}
+                  <button onClick={() => handleLike(post.id)} aria-label="Like">
+                    <Icon name="heart" size={18} />
+                    <span>{post.likeCount}</span>
                   </button>
 
-                  <button onClick={() => handleBookmark(post.id)}>
-                    {post.bookmarked ? "🔖" : "📑"}
+                  <button
+                    onClick={() => handleBookmark(post.id)}
+                    aria-label="Bookmark"
+                  >
+                    <Icon name="bookmark" size={18} />
                   </button>
                 </div>
 
@@ -625,6 +609,130 @@ function HomePage({
   );
 }
 
+function Icon({ name, size = 20, strokeWidth = 1.8, className = "" }) {
+  const common = {
+    width: size,
+    height: size,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth,
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    className: `nav-svg-icon ${className}`.trim(),
+    "aria-hidden": "true",
+  };
+
+  switch (name) {
+    case "home":
+      return (
+        <svg {...common}>
+          <path d="M3 10.5 12 3l9 7.5" />
+          <path d="M5.5 9.5V21h13V9.5" />
+          <path d="M9.5 21v-6h5v6" />
+        </svg>
+      );
+    case "search":
+      return (
+        <svg {...common}>
+          <circle cx="11" cy="11" r="6.5" />
+          <path d="m16 16 4.5 4.5" />
+        </svg>
+      );
+    case "notifications":
+      return (
+        <svg {...common}>
+          <path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
+          <path d="M10 21h4" />
+        </svg>
+      );
+    case "messages":
+      return (
+        <svg {...common}>
+          <path d="M20 11.5a8 8 0 0 1-8.5 8A9.6 9.6 0 0 1 7 18.3L3 20l1.5-4A8.2 8.2 0 0 1 4 11.5a8 8 0 0 1 8-8 8 8 0 0 1 8 8Z" />
+          <path d="M8 11.5h.01M12 11.5h.01M16 11.5h.01" />
+        </svg>
+      );
+    case "bookmark":
+      return (
+        <svg {...common}>
+          <path d="M6 4.5A1.5 1.5 0 0 1 7.5 3h9A1.5 1.5 0 0 1 18 4.5V21l-6-3.5L6 21Z" />
+        </svg>
+      );
+    case "profile":
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="8" r="3.5" />
+          <path d="M5 20a7 7 0 0 1 14 0" />
+        </svg>
+      );
+    case "settings":
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="3" />
+          <path d="M19.4 15a1.8 1.8 0 0 0 .36 1.98l.06.06-1.41 1.41-.06-.06a1.8 1.8 0 0 0-1.98-.36 1.8 1.8 0 0 0-1.1 1.65V20h-2v-.32a1.8 1.8 0 0 0-1.1-1.65 1.8 1.8 0 0 0-1.98.36l-.06.06-1.41-1.41.06-.06A1.8 1.8 0 0 0 8.2 15a1.8 1.8 0 0 0-1.65-1.1H6v-2h.32A1.8 1.8 0 0 0 7.97 10.8 1.8 1.8 0 0 0 7.6 8.82l-.06-.06 1.41-1.41.06.06A1.8 1.8 0 0 0 11 7.05 1.8 1.8 0 0 0 12.1 5.4V5h2v.32A1.8 1.8 0 0 0 15.2 6.97a1.8 1.8 0 0 0 1.98-.36l.06-.06 1.41 1.41-.06.06A1.8 1.8 0 0 0 18.95 10a1.8 1.8 0 0 0 1.65 1.1H21v2h-.32A1.8 1.8 0 0 0 19.4 15Z" />
+        </svg>
+      );
+    case "plus":
+      return (
+        <svg {...common}>
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+      );
+    case "comment":
+      return (
+        <svg {...common}>
+          <path d="M20 11.5a8 8 0 0 1-8.5 8A9.6 9.6 0 0 1 7 18.3L3 20l1.5-4A8.2 8.2 0 0 1 4 11.5a8 8 0 0 1 8-8 8 8 0 0 1 8 8Z" />
+        </svg>
+      );
+    case "repost":
+      return (
+        <svg {...common}>
+          <path d="M7 7h10l-3-3m3 3-3 3" />
+          <path d="M17 17H7l3 3m-3-3 3-3" />
+          <path d="M5 9v2a4 4 0 0 0 4 4h8" />
+          <path d="M19 15v-2a4 4 0 0 0-4-4H7" />
+        </svg>
+      );
+    case "heart":
+      return (
+        <svg {...common}>
+          <path d="M20.8 8.9c0 5.3-8.8 10.1-8.8 10.1S3.2 14.2 3.2 8.9A4.5 4.5 0 0 1 12 6.8a4.5 4.5 0 0 1 8.8 2.1Z" />
+        </svg>
+      );
+    case "trash":
+      return (
+        <svg {...common}>
+          <path d="M4 7h16M10 11v6M14 11v6M6 7l1 14h10l1-14M9 7V4h6v3" />
+        </svg>
+      );
+    case "image":
+      return (
+        <svg {...common}>
+          <rect x="3" y="4" width="18" height="16" rx="2" />
+          <circle cx="8.5" cy="9" r="1.5" />
+          <path d="m4 17 5-5 4 4 2.5-2.5L20 17.5" />
+        </svg>
+      );
+    case "smile":
+      return (
+        <svg {...common}>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M8.5 14.5a4 4 0 0 0 7 0M9 9h.01M15 9h.01" />
+        </svg>
+      );
+    case "pin":
+      return (
+        <svg {...common}>
+          <path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z" />
+          <circle cx="12" cy="10" r="2.5" />
+        </svg>
+      );
+    default:
+      return null;
+  }
+}
+
 function App() {
   const [currentUser, setCurrentUser] = useState(getStoredUser);
 
@@ -645,9 +753,10 @@ function App() {
   const [commentText, setCommentText] = useState({});
   const [activePost, setActivePost] = useState(null);
 
-  const [followedUsers, setFollowedUsers] = useState(() =>
-    getStoredData("followedUsers", []),
-  );
+  const [followedUsers, setFollowedUsers] = useState(() => {
+    const stored = getStoredData("followedUsers", []);
+    return Array.isArray(stored) ? stored : [];
+  });
 
   const [notifications, setNotifications] = useState(() =>
     getStoredData("notifications", []),
@@ -662,17 +771,8 @@ MESSAGES
   const [selectedChat, setSelectedChat] = useState(null);
 
   const [messageText, setMessageText] = useState("");
-  const messageInputRef = useRef(null);
 
   const [messageSearch, setMessageSearch] = useState("");
-
-  useEffect(() => {
-    if (activePage === "messages" && selectedChat) {
-      requestAnimationFrame(() => {
-        messageInputRef.current?.focus();
-      });
-    }
-  }, [messageText, activePage, selectedChat]);
 
   /* =========================
 EXPLORE
@@ -799,12 +899,6 @@ LOCAL STORAGE
     };
 
     const loadFollowing = async () => {
-      const localFollowing = getStoredData("followedUsers", []);
-
-      if (Array.isArray(localFollowing)) {
-        setFollowedUsers(localFollowing);
-      }
-
       try {
         const response = await fetch(
           `http://localhost:5000/api/users/${encodeURIComponent(currentUser.id)}/following`,
@@ -818,7 +912,6 @@ LOCAL STORAGE
 
         if (Array.isArray(data.following)) {
           setFollowedUsers(data.following);
-
           localStorage.setItem("followedUsers", JSON.stringify(data.following));
         }
       } catch (error) {
@@ -889,14 +982,15 @@ PROFILE
 
     setIsEditingProfile(true);
   };
-  const handleSaveProfile = async () => {
+
+  const handleSaveProfile = () => {
     const newName = editName.trim();
 
     const newUsername = editUsername
       .trim()
       .replace(/\s+/g, "")
-      .replace(/^@/, "")
-      .toLowerCase();
+      .toLowerCase()
+      .replace(/^@/, "");
 
     const newBio = editBio.trim();
 
@@ -904,8 +998,13 @@ PROFILE
       editAvatar.trim().charAt(0).toUpperCase() ||
       newName.charAt(0).toUpperCase();
 
-    if (!newName || !newUsername) {
-      setProfileError("Name and username are required.");
+    if (!newName) {
+      setProfileError("Please enter your name.");
+      return;
+    }
+
+    if (!newUsername) {
+      setProfileError("Please enter a username.");
       return;
     }
 
@@ -916,41 +1015,57 @@ PROFILE
       return;
     }
 
-    try {
-      const response = await fetch(
-        `http://localhost:5000/api/users/${currentUser.id}/profile`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name: newName,
-            username: newUsername,
-            bio: newBio,
-            avatar: newAvatar,
-          }),
-        },
-      );
+    const users = getStoredData("users", []);
 
-      const data = await response.json();
+    const usernameTaken = users.some(
+      (user) =>
+        user.id !== currentUser.id &&
+        user.username?.toLowerCase() === newUsername,
+    );
 
-      if (!response.ok) {
-        setProfileError(data.message || "Unable to update profile.");
-        return;
-      }
-
-      localStorage.setItem("currentUser", JSON.stringify(data.user));
-
-      setCurrentUser(data.user);
-      setIsEditingProfile(false);
-      setProfileError("");
-    } catch (error) {
-      console.error("Profile update error:", error);
-
-      setProfileError("Unable to connect to the server.");
+    if (usernameTaken) {
+      setProfileError("That username is already taken.");
+      return;
     }
+
+    const oldUsername = currentUser.username;
+
+    const updatedUser = {
+      ...currentUser,
+      name: newName,
+      username: newUsername,
+      bio: newBio,
+      avatar: newAvatar,
+    };
+
+    const updatedUsers = users.map((user) =>
+      user.id === currentUser.id ? updatedUser : user,
+    );
+
+    localStorage.setItem("users", JSON.stringify(updatedUsers));
+
+    localStorage.setItem("currentUser", JSON.stringify(updatedUser));
+
+    setPosts((prev) =>
+      prev.map((post) =>
+        post.username === oldUsername
+          ? {
+              ...post,
+              authorName: newName,
+              username: newUsername,
+              avatar: newAvatar,
+            }
+          : post,
+      ),
+    );
+
+    setCurrentUser(updatedUser);
+
+    setIsEditingProfile(false);
+
+    setProfileError("");
   };
+
   /* =========================
 IMAGE UPLOAD
 ========================= */
@@ -1123,12 +1238,8 @@ POSTS
         `http://localhost:5000/api/posts/${postId}/like`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            userId: currentUser.id,
-          }),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: currentUser.id }),
         },
       );
 
@@ -1139,19 +1250,44 @@ POSTS
         return;
       }
 
+      const returnedPost = data.post;
+
       setPosts((prev) =>
         prev.map((post) =>
           String(post.id) === String(postId)
             ? {
                 ...post,
-                liked: Boolean(data.liked),
-                likeCount: Number(data.likeCount),
+                ...(returnedPost || {}),
+                id: returnedPost?.id || post.id,
+                liked: Boolean(returnedPost?.liked ?? data.liked),
+                likeCount: Number(
+                  returnedPost?.likeCount ?? data.likeCount ?? 0,
+                ),
+                reposted: Boolean(returnedPost?.reposted ?? post.reposted),
+                repostCount: Number(
+                  returnedPost?.repostCount ?? post.repostCount ?? 0,
+                ),
+                bookmarked: Boolean(
+                  returnedPost?.bookmarked ?? post.bookmarked,
+                ),
               }
             : post,
         ),
       );
+
+      if (data.liked) {
+        const targetPost = posts.find(
+          (post) => String(post.id) === String(postId),
+        );
+        if (targetPost) {
+          addNotification(
+            `You liked a post by @${targetPost.username}.`,
+            "like",
+          );
+        }
+      }
     } catch (error) {
-      console.error("Like error:", error);
+      console.error("Like post error:", error);
     }
   };
 
@@ -1163,12 +1299,8 @@ POSTS
         `http://localhost:5000/api/posts/${postId}/repost`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            userId: currentUser.id,
-          }),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: currentUser.id }),
         },
       );
 
@@ -1179,17 +1311,42 @@ POSTS
         return;
       }
 
+      const returnedPost = data.post;
+
       setPosts((prev) =>
         prev.map((post) =>
           String(post.id) === String(postId)
             ? {
                 ...post,
-                reposted: Boolean(data.reposted),
-                repostCount: Number(data.repostCount),
+                ...(returnedPost || {}),
+                id: returnedPost?.id || post.id,
+                liked: Boolean(returnedPost?.liked ?? post.liked),
+                likeCount: Number(
+                  returnedPost?.likeCount ?? post.likeCount ?? 0,
+                ),
+                reposted: Boolean(returnedPost?.reposted ?? data.reposted),
+                repostCount: Number(
+                  returnedPost?.repostCount ?? data.repostCount ?? 0,
+                ),
+                bookmarked: Boolean(
+                  returnedPost?.bookmarked ?? post.bookmarked,
+                ),
               }
             : post,
         ),
       );
+
+      if (data.reposted) {
+        const targetPost = posts.find(
+          (post) => String(post.id) === String(postId),
+        );
+        if (targetPost && targetPost.username !== currentUser.username) {
+          addNotification(
+            `${currentUser.name} reposted ${targetPost.authorName}'s post.`,
+            "repost",
+          );
+        }
+      }
     } catch (error) {
       console.error("Repost error:", error);
     }
@@ -1203,12 +1360,8 @@ POSTS
         `http://localhost:5000/api/posts/${postId}/bookmark`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            userId: currentUser.id,
-          }),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: currentUser.id }),
         },
       );
 
@@ -1219,12 +1372,26 @@ POSTS
         return;
       }
 
+      const returnedPost = data.post;
+
       setPosts((prev) =>
         prev.map((post) =>
           String(post.id) === String(postId)
             ? {
                 ...post,
-                bookmarked: Boolean(data.bookmarked),
+                ...(returnedPost || {}),
+                id: returnedPost?.id || post.id,
+                liked: Boolean(returnedPost?.liked ?? post.liked),
+                likeCount: Number(
+                  returnedPost?.likeCount ?? post.likeCount ?? 0,
+                ),
+                reposted: Boolean(returnedPost?.reposted ?? post.reposted),
+                repostCount: Number(
+                  returnedPost?.repostCount ?? post.repostCount ?? 0,
+                ),
+                bookmarked: Boolean(
+                  returnedPost?.bookmarked ?? data.bookmarked,
+                ),
               }
             : post,
         ),
@@ -1259,28 +1426,27 @@ USERS / FOLLOW
   const handleFollow = async (username) => {
     if (!currentUser?.id || !username) return;
 
-    const isCurrentlyFollowing = followedUsers.includes(username);
+    const followedUser = suggestedUsers.find(
+      (user) => user.username === username,
+    );
 
-    const updatedFollowing = isCurrentlyFollowing
+    const currentlyFollowing = followedUsers.includes(username);
+
+    const optimisticFollowing = currentlyFollowing
       ? followedUsers.filter((item) => item !== username)
       : [...followedUsers, username];
 
-    // Update the UI immediately.
-    setFollowedUsers(updatedFollowing);
-
-    localStorage.setItem("followedUsers", JSON.stringify(updatedFollowing));
+    // Update the interface immediately.
+    setFollowedUsers(optimisticFollowing);
+    localStorage.setItem("followedUsers", JSON.stringify(optimisticFollowing));
 
     try {
       const response = await fetch(
         `http://localhost:5000/api/users/${currentUser.id}/follow`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            username,
-          }),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username }),
         },
       );
 
@@ -1288,62 +1454,22 @@ USERS / FOLLOW
 
       if (!response.ok) {
         console.error("Follow failed:", data.message);
-
-        // Roll the optimistic UI change back if the server rejects it.
-        setFollowedUsers(
-          isCurrentlyFollowing
-            ? [...followedUsers]
-            : followedUsers.filter((item) => item !== username),
-        );
-
-        localStorage.setItem(
-          "followedUsers",
-          JSON.stringify(
-            isCurrentlyFollowing
-              ? followedUsers
-              : followedUsers.filter((item) => item !== username),
-          ),
-        );
-
         return;
       }
 
       if (Array.isArray(data.following)) {
         setFollowedUsers(data.following);
-
         localStorage.setItem("followedUsers", JSON.stringify(data.following));
       }
 
-      if (data.isFollowing) {
-        const followedUser = SUGGESTED_USERS.find(
-          (user) => user.username === username,
+      if (data.isFollowing && followedUser) {
+        addNotification(
+          `You are now following ${followedUser.name}.`,
+          "follow",
         );
-
-        if (followedUser) {
-          addNotification(
-            `You are now following ${followedUser.name}.`,
-            "follow",
-          );
-        }
       }
     } catch (error) {
-      console.error("Follow request error:", error);
-
-      // Roll the optimistic UI change back if the request fails.
-      setFollowedUsers(
-        isCurrentlyFollowing
-          ? [...followedUsers]
-          : followedUsers.filter((item) => item !== username),
-      );
-
-      localStorage.setItem(
-        "followedUsers",
-        JSON.stringify(
-          isCurrentlyFollowing
-            ? followedUsers
-            : followedUsers.filter((item) => item !== username),
-        ),
-      );
+      console.error("Follow error:", error);
     }
   };
 
@@ -1353,17 +1479,17 @@ COMMENTS
 
   const handleComment = async (postId) => {
     const text = commentText[postId]?.trim();
+    if (!text) return;
 
-    if (!text || !currentUser?.id) return;
+    const post = posts.find((item) => item.id === postId);
+    if (!post) return;
 
     try {
       const response = await fetch(
         `http://localhost:5000/api/posts/${postId}/comments`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             authorId: currentUser.id,
             authorName: currentUser.name,
@@ -1376,7 +1502,6 @@ COMMENTS
       );
 
       const data = await response.json();
-
       if (!response.ok) {
         console.error("Comment failed:", data.message);
         return;
@@ -1391,10 +1516,33 @@ COMMENTS
         ...prev,
         [postId]: "",
       }));
+
+      if (post.username !== currentUser.username) {
+        addNotification(
+          `${currentUser.name} replied to ${post.authorName}'s post.`,
+          "comment",
+        );
+      }
     } catch (error) {
       console.error("Comment error:", error);
     }
   };
+
+  /* =========================
+SEARCH
+========================= */
+
+  const filteredPosts = posts.filter((post) => {
+    const search = searchText.toLowerCase().trim();
+
+    if (!search) return true;
+
+    return (
+      post.text.toLowerCase().includes(search) ||
+      post.authorName.toLowerCase().includes(search) ||
+      post.username.toLowerCase().includes(search)
+    );
+  });
 
   /* =========================
 EXPLORE
@@ -1544,7 +1692,7 @@ PROFILE DATA
 NOTIFICATIONS PAGE
 ========================= */
 
-  const renderNotificationsPage = () => {
+  const NotificationsPage = () => {
     const unreadCount = notifications.filter(
       (notification) => !notification.read,
     ).length;
@@ -1582,7 +1730,9 @@ NOTIFICATIONS PAGE
 
         {notifications.length === 0 ? (
           <div className="empty-notifications">
-            <div className="empty-notifications-icon">🔔</div>
+            <div className="empty-notifications-icon">
+              <Icon name="notifications" size={30} />
+            </div>
 
             <h3>Nothing to see here — yet</h3>
 
@@ -1601,15 +1751,21 @@ NOTIFICATIONS PAGE
                 key={notification.id}
               >
                 <div className="notification-icon">
-                  {notification.type === "like" && "❤️"}
-
-                  {notification.type === "repost" && "🔁"}
-
-                  {notification.type === "comment" && "💬"}
-
-                  {notification.type === "follow" && "👤"}
-
-                  {notification.type === "activity" && "🔔"}
+                  {notification.type === "like" && (
+                    <Icon name="heart" size={18} />
+                  )}
+                  {notification.type === "repost" && (
+                    <Icon name="repost" size={18} />
+                  )}
+                  {notification.type === "comment" && (
+                    <Icon name="comment" size={18} />
+                  )}
+                  {notification.type === "follow" && (
+                    <Icon name="profile" size={18} />
+                  )}
+                  {notification.type === "activity" && (
+                    <Icon name="notifications" size={18} />
+                  )}
                 </div>
 
                 <div className="notification-content">
@@ -1633,7 +1789,7 @@ NOTIFICATIONS PAGE
 EXPLORE PAGE
 ========================= */
 
-  const renderExplorePage = () => {
+  const ExplorePage = () => {
     return (
       <div className="explore-page">
         <div className="feed-header explore-header">
@@ -1757,20 +1913,33 @@ EXPLORE PAGE
                       onClick={() =>
                         setActivePost(activePost === post.id ? null : post.id)
                       }
+                      aria-label="Comments"
                     >
-                      💬 {(comments[post.id] || []).length}
+                      <Icon name="comment" size={18} />
+                      <span>{(comments[post.id] || []).length}</span>
                     </button>
 
-                    <button onClick={() => handleRepost(post.id)}>
-                      🔁 {post.repostCount}
+                    <button
+                      onClick={() => handleRepost(post.id)}
+                      aria-label="Repost"
+                    >
+                      <Icon name="repost" size={18} />
+                      <span>{post.repostCount}</span>
                     </button>
 
-                    <button onClick={() => handleLike(post.id)}>
-                      {post.liked ? "❤️" : "♡"} {post.likeCount}
+                    <button
+                      onClick={() => handleLike(post.id)}
+                      aria-label="Like"
+                    >
+                      <Icon name="heart" size={18} />
+                      <span>{post.likeCount}</span>
                     </button>
 
-                    <button onClick={() => handleBookmark(post.id)}>
-                      {post.bookmarked ? "🔖" : "📑"}
+                    <button
+                      onClick={() => handleBookmark(post.id)}
+                      aria-label="Bookmark"
+                    >
+                      <Icon name="bookmark" size={18} />
                     </button>
                   </div>
                 </div>
@@ -1815,7 +1984,7 @@ MESSAGES PAGE
         <div className="messages-layout">
           <div className="conversation-panel">
             <div className="message-search">
-              🔍
+              <Icon name="search" size={18} />
               <input
                 type="text"
                 placeholder="Search messages"
@@ -1856,7 +2025,9 @@ MESSAGES PAGE
           <div className="chat-panel">
             {!activeUser ? (
               <div className="empty-chat">
-                <div className="empty-chat-icon">💬</div>
+                <div className="empty-chat-icon">
+                  <Icon name="messages" size={34} />
+                </div>
 
                 <h3>Select a conversation</h3>
 
@@ -1930,7 +2101,7 @@ MESSAGES PAGE
 BOOKMARKS PAGE
 ========================= */
 
-  const renderBookmarksPage = () => {
+  const BookmarksPage = () => {
     return (
       <div className="bookmarks-page">
         <div className="feed-header">
@@ -1943,7 +2114,9 @@ BOOKMARKS PAGE
 
         {bookmarkedPosts.length === 0 ? (
           <div className="empty-bookmarks">
-            <div className="empty-bookmarks-icon">🔖</div>
+            <div className="empty-bookmarks-icon">
+              <Icon name="bookmark" size={30} />
+            </div>
 
             <h3>Save posts for later</h3>
 
@@ -1976,20 +2149,30 @@ BOOKMARKS PAGE
                     onClick={() =>
                       setActivePost(activePost === post.id ? null : post.id)
                     }
+                    aria-label="Comments"
                   >
-                    💬 {(comments[post.id] || []).length}
+                    <Icon name="comment" size={18} />
+                    <span>{(comments[post.id] || []).length}</span>
                   </button>
 
-                  <button onClick={() => handleRepost(post.id)}>
-                    🔁 {post.repostCount}
+                  <button
+                    onClick={() => handleRepost(post.id)}
+                    aria-label="Repost"
+                  >
+                    <Icon name="repost" size={18} />
+                    <span>{post.repostCount}</span>
                   </button>
 
-                  <button onClick={() => handleLike(post.id)}>
-                    {post.liked ? "❤️" : "♡"} {post.likeCount}
+                  <button onClick={() => handleLike(post.id)} aria-label="Like">
+                    <Icon name="heart" size={18} />
+                    <span>{post.likeCount}</span>
                   </button>
 
-                  <button onClick={() => handleBookmark(post.id)}>
-                    🔖 Remove
+                  <button
+                    onClick={() => handleBookmark(post.id)}
+                    aria-label="Bookmark"
+                  >
+                    <Icon name="bookmark" size={18} />
                   </button>
                 </div>
               </div>
@@ -2004,7 +2187,7 @@ BOOKMARKS PAGE
 PROFILE PAGE
 ========================= */
 
-  const renderProfilePage = () => {
+  const ProfilePage = () => {
     return (
       <div className="profile-page">
         <div className="profile-cover"></div>
@@ -2186,8 +2369,9 @@ PROFILE PAGE
                         <button
                           onClick={() => handleDeletePost(post.id)}
                           className="delete-post-button"
+                          aria-label="Delete post"
                         >
-                          🗑️
+                          <Icon name="trash" size={17} />
                         </button>
                       </div>
 
@@ -2202,20 +2386,33 @@ PROFILE PAGE
                               activePost === post.id ? null : post.id,
                             )
                           }
+                          aria-label="Comments"
                         >
-                          💬 {(comments[post.id] || []).length}
+                          <Icon name="comment" size={18} />
+                          <span>{(comments[post.id] || []).length}</span>
                         </button>
 
-                        <button onClick={() => handleRepost(post.id)}>
-                          🔁 {post.repostCount}
+                        <button
+                          onClick={() => handleRepost(post.id)}
+                          aria-label="Repost"
+                        >
+                          <Icon name="repost" size={18} />
+                          <span>{post.repostCount}</span>
                         </button>
 
-                        <button onClick={() => handleLike(post.id)}>
-                          {post.liked ? "❤️" : "♡"} {post.likeCount}
+                        <button
+                          onClick={() => handleLike(post.id)}
+                          aria-label="Like"
+                        >
+                          <Icon name="heart" size={18} />
+                          <span>{post.likeCount}</span>
                         </button>
 
-                        <button onClick={() => handleBookmark(post.id)}>
-                          {post.bookmarked ? "🔖" : "📑"}
+                        <button
+                          onClick={() => handleBookmark(post.id)}
+                          aria-label="Bookmark"
+                        >
+                          <Icon name="bookmark" size={18} />
                         </button>
                       </div>
                     </div>
@@ -2262,16 +2459,29 @@ PROFILE PAGE
                       <PostImage image={post.image} />
 
                       <div className="post-actions">
-                        <button>💬 {(comments[post.id] || []).length}</button>
-
-                        <button>🔁 {post.repostCount}</button>
-
-                        <button onClick={() => handleLike(post.id)}>
-                          ❤️ {post.likeCount}
+                        <button aria-label="Comments">
+                          <Icon name="comment" size={18} />
+                          <span>{(comments[post.id] || []).length}</span>
                         </button>
 
-                        <button onClick={() => handleBookmark(post.id)}>
-                          {post.bookmarked ? "🔖" : "📑"}
+                        <button aria-label="Repost">
+                          <Icon name="repost" size={18} />
+                          <span>{post.repostCount}</span>
+                        </button>
+
+                        <button
+                          onClick={() => handleLike(post.id)}
+                          aria-label="Like"
+                        >
+                          <Icon name="heart" size={18} />
+                          <span>{post.likeCount}</span>
+                        </button>
+
+                        <button
+                          onClick={() => handleBookmark(post.id)}
+                          aria-label="Bookmark"
+                        >
+                          <Icon name="bookmark" size={18} />
                         </button>
                       </div>
                     </div>
@@ -2289,7 +2499,7 @@ PROFILE PAGE
 SETTINGS PAGE
 ========================= */
 
-  const renderSettingsPage = () => {
+  const SettingsPage = () => {
     return (
       <div className="settings-page">
         <div className="feed-header">
@@ -2418,7 +2628,9 @@ MAIN RETURN
               className={`nav-item ${activePage === "home" ? "active" : ""}`}
               onClick={() => setActivePage("home")}
             >
-              <span>⌂</span>
+              <span>
+                <Icon name="home" />
+              </span>
 
               <strong>Home</strong>
             </div>
@@ -2427,7 +2639,9 @@ MAIN RETURN
               className={`nav-item ${activePage === "explore" ? "active" : ""}`}
               onClick={() => setActivePage("explore")}
             >
-              <span>🔍</span>
+              <span>
+                <Icon name="search" />
+              </span>
 
               <strong>Explore</strong>
             </div>
@@ -2439,7 +2653,7 @@ MAIN RETURN
               onClick={() => setActivePage("notifications")}
             >
               <span className="notification-nav-icon">
-                🔔
+                <Icon name="notifications" />
                 {notifications.some((notification) => !notification.read) && (
                   <span className="notification-badge">
                     {
@@ -2460,7 +2674,7 @@ MAIN RETURN
               onClick={() => setActivePage("messages")}
             >
               <span className="notification-nav-icon">
-                ✉️
+                <Icon name="messages" />
                 {totalUnreadMessages > 0 && (
                   <span className="notification-badge">
                     {totalUnreadMessages}
@@ -2477,7 +2691,9 @@ MAIN RETURN
               }`}
               onClick={() => setActivePage("bookmarks")}
             >
-              <span>🔖</span>
+              <span>
+                <Icon name="bookmark" />
+              </span>
 
               <strong>Bookmarks</strong>
             </div>
@@ -2486,7 +2702,9 @@ MAIN RETURN
               className={`nav-item ${activePage === "profile" ? "active" : ""}`}
               onClick={() => setActivePage("profile")}
             >
-              <span>👤</span>
+              <span>
+                <Icon name="profile" />
+              </span>
 
               <strong>Profile</strong>
             </div>
@@ -2497,7 +2715,9 @@ MAIN RETURN
               }`}
               onClick={() => setActivePage("settings")}
             >
-              <span>⚙️</span>
+              <span>
+                <Icon name="settings" />
+              </span>
 
               <strong>Settings</strong>
             </div>
@@ -2544,17 +2764,17 @@ MAIN RETURN
         {/* CENTER */}
 
         <main className="feed">
-          {activePage === "profile" && renderProfilePage()}
+          {activePage === "profile" && <ProfilePage />}
 
-          {activePage === "notifications" && renderNotificationsPage()}
+          {activePage === "notifications" && <NotificationsPage />}
 
-          {activePage === "explore" && renderExplorePage()}
+          {activePage === "explore" && <ExplorePage />}
 
           {activePage === "messages" && renderMessagesPage()}
 
-          {activePage === "bookmarks" && renderBookmarksPage()}
+          {activePage === "bookmarks" && <BookmarksPage />}
 
-          {activePage === "settings" && renderSettingsPage()}
+          {activePage === "settings" && <SettingsPage />}
 
           {activePage === "home" && (
             <HomePage
@@ -2652,14 +2872,14 @@ MAIN RETURN
           className={activePage === "home" ? "mobile-active" : ""}
           onClick={() => setActivePage("home")}
         >
-          ⌂
+          <Icon name="home" size={21} />
         </span>
 
         <span
           className={activePage === "explore" ? "mobile-active" : ""}
           onClick={() => setActivePage("explore")}
         >
-          🔍
+          <Icon name="search" size={21} />
         </span>
 
         <span
@@ -2671,21 +2891,21 @@ MAIN RETURN
             }, 100);
           }}
         >
-          ＋
+          <Icon name="plus" size={22} />
         </span>
 
         <span
           className={activePage === "notifications" ? "mobile-active" : ""}
           onClick={() => setActivePage("notifications")}
         >
-          🔔
+          <Icon name="notifications" size={21} />
         </span>
 
         <span
           className={activePage === "profile" ? "mobile-active" : ""}
           onClick={() => setActivePage("profile")}
         >
-          👤
+          <Icon name="profile" size={21} />
         </span>
       </div>
     </div>
