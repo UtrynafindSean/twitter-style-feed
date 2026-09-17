@@ -47,6 +47,31 @@ const DEFAULT_POSTS = [
     isUserPost: false,
   },
 ];
+const SUGGESTED_USERS = [
+  { name: "John Smith", username: "johnsmith", avatar: "J" },
+  { name: "Sarah Williams", username: "sarahw", avatar: "S" },
+  { name: "Michael Brown", username: "michaelb", avatar: "M" },
+];
+
+const TRENDS = [
+  {
+    category: "Technology · Trending",
+    title: "#TechNigeria",
+    posts: "12.5K posts",
+  },
+  { category: "Technology · Trending", title: "React", posts: "8,421 posts" },
+  {
+    category: "Programming · Trending",
+    title: "JavaScript",
+    posts: "6,892 posts",
+  },
+  {
+    category: "Web Development · Trending",
+    title: "#WebDevelopment",
+    posts: "4,321 posts",
+  },
+  { category: "Trending in Nigeria", title: "#Nigeria", posts: "18.7K posts" },
+];
 
 function getStoredData(key, fallback) {
   try {
