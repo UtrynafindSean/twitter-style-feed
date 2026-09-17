@@ -1,17 +1,28 @@
 const express = require("express");
 const mongoose = require("mongoose");
+
 const User = require("../models/User");
 const Post = require("../models/Post");
 
 const router = express.Router();
 
-/* GET FOLLOWING */
+/* =========================
+HELPER
+========================= */
+
+function validObjectId(value) {
+  return mongoose.Types.ObjectId.isValid(value);
+}
+
+/* =========================
+GET FOLLOWING
+========================= */
 
 router.get("/:userId/following", async (req, res) => {
   try {
     const { userId } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
+    if (!validObjectId(userId)) {
       return res.status(400).json({
         success: false,
         message: "Invalid user ID",
@@ -27,12 +38,14 @@ router.get("/:userId/following", async (req, res) => {
       });
     }
 
+    const following = Array.isArray(user.following) ? user.following : [];
+
     res.json({
       success: true,
-      following: Array.isArray(user.following) ? user.following : [],
+      following,
     });
   } catch (error) {
-    console.error("Get following error:", error.message);
+    console.error("Get following error:", error);
 
     res.status(500).json({
       success: false,
@@ -41,21 +54,134 @@ router.get("/:userId/following", async (req, res) => {
   }
 });
 
-/* FOLLOW / UNFOLLOW */
+/* =========================
+FOLLOW / UNFOLLOW
+========================= */
 
 router.post("/:userId/follow", async (req, res) => {
   try {
     const { userId } = req.params;
+    const { username } = req.body;
 
-    const cleanUsername = String(req.body.username || "")
+    if (!validObjectId(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid user ID",
+      });
+    }
+
+    if (!username || !username.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Username is required",
+      });
+    }
+
+    const cleanUsername = username.trim().replace(/^@/, "").toLowerCase();
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const ownUsername = String(user.username).toLowerCase();
+
+    if (cleanUsername === ownUsername) {
+      return res.status(400).json({
+        success: false,
+        message: "You cannot follow yourself",
+      });
+    }
+
+    if (!Array.isArray(user.following)) {
+      user.following = [];
+    }
+
+    const existingIndex = user.following.findIndex(
+      (item) => String(item).toLowerCase() === cleanUsername,
+    );
+
+    let isFollowing;
+
+    if (existingIndex >= 0) {
+      user.following.splice(existingIndex, 1);
+      isFollowing = false;
+    } else {
+      user.following.push(cleanUsername);
+      isFollowing = true;
+    }
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: isFollowing
+        ? "User followed successfully"
+        : "User unfollowed successfully",
+      isFollowing,
+      following: user.following,
+      followingCount: user.following.length,
+    });
+  } catch (error) {
+    console.error("Follow error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+});
+
+/* =========================
+UPDATE PROFILE
+========================= */
+
+router.put("/:userId/profile", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { name, username, bio, avatar } = req.body;
+
+    if (!validObjectId(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid user ID",
+      });
+    }
+
+    if (!name?.trim() || !username?.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Name and username are required",
+      });
+    }
+
+    const cleanUsername = username
       .trim()
+      .replace(/\s+/g, "")
       .replace(/^@/, "")
       .toLowerCase();
 
-    if (!mongoose.Types.ObjectId.isValid(userId) || !cleanUsername) {
+    if (!/^[a-zA-Z0-9._-]+$/.test(cleanUsername)) {
       return res.status(400).json({
         success: false,
-        message: "Invalid user ID or username",
+        message:
+          "Username can only contain letters, numbers, dots, underscores, and hyphens.",
+      });
+    }
+
+    const existingUser = await User.findOne({
+      username: cleanUsername,
+      _id: { $ne: userId },
+    });
+
+    if (existingUser) {
+      return res.status(409).json({
+        success: false,
+        message: "That username is already taken.",
       });
     }
 
@@ -68,127 +194,21 @@ router.post("/:userId/follow", async (req, res) => {
       });
     }
 
-    if (!Array.isArray(user.following)) {
-      user.following = [];
-    }
+    const oldUsername = user.username;
 
-    if (cleanUsername === user.username.toLowerCase()) {
-      return res.status(400).json({
-        success: false,
-        message: "You cannot follow yourself",
-      });
-    }
-
-    const index = user.following.findIndex(
-      (item) => String(item).toLowerCase() === cleanUsername,
-    );
-
-    const isFollowing = index === -1;
-
-    if (isFollowing) {
-      user.following.push(cleanUsername);
-    } else {
-      user.following.splice(index, 1);
-    }
+    user.name = name.trim();
+    user.username = cleanUsername;
+    user.bio = bio?.trim() || "";
+    user.avatar =
+      avatar?.trim()?.charAt(0)?.toUpperCase() ||
+      user.name.charAt(0).toUpperCase();
 
     await user.save();
 
-    res.json({
-      success: true,
-      following: user.following,
-      isFollowing,
-    });
-  } catch (error) {
-    console.error("Follow error:", error.message);
-
-    res.status(500).json({
-      success: false,
-      message: "Server error",
-    });
-  }
-});
-
-/* EDIT PROFILE */
-
-router.put("/:userId/profile", async (req, res) => {
-  try {
-    const { userId } = req.params;
-
-    const { name, username, bio, avatar } = req.body;
-
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid user ID",
-      });
-    }
-
-    const cleanName = String(name || "").trim();
-
-    const cleanUsername = String(username || "")
-      .trim()
-      .replace(/^@/, "")
-      .replace(/\s+/g, "")
-      .toLowerCase();
-
-    const cleanBio = String(bio || "").trim();
-
-    const cleanAvatar =
-      String(avatar || "")
-        .trim()
-        .charAt(0)
-        .toUpperCase() || cleanName.charAt(0).toUpperCase();
-
-    if (!cleanName || !cleanUsername) {
-      return res.status(400).json({
-        success: false,
-        message: "Name and username are required",
-      });
-    }
-
-    if (!/^[a-zA-Z0-9._-]+$/.test(cleanUsername)) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Username can only contain letters, numbers, dots, underscores, and hyphens.",
-      });
-    }
-
-    const duplicate = await User.findOne({
-      username: cleanUsername,
-      _id: { $ne: userId },
-    });
-
-    if (duplicate) {
-      return res.status(409).json({
-        success: false,
-        message: "That username is already taken.",
-      });
-    }
-
-    const user = await User.findByIdAndUpdate(
-      userId,
-      {
-        $set: {
-          name: cleanName,
-          username: cleanUsername,
-          bio: cleanBio,
-          avatar: cleanAvatar,
-        },
-      },
-      {
-        new: true,
-        runValidators: true,
-      },
-    ).select("name username email bio avatar following");
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
-
+    /*
+      Update existing posts so the profile changes
+      appear throughout the application.
+    */
     await Post.updateMany(
       { authorId: userId },
       {
@@ -200,29 +220,35 @@ router.put("/:userId/profile", async (req, res) => {
       },
     );
 
+    /*
+      If the username changed, update follow lists
+      that contain the old username.
+    */
+    if (oldUsername !== user.username) {
+      await User.updateMany(
+        { following: oldUsername },
+        {
+          $set: {
+            "following.$": user.username,
+          },
+        },
+      );
+    }
+
     res.json({
       success: true,
       message: "Profile updated successfully",
-
       user: {
         id: String(user._id),
         name: user.name,
         username: user.username,
         email: user.email,
-        bio: user.bio || "",
-        avatar: user.avatar || user.name.charAt(0).toUpperCase(),
-        following: user.following || [],
+        avatar: user.avatar,
+        bio: user.bio,
       },
     });
   } catch (error) {
-    console.error("Profile update error:", error.message);
-
-    if (error.code === 11000) {
-      return res.status(409).json({
-        success: false,
-        message: "That username is already taken.",
-      });
-    }
+    console.error("Profile update error:", error);
 
     res.status(500).json({
       success: false,
