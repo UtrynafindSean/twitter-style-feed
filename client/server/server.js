@@ -13,10 +13,13 @@ console.log("Loading .env from:", envPath);
 console.log("MONGO_URI:", process.env.MONGO_URI ? "loaded" : "missing");
 
 const app = express();
-
 const server = http.createServer(app);
 
 const PORT = process.env.PORT || 5000;
+
+/* =========================
+   SOCKET.IO
+========================= */
 
 const io = new Server(server, {
   cors: {
@@ -24,6 +27,10 @@ const io = new Server(server, {
     methods: ["GET", "POST", "PUT", "DELETE"],
   },
 });
+
+/* =========================
+   MIDDLEWARE
+========================= */
 
 app.use(
   cors({
@@ -33,6 +40,10 @@ app.use(
 
 app.use(express.json());
 
+/* =========================
+   HEALTH CHECK
+========================= */
+
 app.get("/api/health", (req, res) => {
   res.json({
     success: true,
@@ -41,51 +52,133 @@ app.get("/api/health", (req, res) => {
 });
 
 /* =========================
-   SOCKET.IO
+   SOCKET USERS
 ========================= */
 
 const onlineUsers = new Map();
 
+/* =========================
+   SOCKET CONNECTION
+========================= */
+
 io.on("connection", (socket) => {
   console.log("Socket connected:", socket.id);
 
-  socket.on("user-online", (userId) => {
-    if (!userId) return;
+  /* =========================
+     JOIN USER
+  ========================= */
 
-    onlineUsers.set(String(userId), socket.id);
+  socket.on("join_user", ({ userId }) => {
+    if (!userId) {
+      console.log("join_user called without userId");
+      return;
+    }
 
-    socket.userId = String(userId);
+    const id = String(userId);
+
+    socket.userId = id;
+
+    // Put this user's socket into their own private room
+    socket.join(`user:${id}`);
+
+    onlineUsers.set(id, socket.id);
+
+    console.log(`User ${id} joined Socket.IO`);
 
     io.emit("user-status", {
-      userId: String(userId),
+      userId: id,
       online: true,
     });
   });
 
-  socket.on("send-message", async (message) => {
+  /* =========================
+     SEND MESSAGE
+  ========================= */
+
+  socket.on("send_message", async (message, callback) => {
     try {
-      if (!message) return;
+      if (!socket.userId) {
+        if (callback) {
+          callback({
+            success: false,
+            message: "Socket is not connected to a user.",
+          });
+        }
 
-      const receiverSocket = onlineUsers.get(String(message.receiverId));
-
-      if (receiverSocket) {
-        io.to(receiverSocket).emit("receive-message", message);
+        return;
       }
 
-      socket.emit("message-sent", message);
+      const receiverId = message?.receiverId;
+      const body = message?.body;
+
+      if (!receiverId || !body?.trim()) {
+        if (callback) {
+          callback({
+            success: false,
+            message: "Receiver and message are required.",
+          });
+        }
+
+        return;
+      }
+
+      const normalizedMessage = {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        senderId: String(socket.userId),
+        receiverId: String(receiverId),
+        body: body.trim(),
+        createdAt: new Date().toISOString(),
+      };
+
+      console.log(`Message: ${socket.userId} -> ${receiverId}: ${body.trim()}`);
+
+      /* Send to receiver */
+      io.to(`user:${String(receiverId)}`).emit(
+        "new_message",
+        normalizedMessage,
+      );
+
+      /* Send back to sender */
+      io.to(`user:${String(socket.userId)}`).emit(
+        "new_message",
+        normalizedMessage,
+      );
+
+      if (callback) {
+        callback({
+          success: true,
+          message: normalizedMessage,
+        });
+      }
     } catch (error) {
       console.error("Socket message error:", error);
+
+      if (callback) {
+        callback({
+          success: false,
+          message: "Failed to send message.",
+        });
+      }
     }
   });
 
+  /* =========================
+     DISCONNECT
+  ========================= */
+
   socket.on("disconnect", () => {
     if (socket.userId) {
-      onlineUsers.delete(socket.userId);
+      const userId = String(socket.userId);
 
-      io.emit("user-status", {
-        userId: socket.userId,
-        online: false,
-      });
+      // Only remove the user if this is still their active socket
+      if (onlineUsers.get(userId) === socket.id) {
+        onlineUsers.delete(userId);
+
+        io.emit("user-status", {
+          userId,
+          online: false,
+        });
+      }
     }
 
     console.log("Socket disconnected:", socket.id);
