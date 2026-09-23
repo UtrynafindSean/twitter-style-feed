@@ -1,238 +1,211 @@
 import { useEffect, useRef, useState } from "react";
+import { io } from "socket.io-client";
 
-const FEED_VARIANTS = [
+const API_BASE = "http://localhost:5000/api";
+const SOCKET_URL = "http://localhost:5000";
+
+const SAMPLE_POST_SETS = [
   [
     {
-      id: "seed-1-1",
-      authorName: "Daniel Okafor",
-      username: "danokafor",
-      avatar: "D",
-      text: "Spent the afternoon building something I've been thinking about for weeks. Finally seeing it come together. 🚀",
-      image: "",
-      time: "1h",
-      likeCount: 32,
-      liked: false,
-      repostCount: 7,
-      reposted: false,
-      bookmarked: false,
-      isUserPost: false,
-    },
-    {
-      id: "seed-1-2",
-      authorName: "Amara Nwosu",
-      username: "amaranwosu",
+      authorName: "Alex Johnson",
+      username: "alexjohnson",
       avatar: "A",
-      text: "Sometimes the smallest progress is still progress. Keep showing up. ✨",
-      image: "",
-      time: "3h",
-      likeCount: 56,
-      liked: false,
-      repostCount: 12,
-      reposted: false,
-      bookmarked: false,
-      isUserPost: false,
-    },
-    {
-      id: "seed-1-3",
-      authorName: "Tobi Adeyemi",
-      username: "tobiadeyemi",
-      avatar: "T",
-      text: "Coffee, headphones and a few hours of coding. That's basically my whole day. ☕💻",
-      image: "",
-      time: "5h",
-      likeCount: 21,
-      liked: false,
-      repostCount: 4,
-      reposted: false,
-      bookmarked: false,
-      isUserPost: false,
-    },
-  ],
-  [
-    {
-      id: "seed-2-1",
-      authorName: "Chisom Eze",
-      username: "chisomeze",
-      avatar: "C",
-      text: "New week, new ideas. I've got a lot planned and I'm ready to get started. 🔥",
-      image: "",
+      text: "Finally shipped my first full-stack project today. 🚀",
       time: "2h",
-      likeCount: 44,
-      liked: false,
-      repostCount: 9,
-      reposted: false,
-      bookmarked: false,
-      isUserPost: false,
-    },
-    {
-      id: "seed-2-2",
-      authorName: "Favour James",
-      username: "favourjames",
-      avatar: "F",
-      text: "Just discovered a really interesting way to approach a problem I've been stuck on.",
-      image: "",
-      time: "4h",
-      likeCount: 29,
-      liked: false,
+      likeCount: 28,
       repostCount: 6,
-      reposted: false,
-      bookmarked: false,
-      isUserPost: false,
     },
     {
-      id: "seed-2-3",
-      authorName: "Emeka Obi",
-      username: "emekaobi",
-      avatar: "E",
-      text: "Building, learning and trying new things. One step at a time. 🚀",
-      image: "",
-      time: "7h",
-      likeCount: 63,
-      liked: false,
-      repostCount: 11,
-      reposted: false,
-      bookmarked: false,
-      isUserPost: false,
+      authorName: "Maya Williams",
+      username: "mayaw",
+      avatar: "M",
+      text: "Spent the evening learning something new. Small progress is still progress. 💻",
+      time: "4h",
+      likeCount: 35,
+      repostCount: 7,
+    },
+    {
+      authorName: "Daniel Brown",
+      username: "danielb",
+      avatar: "D",
+      text: "Coffee, music and a productive morning. ☕",
+      time: "6h",
+      likeCount: 19,
+      repostCount: 4,
     },
   ],
   [
     {
-      id: "seed-3-1",
-      authorName: "Maya Bello",
-      username: "mayabello",
-      avatar: "M",
-      text: "A quiet morning, a fresh playlist and a long list of ideas. Let's see where today goes. 🎧",
-      image: "",
+      authorName: "Chris Morgan",
+      username: "chrismorgan",
+      avatar: "C",
+      text: "Building something I've been planning for weeks. Can't wait to share it. 🔥",
       time: "1h",
-      likeCount: 38,
-      liked: false,
-      repostCount: 5,
-      reposted: false,
-      bookmarked: false,
-      isUserPost: false,
+      likeCount: 31,
+      repostCount: 9,
     },
     {
-      id: "seed-3-2",
-      authorName: "Kelechi Udo",
-      username: "kelechiudo",
-      avatar: "K",
-      text: "Learning something new every day makes the process worth it. 💡",
-      image: "",
+      authorName: "Jessica Adams",
+      username: "jessicaa",
+      avatar: "J",
+      text: "React is starting to make a lot more sense now. One concept at a time. ⚛️",
+      time: "3h",
+      likeCount: 44,
+      repostCount: 11,
+    },
+    {
+      authorName: "Ryan Cole",
+      username: "ryancole",
+      avatar: "R",
+      text: "Nothing beats seeing your project finally work after hours of debugging. 🙌",
+      time: "5h",
+      likeCount: 22,
+      repostCount: 5,
+    },
+  ],
+  [
+    {
+      authorName: "Ethan Carter",
+      username: "ethanc",
+      avatar: "E",
+      text: "New week, new ideas, new things to build. 🚀",
+      time: "2h",
+      likeCount: 26,
+      repostCount: 5,
+    },
+    {
+      authorName: "Nora James",
+      username: "noraj",
+      avatar: "N",
+      text: "Just cleaned up my codebase and everything feels so much better. ✨",
+      time: "4h",
+      likeCount: 38,
+      repostCount: 8,
+    },
+    {
+      authorName: "Leo Martin",
+      username: "leomartin",
+      avatar: "L",
+      text: "Learning by building has been the best part of this journey.",
+      time: "7h",
+      likeCount: 16,
+      repostCount: 3,
+    },
+  ],
+  [
+    {
+      authorName: "Marcus Lee",
+      username: "marcuslee",
+      avatar: "M",
+      text: "A good idea is only the beginning. Time to turn it into something real.",
+      time: "1h",
+      likeCount: 33,
+      repostCount: 7,
+    },
+    {
+      authorName: "Sophie Green",
+      username: "sophieg",
+      avatar: "S",
+      text: "Today I finally understood the bug that had been annoying me all week. 😭😂",
       time: "3h",
       likeCount: 47,
-      liked: false,
-      repostCount: 8,
-      reposted: false,
-      bookmarked: false,
-      isUserPost: false,
+      repostCount: 12,
     },
     {
-      id: "seed-3-3",
-      authorName: "Nneka David",
-      username: "nnekadavid",
+      authorName: "Noah Wilson",
+      username: "noahw",
       avatar: "N",
-      text: "Small wins deserve to be celebrated too. Today was a good one. 🙌",
-      image: "",
+      text: "Quiet afternoon, good playlist, and a lot of coding.",
       time: "6h",
-      likeCount: 25,
-      liked: false,
-      repostCount: 3,
-      reposted: false,
-      bookmarked: false,
-      isUserPost: false,
+      likeCount: 21,
+      repostCount: 4,
     },
   ],
   [
     {
-      id: "seed-4-1",
-      authorName: "Ifeanyi Cole",
-      username: "ifeanyicole",
-      avatar: "I",
-      text: "Trying a different approach today. Sometimes changing the process changes everything. ⚡",
-      image: "",
+      authorName: "Jordan Smith",
+      username: "jordans",
+      avatar: "J",
+      text: "Sometimes the smallest feature makes the biggest difference.",
       time: "2h",
-      likeCount: 35,
-      liked: false,
+      likeCount: 29,
       repostCount: 6,
-      reposted: false,
-      bookmarked: false,
-      isUserPost: false,
     },
     {
-      id: "seed-4-2",
-      authorName: "Zara Ahmed",
-      username: "zaraahmed",
-      avatar: "Z",
-      text: "Good conversations always leave you with something new to think about.",
-      image: "",
-      time: "4h",
-      likeCount: 52,
-      liked: false,
-      repostCount: 10,
-      reposted: false,
-      bookmarked: false,
-      isUserPost: false,
+      authorName: "Amelia King",
+      username: "ameliak",
+      avatar: "A",
+      text: "Trying out a new workflow today. So far, so good. 💡",
+      time: "5h",
+      likeCount: 36,
+      repostCount: 8,
     },
     {
-      id: "seed-4-3",
-      authorName: "David Mensah",
-      username: "davidmensah",
-      avatar: "D",
-      text: "One task at a time. One improvement at a time. That's the plan. 💻",
-      image: "",
+      authorName: "Tyler Brooks",
+      username: "tylerb",
+      avatar: "T",
+      text: "Another day of turning ideas into code. 👨‍💻",
       time: "8h",
-      likeCount: 19,
-      liked: false,
-      repostCount: 2,
-      reposted: false,
-      bookmarked: false,
-      isUserPost: false,
+      likeCount: 18,
+      repostCount: 3,
+    },
+  ],
+  [
+    {
+      authorName: "Kevin Scott",
+      username: "kevins",
+      avatar: "K",
+      text: "Just pushed another update. Slowly but surely getting there. 🚀",
+      time: "1h",
+      likeCount: 25,
+      repostCount: 5,
+    },
+    {
+      authorName: "Olivia Stone",
+      username: "olivias",
+      avatar: "O",
+      text: "There is something satisfying about a clean, simple UI.",
+      time: "4h",
+      likeCount: 42,
+      repostCount: 10,
+    },
+    {
+      authorName: "Nathan Gray",
+      username: "nathang",
+      avatar: "N",
+      text: "Debugging taught me more today than any tutorial could.",
+      time: "7h",
+      likeCount: 20,
+      repostCount: 4,
     },
   ],
 ];
 
-const DEFAULT_POSTS = FEED_VARIANTS[0];
-
-function getAccountPosts(user) {
-  if (!user?.id) return DEFAULT_POSTS.map((post) => ({ ...post }));
-
-  const storageKey = `posts_${user.id}`;
-  const saved = getStoredData(storageKey, null);
-
-  if (Array.isArray(saved) && saved.length > 0) {
-    return normalizePosts(saved);
+function getUserNumber(user) {
+  const value = String(user?.id || user?.email || user?.username || "guest");
+  let hash = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 31 + value.charCodeAt(index)) >>> 0;
   }
+  return hash;
+}
 
-  const variantKey = `feedVariant_${user.id}`;
-  let variant = Number(getStoredData(variantKey, NaN));
+function getUserKey(user, section) {
+  return `${section}_${user?.id || user?.email || user?.username || "guest"}`;
+}
 
-  if (
-    !Number.isInteger(variant) ||
-    variant < 0 ||
-    variant >= FEED_VARIANTS.length
-  ) {
-    const usedVariants = Object.keys(localStorage)
-      .filter((key) => key.startsWith("feedVariant_"))
-      .map((key) => Number(getStoredData(key, NaN)))
-      .filter((value) => Number.isInteger(value));
-
-    const nextVariant = usedVariants.length
-      ? (Math.max(...usedVariants) + 1) % FEED_VARIANTS.length
-      : 0;
-
-    variant = nextVariant;
-    localStorage.setItem(variantKey, JSON.stringify(variant));
-  }
-
-  const freshPosts = FEED_VARIANTS[variant].map((post) => ({
+function getSamplePostsForUser(user) {
+  const setIndex = getUserNumber(user) % SAMPLE_POST_SETS.length;
+  return SAMPLE_POST_SETS[setIndex].map((post, index) => ({
     ...post,
+    id: `sample-${setIndex + 1}-${index + 1}`,
+    image: "",
     liked: false,
     reposted: false,
     bookmarked: false,
+    isUserPost: false,
+    isSamplePost: true,
   }));
-
-  localStorage.setItem(storageKey, JSON.stringify(freshPosts));
-  return freshPosts;
 }
 
 function getStoredData(key, fallback) {
@@ -278,7 +251,7 @@ POST NORMALIZATION
 ========================= */
 
 function normalizePosts(posts) {
-  if (!Array.isArray(posts)) return DEFAULT_POSTS;
+  if (!Array.isArray(posts)) return [];
 
   return posts.map((post) => ({
     ...post,
@@ -306,33 +279,6 @@ function PostImage({ image }) {
   return (
     <div className="post-image-wrapper">
       <img src={image} alt="Post attachment" className="post-image" />
-    </div>
-  );
-}
-
-/* =========================
-AVATAR COMPONENT
-========================= */
-
-function Avatar({ value, name, className = "avatar" }) {
-  const fallback = name?.charAt(0)?.toUpperCase() || "U";
-  const image =
-    typeof value === "string" &&
-    (value.startsWith("data:image/") ||
-      value.startsWith("http://") ||
-      value.startsWith("https://"));
-
-  if (!image) {
-    return <div className={className}>{value || fallback}</div>;
-  }
-
-  return (
-    <div className={`${className} avatar-image-wrapper`}>
-      <img
-        src={value}
-        alt={`${name || "User"} profile`}
-        className="avatar-image"
-      />
     </div>
   );
 }
@@ -589,11 +535,9 @@ function HomePage({
       </header>
 
       <div className="compose">
-        <Avatar
-          value={currentUser.avatar}
-          name={currentUser.name}
-          className="avatar"
-        />
+        <div className="avatar">
+          {currentUser.avatar || currentUser.name.charAt(0)}
+        </div>
 
         <div className="compose-content">
           <textarea
@@ -708,11 +652,7 @@ function HomePage({
 
           return (
             <article className="post" key={post.id}>
-              <Avatar
-                value={post.avatar}
-                name={post.authorName}
-                className="avatar"
-              />
+              <div className="avatar">{post.avatar}</div>
 
               <div className="post-content">
                 <div className="post-header">
@@ -763,15 +703,7 @@ function HomePage({
 
                   <button
                     onClick={() => handleBookmark(post.id)}
-                    className="bookmark-button"
-                    style={{
-                      color: post.bookmarked ? "#1d9bf0" : "inherit",
-                      transform: post.bookmarked ? "scale(1.08)" : "scale(1)",
-                    }}
-                    aria-label={
-                      post.bookmarked ? "Remove bookmark" : "Bookmark"
-                    }
-                    aria-pressed={post.bookmarked}
+                    aria-label="Bookmark"
                   >
                     <Icon name="bookmark" size={18} />
                   </button>
@@ -779,11 +711,9 @@ function HomePage({
 
                 {activePost === post.id && (
                   <div className="comments-box">
-                    <Avatar
-                      value={currentUser.avatar}
-                      name={currentUser.name}
-                      className="small-avatar"
-                    />
+                    <div className="small-avatar">
+                      {currentUser.avatar || currentUser.name.charAt(0)}
+                    </div>
 
                     <input
                       type="text"
@@ -815,11 +745,7 @@ function HomePage({
                   <div className="comments-list">
                     {postComments.map((comment) => (
                       <div className="comment" key={comment.id}>
-                        <Avatar
-                          value={comment.avatar}
-                          name={comment.authorName}
-                          className="small-avatar"
-                        />
+                        <div className="small-avatar">{comment.avatar}</div>
 
                         <div>
                           <strong>{comment.authorName}</strong>
@@ -969,8 +895,18 @@ function Icon({ name, size = 20, strokeWidth = 1.8, className = "" }) {
 
 function App() {
   const [currentUser, setCurrentUser] = useState(getStoredUser);
+  const storageUserIdRef = useRef(currentUser?.id || null);
 
-  const [posts, setPosts] = useState(() => getAccountPosts(getStoredUser()));
+  const [posts, setPosts] = useState(() =>
+    currentUser
+      ? normalizePosts(
+          getStoredData(
+            getUserKey(currentUser, "posts"),
+            getSamplePostsForUser(currentUser),
+          ),
+        )
+      : [],
+  );
 
   const [postText, setPostText] = useState("");
 
@@ -980,35 +916,38 @@ function App() {
 
   const [searchText, setSearchText] = useState("");
 
-  const [comments, setComments] = useState(() => {
-    const user = getStoredUser();
-    return user?.id ? getStoredData(`comments_${user.id}`, {}) : {};
-  });
+  const [comments, setComments] = useState(() =>
+    currentUser ? getStoredData(getUserKey(currentUser, "comments"), {}) : {},
+  );
 
   const [commentText, setCommentText] = useState({});
   const [activePost, setActivePost] = useState(null);
 
-  const [followedUsers, setFollowedUsers] = useState(() => {
-    const user = getStoredUser();
-    const stored = user?.id
-      ? getStoredData(`followedUsers_${user.id}`, [])
-      : [];
-    return Array.isArray(stored) ? stored : [];
-  });
+  const [followedUsers, setFollowedUsers] = useState(() =>
+    currentUser
+      ? getStoredData(getUserKey(currentUser, "followedUsers"), [])
+      : [],
+  );
 
-  const [notifications, setNotifications] = useState(() => {
-    const user = getStoredUser();
-    return user?.id ? getStoredData(`notifications_${user.id}`, []) : [];
-  });
+  const [users, setUsers] = useState([]);
+  const [followersCount, setFollowersCount] = useState(0);
+  const socketRef = useRef(null);
+  const selectedChatRef = useRef(null);
+  const [socketConnected, setSocketConnected] = useState(false);
+
+  const [notifications, setNotifications] = useState(() =>
+    currentUser
+      ? getStoredData(getUserKey(currentUser, "notifications"), [])
+      : [],
+  );
 
   /* =========================
 MESSAGES
 ========================= */
 
-  const [messages, setMessages] = useState(() => {
-    const user = getStoredUser();
-    return user?.id ? getStoredData(`messages_${user.id}`, {}) : {};
-  });
+  const [messages, setMessages] = useState(() =>
+    currentUser ? getStoredData(getUserKey(currentUser, "messages"), {}) : {},
+  );
 
   const [selectedChat, setSelectedChat] = useState(null);
 
@@ -1045,15 +984,21 @@ SETTINGS
 ========================= */
 
   const [darkMode, setDarkMode] = useState(() =>
-    getStoredData("darkMode", false),
+    currentUser
+      ? getStoredData(getUserKey(currentUser, "darkMode"), false)
+      : false,
   );
 
   const [notificationsEnabled, setNotificationsEnabled] = useState(() =>
-    getStoredData("notificationsEnabled", true),
+    currentUser
+      ? getStoredData(getUserKey(currentUser, "notificationsEnabled"), true)
+      : true,
   );
 
   const [privateAccount, setPrivateAccount] = useState(() =>
-    getStoredData("privateAccount", false),
+    currentUser
+      ? getStoredData(getUserKey(currentUser, "privateAccount"), false)
+      : false,
   );
 
   /* =========================
@@ -1061,56 +1006,109 @@ LOCAL STORAGE
 ========================= */
 
   useEffect(() => {
-    if (!currentUser?.id) return;
-    localStorage.setItem(`posts_${currentUser.id}`, JSON.stringify(posts));
+    if (!currentUser?.id || storageUserIdRef.current !== currentUser.id) return;
+    localStorage.setItem(
+      getUserKey(currentUser, "posts"),
+      JSON.stringify(posts),
+    );
   }, [posts, currentUser]);
 
   useEffect(() => {
-    if (!currentUser?.id) return;
+    if (!currentUser?.id || storageUserIdRef.current !== currentUser.id) return;
     localStorage.setItem(
-      `comments_${currentUser.id}`,
+      getUserKey(currentUser, "comments"),
       JSON.stringify(comments),
     );
   }, [comments, currentUser]);
 
   useEffect(() => {
-    if (!currentUser?.id) return;
+    if (!currentUser?.id || storageUserIdRef.current !== currentUser.id) return;
     localStorage.setItem(
-      `followedUsers_${currentUser.id}`,
+      getUserKey(currentUser, "followedUsers"),
       JSON.stringify(followedUsers),
     );
   }, [followedUsers, currentUser]);
 
   useEffect(() => {
-    if (!currentUser?.id) return;
+    if (!currentUser?.id || storageUserIdRef.current !== currentUser.id) return;
     localStorage.setItem(
-      `notifications_${currentUser.id}`,
+      getUserKey(currentUser, "notifications"),
       JSON.stringify(notifications),
     );
   }, [notifications, currentUser]);
 
   useEffect(() => {
-    if (!currentUser?.id) return;
+    if (!currentUser?.id || storageUserIdRef.current !== currentUser.id) return;
     localStorage.setItem(
-      `messages_${currentUser.id}`,
+      getUserKey(currentUser, "messages"),
       JSON.stringify(messages),
     );
   }, [messages, currentUser]);
 
   useEffect(() => {
-    localStorage.setItem("darkMode", JSON.stringify(darkMode));
-  }, [darkMode]);
+    if (!currentUser?.id || storageUserIdRef.current !== currentUser.id) return;
+    localStorage.setItem(
+      getUserKey(currentUser, "darkMode"),
+      JSON.stringify(darkMode),
+    );
+  }, [darkMode, currentUser]);
 
   useEffect(() => {
+    if (!currentUser?.id || storageUserIdRef.current !== currentUser.id) return;
     localStorage.setItem(
-      "notificationsEnabled",
+      getUserKey(currentUser, "notificationsEnabled"),
       JSON.stringify(notificationsEnabled),
     );
-  }, [notificationsEnabled]);
+  }, [notificationsEnabled, currentUser]);
 
   useEffect(() => {
-    localStorage.setItem("privateAccount", JSON.stringify(privateAccount));
-  }, [privateAccount]);
+    if (!currentUser?.id || storageUserIdRef.current !== currentUser.id) return;
+    localStorage.setItem(
+      getUserKey(currentUser, "privateAccount"),
+      JSON.stringify(privateAccount),
+    );
+  }, [privateAccount, currentUser]);
+
+  /* =========================
+  RESET LOCAL ACCOUNT STATE
+  ========================= */
+
+  useEffect(() => {
+    if (!currentUser?.id) return;
+
+    storageUserIdRef.current = currentUser.id;
+
+    setPosts(
+      normalizePosts(
+        getStoredData(
+          getUserKey(currentUser, "posts"),
+          getSamplePostsForUser(currentUser),
+        ),
+      ),
+    );
+    setComments(getStoredData(getUserKey(currentUser, "comments"), {}));
+    setFollowedUsers(
+      getStoredData(getUserKey(currentUser, "followedUsers"), []),
+    );
+    setNotifications(
+      getStoredData(getUserKey(currentUser, "notifications"), []),
+    );
+    setMessages(getStoredData(getUserKey(currentUser, "messages"), {}));
+    setDarkMode(getStoredData(getUserKey(currentUser, "darkMode"), false));
+    setNotificationsEnabled(
+      getStoredData(getUserKey(currentUser, "notificationsEnabled"), true),
+    );
+    setPrivateAccount(
+      getStoredData(getUserKey(currentUser, "privateAccount"), false),
+    );
+    setPostText("");
+    setPostImage("");
+    setSearchText("");
+    setExploreSearch("");
+    setSelectedTopic("");
+    setActivePost(null);
+    setCommentText({});
+  }, [currentUser?.id]);
 
   /* =========================
   LOAD POSTS FROM MONGODB
@@ -1143,30 +1141,38 @@ LOCAL STORAGE
           isUserPost: post.username === currentUser.username,
         }));
 
-        const accountPosts = getAccountPosts(currentUser);
-        const userPosts = mongoPosts.filter(
-          (post) => post.username === currentUser.username,
+        const samplePosts = getSamplePostsForUser(currentUser);
+        const storedPosts = getStoredData(
+          getUserKey(currentUser, "posts"),
+          samplePosts,
         );
+        const localSamplePosts = normalizePosts(storedPosts).filter(
+          (post) => post.isSamplePost,
+        );
+        const finalSamplePosts = localSamplePosts.length
+          ? localSamplePosts
+          : samplePosts;
 
-        const combinedPosts = [
-          ...userPosts,
-          ...accountPosts.filter(
-            (seedPost) =>
-              !userPosts.some(
-                (userPost) => String(userPost.id) === String(seedPost.id),
+        const mergedPosts = [
+          ...finalSamplePosts,
+          ...mongoPosts.filter(
+            (post) =>
+              !finalSamplePosts.some(
+                (sample) => String(sample.id) === String(post.id),
               ),
           ),
         ];
 
-        setPosts(combinedPosts);
+        setPosts(mergedPosts);
 
-        const savedComments = getStoredData(`comments_${currentUser.id}`, {});
-        const nextComments = { ...savedComments };
-        userPosts.forEach((post) => {
-          if (!nextComments[post.id]) {
-            nextComments[post.id] = Array.isArray(post.comments)
-              ? post.comments
-              : [];
+        const storedComments = getStoredData(
+          getUserKey(currentUser, "comments"),
+          {},
+        );
+        const nextComments = { ...storedComments };
+        mongoPosts.forEach((post) => {
+          if (Array.isArray(post.comments)) {
+            nextComments[post.id] = post.comments;
           }
         });
         setComments(nextComments);
@@ -1182,26 +1188,108 @@ LOCAL STORAGE
         );
         const data = await response.json();
 
-        if (!response.ok) {
-          console.error("Load following failed:", data.message);
-          return;
-        }
-
-        if (Array.isArray(data.following)) {
-          setFollowedUsers(data.following);
-          localStorage.setItem(
-            `followedUsers_${currentUser.id}`,
-            JSON.stringify(data.following),
-          );
+        if (response.ok) {
+          setFollowedUsers(Array.isArray(data.following) ? data.following : []);
         }
       } catch (error) {
         console.error("Load following error:", error);
       }
     };
 
+    const loadUsers = async () => {
+      try {
+        const response = await fetch(
+          `${API_BASE}/users?viewerId=${encodeURIComponent(currentUser.id)}`,
+        );
+        const data = await response.json();
+        if (!response.ok)
+          return console.error("Load users failed:", data.message);
+        const nextUsers = Array.isArray(data.users) ? data.users : [];
+        setUsers(
+          nextUsers.filter(
+            (user) => String(user.id) !== String(currentUser.id),
+          ),
+        );
+        const me = nextUsers.find(
+          (user) => String(user.id) === String(currentUser.id),
+        );
+        if (me) {
+          setFollowersCount(Number(me.followersCount || 0));
+          setFollowedUsers(Array.isArray(me.following) ? me.following : []);
+        }
+      } catch (error) {
+        console.error("Load users error:", error);
+      }
+    };
+
     loadPosts();
     loadFollowing();
+    loadUsers();
   }, [currentUser]);
+
+  /* =========================
+  REAL-TIME MESSAGING
+  ========================= */
+
+  useEffect(() => {
+    if (!currentUser?.id) return;
+
+    const socket = io(SOCKET_URL, {
+      auth: { userId: currentUser.id },
+      transports: ["websocket", "polling"],
+    });
+
+    socketRef.current = socket;
+    socket.on("connect", () => {
+      setSocketConnected(true);
+      socket.emit("join_user", { userId: currentUser.id });
+    });
+    socket.on("disconnect", () => setSocketConnected(false));
+    socket.on("connect_error", (error) => {
+      setSocketConnected(false);
+      console.error("Messaging connection error:", error.message);
+    });
+    socket.on("new_message", (incoming) => {
+      if (!incoming?.id || !incoming?.senderId || !incoming?.receiverId) return;
+      const otherUserId =
+        String(incoming.senderId) === String(currentUser.id)
+          ? String(incoming.receiverId)
+          : String(incoming.senderId);
+      const normalizedMessage = {
+        id: String(incoming.id || incoming._id),
+        senderId: String(incoming.senderId),
+        receiverId: String(incoming.receiverId),
+        sender: incoming.senderUsername || incoming.sender || "user",
+        text: incoming.body || incoming.text || "",
+        time: incoming.createdAt
+          ? new Date(incoming.createdAt).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          : "now",
+        read:
+          String(incoming.receiverId) === String(currentUser.id)
+            ? selectedChatRef.current === otherUserId
+            : true,
+      };
+      setMessages((prev) => {
+        const existing = prev[otherUserId] || [];
+        if (
+          existing.some(
+            (message) => String(message.id) === String(normalizedMessage.id),
+          )
+        )
+          return prev;
+        return { ...prev, [otherUserId]: [...existing, normalizedMessage] };
+      });
+    });
+    return () => {
+      socket.removeAllListeners();
+      socket.disconnect();
+      socketRef.current = null;
+      setSocketConnected(false);
+    };
+  }, [currentUser?.id]);
 
   /* =========================
 LOGIN / LOGOUT
@@ -1210,29 +1298,24 @@ LOGIN / LOGOUT
   const handleLogin = (user) => {
     localStorage.setItem("currentUser", JSON.stringify(user));
 
-    const accountPosts = getAccountPosts(user);
-    const savedComments = getStoredData(`comments_${user.id}`, {});
-    const savedFollowing = getStoredData(`followedUsers_${user.id}`, []);
-    const savedNotifications = getStoredData(`notifications_${user.id}`, []);
-    const savedMessages = getStoredData(`messages_${user.id}`, {});
-
     setCurrentUser(user);
-    setPosts(accountPosts);
-    setComments(savedComments);
-    setFollowedUsers(Array.isArray(savedFollowing) ? savedFollowing : []);
-    setNotifications(
-      Array.isArray(savedNotifications) ? savedNotifications : [],
+    setPosts(
+      normalizePosts(
+        getStoredData(getUserKey(user, "posts"), getSamplePostsForUser(user)),
+      ),
     );
-    setMessages(
-      savedMessages && typeof savedMessages === "object" ? savedMessages : {},
+    setComments(getStoredData(getUserKey(user, "comments"), {}));
+    setFollowedUsers(getStoredData(getUserKey(user, "followedUsers"), []));
+    setNotifications(getStoredData(getUserKey(user, "notifications"), []));
+    setMessages(getStoredData(getUserKey(user, "messages"), {}));
+    setDarkMode(getStoredData(getUserKey(user, "darkMode"), false));
+    setNotificationsEnabled(
+      getStoredData(getUserKey(user, "notificationsEnabled"), true),
     );
-    setCommentText({});
-    setActivePost(null);
+    setPrivateAccount(getStoredData(getUserKey(user, "privateAccount"), false));
+    setUsers([]);
+    setFollowersCount(0);
     setSelectedChat(null);
-    setMessageText("");
-    setPostText("");
-    setPostImage("");
-    setSearchText("");
     setActivePage("home");
     setIsEditingProfile(false);
     setProfileError("");
@@ -1240,20 +1323,22 @@ LOGIN / LOGOUT
 
   const handleLogout = () => {
     localStorage.removeItem("currentUser");
+    selectedChatRef.current = null;
+    storageUserIdRef.current = null;
 
     setCurrentUser(null);
+    setPosts([]);
+    setComments({});
+    setFollowedUsers([]);
+    setUsers([]);
+    setFollowersCount(0);
+    setNotifications([]);
+    setMessages({});
     setActivePage("home");
     setIsEditingProfile(false);
     setProfileError("");
     setSelectedChat(null);
     setMessageText("");
-    setPosts([]);
-    setComments({});
-    setFollowedUsers([]);
-    setNotifications([]);
-    setMessages({});
-    setCommentText({});
-    setActivePost(null);
   };
 
   /* =========================
@@ -1294,51 +1379,26 @@ PROFILE
 
   const handleSaveProfile = async () => {
     const newName = editName.trim();
-
     const newUsername = editUsername
       .trim()
       .replace(/\s+/g, "")
       .toLowerCase()
       .replace(/^@/, "");
-
     const newBio = editBio.trim();
-
-    const newAvatar = editAvatar?.trim() || newName.charAt(0).toUpperCase();
-
-    if (!newName) {
-      setProfileError("Please enter your name.");
-      return;
-    }
-
-    if (!newUsername) {
-      setProfileError("Please enter a username.");
-      return;
-    }
-
-    if (!/^[a-zA-Z0-9._-]+$/.test(newUsername)) {
-      setProfileError(
+    const newAvatar = editAvatar.trim() || newName.charAt(0).toUpperCase();
+    if (!newName) return setProfileError("Please enter your name.");
+    if (!newUsername) return setProfileError("Please enter a username.");
+    if (!/^[a-zA-Z0-9._-]+$/.test(newUsername))
+      return setProfileError(
         "Username can only contain letters, numbers, dots, underscores, and hyphens.",
       );
-      return;
-    }
-
-    if (!currentUser?.id) {
-      setProfileError("Your account could not be found.");
-      return;
-    }
-
     try {
       setProfileError("");
-
       const response = await fetch(
-        `http://localhost:5000/api/users/${encodeURIComponent(
-          currentUser.id,
-        )}/profile`,
+        `${API_BASE}/users/${encodeURIComponent(currentUser.id)}/profile`,
         {
           method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             name: newName,
             username: newUsername,
@@ -1347,27 +1407,28 @@ PROFILE
           }),
         },
       );
-
       const data = await response.json();
-
-      if (!response.ok) {
-        setProfileError(data.message || "Unable to update your profile.");
-        return;
-      }
-
+      if (!response.ok)
+        return setProfileError(
+          data.message || "Unable to update your profile.",
+        );
       const updatedUser = {
         ...currentUser,
         ...data.user,
         id: data.user?.id || currentUser.id,
       };
-
-      const oldUsername = currentUser.username;
-
       localStorage.setItem("currentUser", JSON.stringify(updatedUser));
-
+      setCurrentUser(updatedUser);
+      setUsers((prev) =>
+        prev.map((user) =>
+          String(user.id) === String(updatedUser.id)
+            ? { ...user, ...updatedUser }
+            : user,
+        ),
+      );
       setPosts((prev) =>
         prev.map((post) =>
-          post.username === oldUsername
+          post.username === currentUser.username
             ? {
                 ...post,
                 authorName: updatedUser.name,
@@ -1377,90 +1438,13 @@ PROFILE
             : post,
         ),
       );
-
-      setCurrentUser(updatedUser);
       setIsEditingProfile(false);
-      setProfileError("");
     } catch (error) {
       console.error("Profile update error:", error);
       setProfileError(
         "Unable to connect to the server. Make sure the backend is running on port 5000.",
       );
     }
-  };
-
-  /* =========================
-PROFILE IMAGE UPLOAD
-========================= */
-
-  const handleProfileImageSelect = (e) => {
-    const file = e.target.files?.[0];
-
-    if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
-      setProfileError("Please select a valid image file.");
-      e.target.value = "";
-      return;
-    }
-
-    if (file.size > 10 * 1024 * 1024) {
-      setProfileError("Please choose an image smaller than 10MB.");
-      e.target.value = "";
-      return;
-    }
-
-    const reader = new FileReader();
-
-    reader.onload = (event) => {
-      const originalImage = event.target?.result;
-
-      if (!originalImage) return;
-
-      const img = new Image();
-
-      img.onload = () => {
-        const maxSize = 600;
-
-        let width = img.width;
-        let height = img.height;
-
-        if (width > height && width > maxSize) {
-          height = Math.round((height * maxSize) / width);
-          width = maxSize;
-        } else if (height >= width && height > maxSize) {
-          width = Math.round((width * maxSize) / height);
-          height = maxSize;
-        }
-
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-
-        const context = canvas.getContext("2d");
-
-        if (!context) {
-          setProfileError("Unable to process this image.");
-          return;
-        }
-
-        context.drawImage(img, 0, 0, width, height);
-
-        const compressedImage = canvas.toDataURL("image/jpeg", 0.72);
-
-        setEditAvatar(compressedImage);
-        setProfileError("");
-      };
-
-      img.onerror = () => {
-        setProfileError("Unable to process this image.");
-      };
-
-      img.src = originalImage;
-    };
-
-    reader.readAsDataURL(file);
-    e.target.value = "";
   };
 
   /* =========================
@@ -1596,29 +1580,7 @@ POSTS
     }
   };
 
-  const isLocalPost = (postId) => String(postId).startsWith("seed-");
-
-  const updateLocalPost = (postId, updater) => {
-    setPosts((prev) =>
-      prev.map((post) =>
-        String(post.id) === String(postId) ? updater(post) : post,
-      ),
-    );
-  };
-
   const handleDeletePost = async (postId) => {
-    if (isLocalPost(postId)) {
-      setPosts((prev) =>
-        prev.filter((post) => String(post.id) !== String(postId)),
-      );
-      setComments((prev) => {
-        const updated = { ...prev };
-        delete updated[postId];
-        return updated;
-      });
-      return;
-    }
-
     try {
       const response = await fetch(
         `http://localhost:5000/api/posts/${postId}`,
@@ -1652,19 +1614,24 @@ POSTS
   const handleLike = async (postId) => {
     if (!currentUser?.id) return;
 
-    if (isLocalPost(postId)) {
-      const targetPost = posts.find(
-        (post) => String(post.id) === String(postId),
+    const samplePost = posts.find(
+      (post) => String(post.id) === String(postId) && post.isSamplePost,
+    );
+    if (samplePost) {
+      setPosts((prev) =>
+        prev.map((post) =>
+          String(post.id) === String(postId)
+            ? {
+                ...post,
+                liked: !post.liked,
+                likeCount: Math.max(
+                  0,
+                  Number(post.likeCount || 0) + (post.liked ? -1 : 1),
+                ),
+              }
+            : post,
+        ),
       );
-      if (!targetPost) return;
-
-      updateLocalPost(postId, (post) => ({
-        ...post,
-        liked: !post.liked,
-        likeCount: post.liked
-          ? Math.max(0, Number(post.likeCount) - 1)
-          : Number(post.likeCount) + 1,
-      }));
       return;
     }
 
@@ -1729,14 +1696,24 @@ POSTS
   const handleRepost = async (postId) => {
     if (!currentUser?.id) return;
 
-    if (isLocalPost(postId)) {
-      updateLocalPost(postId, (post) => ({
-        ...post,
-        reposted: !post.reposted,
-        repostCount: post.reposted
-          ? Math.max(0, Number(post.repostCount) - 1)
-          : Number(post.repostCount) + 1,
-      }));
+    const samplePost = posts.find(
+      (post) => String(post.id) === String(postId) && post.isSamplePost,
+    );
+    if (samplePost) {
+      setPosts((prev) =>
+        prev.map((post) =>
+          String(post.id) === String(postId)
+            ? {
+                ...post,
+                reposted: !post.reposted,
+                repostCount: Math.max(
+                  0,
+                  Number(post.repostCount || 0) + (post.reposted ? -1 : 1),
+                ),
+              }
+            : post,
+        ),
+      );
       return;
     }
 
@@ -1801,45 +1778,27 @@ POSTS
   const handleBookmark = async (postId) => {
     if (!currentUser?.id) return;
 
-    const targetPost = posts.find((post) => String(post.id) === String(postId));
-
-    if (isLocalPost(postId)) {
-      if (!targetPost) return;
-      updateLocalPost(postId, (post) => ({
-        ...post,
-        bookmarked: !post.bookmarked,
-      }));
+    const samplePost = posts.find(
+      (post) => String(post.id) === String(postId) && post.isSamplePost,
+    );
+    if (samplePost) {
+      setPosts((prev) =>
+        prev.map((post) =>
+          String(post.id) === String(postId)
+            ? { ...post, bookmarked: !post.bookmarked }
+            : post,
+        ),
+      );
       return;
     }
-
-    if (!targetPost) return;
-
-    const previousBookmarked = Boolean(targetPost.bookmarked);
-    const optimisticBookmarked = !previousBookmarked;
-
-    // Update the interface immediately.
-    setPosts((prev) =>
-      prev.map((post) =>
-        String(post.id) === String(postId)
-          ? {
-              ...post,
-              bookmarked: optimisticBookmarked,
-            }
-          : post,
-      ),
-    );
 
     try {
       const response = await fetch(
         `http://localhost:5000/api/posts/${postId}/bookmark`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            userId: currentUser.id,
-          }),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: currentUser.id }),
         },
       );
 
@@ -1847,51 +1806,35 @@ POSTS
 
       if (!response.ok) {
         console.error("Bookmark failed:", data.message);
-
-        // Restore the previous state if the backend rejects the request.
-        setPosts((prev) =>
-          prev.map((post) =>
-            String(post.id) === String(postId)
-              ? {
-                  ...post,
-                  bookmarked: previousBookmarked,
-                }
-              : post,
-          ),
-        );
-
         return;
       }
 
-      const serverBookmarked = Boolean(
-        data.post?.bookmarked ?? data.bookmarked ?? optimisticBookmarked,
-      );
+      const returnedPost = data.post;
 
-      // Sync the interface with the backend response.
       setPosts((prev) =>
         prev.map((post) =>
           String(post.id) === String(postId)
             ? {
                 ...post,
-                bookmarked: serverBookmarked,
+                ...(returnedPost || {}),
+                id: returnedPost?.id || post.id,
+                liked: Boolean(returnedPost?.liked ?? post.liked),
+                likeCount: Number(
+                  returnedPost?.likeCount ?? post.likeCount ?? 0,
+                ),
+                reposted: Boolean(returnedPost?.reposted ?? post.reposted),
+                repostCount: Number(
+                  returnedPost?.repostCount ?? post.repostCount ?? 0,
+                ),
+                bookmarked: Boolean(
+                  returnedPost?.bookmarked ?? data.bookmarked,
+                ),
               }
             : post,
         ),
       );
     } catch (error) {
       console.error("Bookmark error:", error);
-
-      // Restore the previous state if the request fails.
-      setPosts((prev) =>
-        prev.map((post) =>
-          String(post.id) === String(postId)
-            ? {
-                ...post,
-                bookmarked: previousBookmarked,
-              }
-            : post,
-        ),
-      );
     }
   };
 
@@ -1899,82 +1842,45 @@ POSTS
 USERS / FOLLOW
 ========================= */
 
-  const suggestedUsers = [
-    {
-      name: "John Smith",
-      username: "johnsmith",
-      avatar: "J",
-    },
-    {
-      name: "Sarah Williams",
-      username: "sarahw",
-      avatar: "S",
-    },
-    {
-      name: "Michael Brown",
-      username: "michaelb",
-      avatar: "M",
-    },
-  ];
+  const messageUsers = users.filter(
+    (user) => String(user.id) !== String(currentUser?.id),
+  );
 
-  const handleFollow = async (username) => {
-    if (!currentUser?.id || !username) return;
-
-    const followedUser = suggestedUsers.find(
-      (user) => user.username === username,
-    );
-
-    const currentlyFollowing = followedUsers.includes(username);
-
-    const optimisticFollowing = currentlyFollowing
-      ? followedUsers.filter((item) => item !== username)
-      : [...followedUsers, username];
-
-    // Update the interface immediately.
-    setFollowedUsers(optimisticFollowing);
-    localStorage.setItem(
-      `followedUsers_${currentUser.id}`,
-      JSON.stringify(optimisticFollowing),
-    );
-
+  const handleFollow = async (userOrUsername) => {
+    if (!currentUser?.id) return;
+    const target =
+      typeof userOrUsername === "object"
+        ? userOrUsername
+        : users.find((user) => user.username === userOrUsername);
+    if (!target?.username) return;
     try {
       const response = await fetch(
-        `http://localhost:5000/api/users/${currentUser.id}/follow`,
+        `${API_BASE}/users/${encodeURIComponent(currentUser.id)}/follow`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username }),
+          body: JSON.stringify({ username: target.username }),
         },
       );
-
       const data = await response.json();
-
-      if (!response.ok) {
-        console.error("Follow failed:", data.message);
-        setFollowedUsers(
-          currentlyFollowing ? [...followedUsers] : [...followedUsers],
-        );
-        localStorage.setItem(
-          `followedUsers_${currentUser.id}`,
-          JSON.stringify(followedUsers),
-        );
-        return;
-      }
-
-      if (Array.isArray(data.following)) {
-        setFollowedUsers(data.following);
-        localStorage.setItem(
-          `followedUsers_${currentUser.id}`,
-          JSON.stringify(data.following),
-        );
-      }
-
-      if (data.isFollowing && followedUser) {
-        addNotification(
-          `You are now following ${followedUser.name}.`,
-          "follow",
-        );
-      }
+      if (!response.ok) return console.error("Follow failed:", data.message);
+      setFollowedUsers(Array.isArray(data.following) ? data.following : []);
+      setUsers((prev) =>
+        prev.map((user) =>
+          String(user.id) === String(target.id)
+            ? {
+                ...user,
+                isFollowing: Boolean(data.isFollowing),
+                isFollowedBy: data.isFollowedBy ?? user.isFollowedBy,
+                followersCount: Number(
+                  data.targetFollowersCount ?? user.followersCount ?? 0,
+                ),
+              }
+            : user,
+        ),
+      );
+      if (data.isFollowing)
+        addNotification(`You are now following ${target.name}.`, "follow");
     } catch (error) {
       console.error("Follow error:", error);
     }
@@ -1991,15 +1897,13 @@ COMMENTS
     const post = posts.find((item) => String(item.id) === String(postId));
     if (!post) return;
 
-    if (isLocalPost(postId)) {
+    if (post.isSamplePost) {
       const newComment = {
-        id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        id: `${currentUser.id}-${Date.now()}`,
+        authorId: currentUser.id,
         authorName: currentUser.name,
         username: currentUser.username,
-        avatar:
-          currentUser.avatar ||
-          currentUser.name?.charAt(0)?.toUpperCase() ||
-          "U",
+        avatar: currentUser.avatar || currentUser.name.charAt(0).toUpperCase(),
         text,
         time: "now",
       };
@@ -2009,10 +1913,7 @@ COMMENTS
         [postId]: [...(prev[postId] || []), newComment],
       }));
 
-      setCommentText((prev) => ({
-        ...prev,
-        [postId]: "",
-      }));
+      setCommentText((prev) => ({ ...prev, [postId]: "" }));
       return;
     }
 
@@ -2128,75 +2029,80 @@ EXPLORE
 MESSAGES
 ========================= */
 
-  const messageUsers = suggestedUsers.filter(
-    (user) => user.username !== currentUser?.username,
-  );
-
-  const getChatMessages = (username) => messages[username] || [];
+  const getChatMessages = (userId) => messages[String(userId)] || [];
 
   const sendMessage = () => {
     const text = messageText.trim();
-
-    if (!text || !selectedChat) return;
-
-    const newMessage = {
-      id: Date.now().toString() + Math.random().toString(36).slice(2),
-
-      sender: currentUser.username,
-
-      text,
-
-      time: "now",
-
-      read: true,
-    };
-
-    setMessages((prev) => ({
-      ...prev,
-
-      [selectedChat]: [...(prev[selectedChat] || []), newMessage],
-    }));
-
-    setMessageText("");
+    if (!text || !selectedChat || !socketRef.current || !socketConnected)
+      return;
+    socketRef.current.emit(
+      "send_message",
+      { receiverId: selectedChat, body: text },
+      (response) => {
+        if (response?.success) setMessageText("");
+        else
+          console.error(
+            "Send message failed:",
+            response?.message || "Unknown error",
+          );
+      },
+    );
   };
 
-  const getLastMessage = (username) => {
-    const chat = messages[username] || [];
-
-    if (!chat.length) {
-      return "Start a conversation";
-    }
-
-    return chat[chat.length - 1].text;
+  const getLastMessage = (userId) => {
+    const chat = messages[String(userId)] || [];
+    return chat.length ? chat[chat.length - 1].text : "Start a conversation";
   };
 
-  const getUnreadMessages = (username) => {
-    const chat = messages[username] || [];
-
-    return chat.filter(
-      (message) => message.sender !== currentUser.username && !message.read,
+  const getUnreadMessages = (userId) =>
+    (messages[String(userId)] || []).filter(
+      (message) =>
+        String(message.senderId) !== String(currentUser.id) && !message.read,
     ).length;
-  };
 
-  const openChat = (username) => {
-    setSelectedChat(username);
-
+  const openChat = async (userId) => {
+    const id = String(userId);
+    selectedChatRef.current = id;
+    setSelectedChat(id);
+    try {
+      const response = await fetch(
+        `${API_BASE}/messages/${encodeURIComponent(currentUser.id)}/${encodeURIComponent(id)}`,
+      );
+      const data = await response.json();
+      if (response.ok && Array.isArray(data.messages)) {
+        setMessages((prev) => ({
+          ...prev,
+          [id]: data.messages.map((message) => ({
+            id: String(message._id || message.id),
+            senderId: String(message.senderId),
+            receiverId: String(message.receiverId),
+            sender: message.senderUsername || message.sender || "user",
+            text: message.body || message.text || "",
+            time: message.createdAt
+              ? new Date(message.createdAt).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              : "now",
+            read: true,
+          })),
+        }));
+      }
+      await fetch(
+        `${API_BASE}/messages/${encodeURIComponent(currentUser.id)}/${encodeURIComponent(id)}/read`,
+        { method: "POST" },
+      );
+    } catch (error) {
+      console.error("Open chat error:", error);
+    }
     setMessages((prev) => ({
       ...prev,
-
-      [username]: (prev[username] || []).map((message) =>
-        message.sender !== currentUser.username
-          ? {
-              ...message,
-              read: true,
-            }
-          : message,
-      ),
+      [id]: (prev[id] || []).map((message) => ({ ...message, read: true })),
     }));
   };
 
   const totalUnreadMessages = messageUsers.reduce(
-    (total, user) => total + getUnreadMessages(user.username),
+    (total, user) => total + getUnreadMessages(user.id),
     0,
   );
 
@@ -2374,16 +2280,19 @@ EXPLORE PAGE
             <h3>Who to follow</h3>
           </div>
 
-          {suggestedUsers.map((user) => {
-            const isFollowed = followedUsers.includes(user.username);
+          {messageUsers.map((user) => {
+            const isFollowed =
+              Boolean(user.isFollowing) ||
+              followedUsers.some(
+                (name) =>
+                  String(name).toLowerCase() ===
+                  String(user.username).toLowerCase(),
+              );
+            const isFollowedBy = Boolean(user.isFollowedBy);
 
             return (
               <div className="explore-user" key={user.username}>
-                <Avatar
-                  value={user.avatar}
-                  name={user.name}
-                  className="small-avatar"
-                />
+                <div className="small-avatar">{user.avatar}</div>
 
                 <div className="explore-user-info">
                   <strong>{user.name}</strong>
@@ -2392,10 +2301,14 @@ EXPLORE PAGE
                 </div>
 
                 <button
-                  onClick={() => handleFollow(user.username)}
+                  onClick={() => handleFollow(user)}
                   className={isFollowed ? "following-button" : "follow-button"}
                 >
-                  {isFollowed ? "Following" : "Follow"}
+                  {isFollowed
+                    ? "Following"
+                    : isFollowedBy
+                      ? "Follow Back"
+                      : "Follow"}
                 </button>
               </div>
             );
@@ -2427,11 +2340,7 @@ EXPLORE PAGE
           ) : (
             explorePosts.map((post) => (
               <article className="post" key={post.id}>
-                <Avatar
-                  value={post.avatar}
-                  name={post.authorName}
-                  className="avatar"
-                />
+                <div className="avatar">{post.avatar}</div>
 
                 <div className="post-content">
                   <div className="post-header">
@@ -2477,15 +2386,7 @@ EXPLORE PAGE
 
                     <button
                       onClick={() => handleBookmark(post.id)}
-                      className="bookmark-button"
-                      style={{
-                        color: post.bookmarked ? "#1d9bf0" : "inherit",
-                        transform: post.bookmarked ? "scale(1.08)" : "scale(1)",
-                      }}
-                      aria-label={
-                        post.bookmarked ? "Remove bookmark" : "Bookmark"
-                      }
-                      aria-pressed={post.bookmarked}
+                      aria-label="Bookmark"
                     >
                       <Icon name="bookmark" size={18} />
                     </button>
@@ -2506,29 +2407,27 @@ MESSAGES PAGE
   const renderMessagesPage = () => {
     const filteredUsers = messageUsers.filter((user) => {
       const search = messageSearch.toLowerCase().trim();
-
-      if (!search) return true;
-
       return (
+        !search ||
         user.name.toLowerCase().includes(search) ||
         user.username.toLowerCase().includes(search)
       );
     });
-
     const activeUser = messageUsers.find(
-      (user) => user.username === selectedChat,
+      (user) => String(user.id) === String(selectedChat),
     );
-
     return (
       <div className="messages-page">
         <div className="messages-header">
           <div>
             <h2>Messages</h2>
-
-            <p>Chat with people you know</p>
+            <p>
+              {socketConnected
+                ? "Live messaging is connected"
+                : "Connecting to live messaging..."}
+            </p>
           </div>
         </div>
-
         <div className="messages-layout">
           <div className="conversation-panel">
             <div className="message-search">
@@ -2540,50 +2439,47 @@ MESSAGES PAGE
                 onChange={(e) => setMessageSearch(e.target.value)}
               />
             </div>
-
             <div className="conversation-list">
-              {filteredUsers.map((user) => {
-                const unread = getUnreadMessages(user.username);
-
-                return (
-                  <button
-                    className={`conversation ${
-                      selectedChat === user.username ? "active" : ""
-                    }`}
-                    key={user.username}
-                    onClick={() => openChat(user.username)}
-                  >
-                    <Avatar
-                      value={user.avatar}
-                      name={user.name}
-                      className="small-avatar"
-                    />
-
-                    <div className="conversation-info">
-                      <strong>{user.name}</strong>
-
-                      <span>{getLastMessage(user.username)}</span>
-                    </div>
-
-                    {unread > 0 && (
-                      <span className="message-unread-badge">{unread}</span>
-                    )}
-                  </button>
-                );
-              })}
+              {filteredUsers.length === 0 ? (
+                <div className="empty-chat">
+                  <h3>No accounts found</h3>
+                  <p>Other registered accounts will appear here.</p>
+                </div>
+              ) : (
+                filteredUsers.map((user) => {
+                  const unread = getUnreadMessages(user.id);
+                  return (
+                    <button
+                      className={`conversation ${String(selectedChat) === String(user.id) ? "active" : ""}`}
+                      key={user.id}
+                      onClick={() => openChat(user.id)}
+                    >
+                      <Avatar
+                        value={user.avatar}
+                        name={user.name}
+                        className="small-avatar"
+                      />
+                      <div className="conversation-info">
+                        <strong>{user.name}</strong>
+                        <span>{getLastMessage(user.id)}</span>
+                      </div>
+                      {unread > 0 && (
+                        <span className="message-unread-badge">{unread}</span>
+                      )}
+                    </button>
+                  );
+                })
+              )}
             </div>
           </div>
-
           <div className="chat-panel">
             {!activeUser ? (
               <div className="empty-chat">
                 <div className="empty-chat-icon">
                   <Icon name="messages" size={34} />
                 </div>
-
                 <h3>Select a conversation</h3>
-
-                <p>Choose someone from the list to start messaging.</p>
+                <p>Choose a registered account to start messaging.</p>
               </div>
             ) : (
               <>
@@ -2593,45 +2489,40 @@ MESSAGES PAGE
                     name={activeUser.name}
                     className="small-avatar"
                   />
-
                   <div>
                     <strong>{activeUser.name}</strong>
-
                     <span>@{activeUser.username}</span>
                   </div>
                 </div>
-
                 <div className="chat-messages">
-                  {getChatMessages(activeUser.username).length === 0 ? (
+                  {getChatMessages(activeUser.id).length === 0 ? (
                     <div className="empty-chat">
                       <Avatar
                         value={activeUser.avatar}
                         name={activeUser.name}
                         className="small-avatar"
                       />
-
                       <h3>Say hello to {activeUser.name}</h3>
-
-                      <p>Start a new conversation.</p>
+                      <p>
+                        Messages are saved to the database and delivered live.
+                      </p>
                     </div>
                   ) : (
-                    getChatMessages(activeUser.username).map((message) => {
-                      const own = message.sender === currentUser.username;
-
+                    getChatMessages(activeUser.id).map((message) => {
+                      const own =
+                        String(message.senderId) === String(currentUser.id);
                       return (
                         <div
                           className={`chat-message ${own ? "own" : "received"}`}
                           key={message.id}
                         >
                           <div className="message-bubble">{message.text}</div>
-
                           <span>{message.time}</span>
                         </div>
                       );
                     })
                   )}
                 </div>
-
                 <div className="message-compose">
                   <input
                     type="text"
@@ -2639,14 +2530,14 @@ MESSAGES PAGE
                     value={messageText}
                     onChange={(e) => setMessageText(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        sendMessage();
-                      }
+                      if (e.key === "Enter") sendMessage();
                     }}
                   />
-
-                  <button onClick={sendMessage} disabled={!messageText.trim()}>
-                    Send
+                  <button
+                    onClick={sendMessage}
+                    disabled={!messageText.trim() || !socketConnected}
+                  >
+                    {socketConnected ? "Send" : "Connecting..."}
                   </button>
                 </div>
               </>
@@ -2687,11 +2578,7 @@ BOOKMARKS PAGE
         ) : (
           bookmarkedPosts.map((post) => (
             <article className="post" key={post.id}>
-              <Avatar
-                value={post.avatar}
-                name={post.authorName}
-                className="avatar"
-              />
+              <div className="avatar">{post.avatar}</div>
 
               <div className="post-content">
                 <div className="post-header">
@@ -2734,15 +2621,7 @@ BOOKMARKS PAGE
 
                   <button
                     onClick={() => handleBookmark(post.id)}
-                    className="bookmark-button"
-                    style={{
-                      color: post.bookmarked ? "#1d9bf0" : "inherit",
-                      transform: post.bookmarked ? "scale(1.08)" : "scale(1)",
-                    }}
-                    aria-label={
-                      post.bookmarked ? "Remove bookmark" : "Bookmark"
-                    }
-                    aria-pressed={post.bookmarked}
+                    aria-label="Bookmark"
                   >
                     <Icon name="bookmark" size={18} />
                   </button>
@@ -2759,7 +2638,7 @@ BOOKMARKS PAGE
 PROFILE PAGE
 ========================= */
 
-  const renderProfilePage = () => {
+  const ProfilePage = () => {
     return (
       <div className="profile-page">
         <div className="profile-cover"></div>
@@ -2772,11 +2651,9 @@ PROFILE PAGE
             Edit profile
           </button>
 
-          <Avatar
-            value={currentUser.avatar}
-            name={currentUser.name}
-            className="profile-avatar"
-          />
+          <div className="profile-avatar">
+            {currentUser.avatar || currentUser.name.charAt(0).toUpperCase()}
+          </div>
 
           <h2>{currentUser.name}</h2>
 
@@ -2794,7 +2671,7 @@ PROFILE PAGE
             </div>
 
             <div>
-              <strong>0</strong>
+              <strong>{followersCount}</strong>
 
               <span>Followers</span>
             </div>
@@ -2849,19 +2726,13 @@ PROFILE PAGE
                 </label>
 
                 <label>
-                  Profile picture
+                  Avatar initial
                   <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleProfileImageSelect}
-                  />
-                  <span className="profile-picture-help">
-                    Choose a JPG, PNG, WEBP, or other image file. Maximum 10MB.
-                  </span>
-                  <Avatar
                     value={editAvatar}
-                    name={editName}
-                    className="edit-profile-avatar-preview"
+                    onChange={(e) =>
+                      setEditAvatar(e.target.value.charAt(0).toUpperCase())
+                    }
+                    maxLength={1}
                   />
                 </label>
               </div>
@@ -2934,11 +2805,7 @@ PROFILE PAGE
               ) : (
                 myPosts.map((post) => (
                   <article className="post" key={post.id}>
-                    <Avatar
-                      value={post.avatar}
-                      name={post.authorName}
-                      className="avatar"
-                    />
+                    <div className="avatar">{post.avatar}</div>
 
                     <div className="post-content">
                       <div className="post-header">
@@ -2994,17 +2861,7 @@ PROFILE PAGE
 
                         <button
                           onClick={() => handleBookmark(post.id)}
-                          className="bookmark-button"
-                          style={{
-                            color: post.bookmarked ? "#1d9bf0" : "inherit",
-                            transform: post.bookmarked
-                              ? "scale(1.08)"
-                              : "scale(1)",
-                          }}
-                          aria-label={
-                            post.bookmarked ? "Remove bookmark" : "Bookmark"
-                          }
-                          aria-pressed={post.bookmarked}
+                          aria-label="Bookmark"
                         >
                           <Icon name="bookmark" size={18} />
                         </button>
@@ -3035,11 +2892,7 @@ PROFILE PAGE
               ) : (
                 myLikedPosts.map((post) => (
                   <article className="post" key={post.id}>
-                    <Avatar
-                      value={post.avatar}
-                      name={post.authorName}
-                      className="avatar"
-                    />
+                    <div className="avatar">{post.avatar}</div>
 
                     <div className="post-content">
                       <div className="post-header">
@@ -3077,17 +2930,7 @@ PROFILE PAGE
 
                         <button
                           onClick={() => handleBookmark(post.id)}
-                          className="bookmark-button"
-                          style={{
-                            color: post.bookmarked ? "#1d9bf0" : "inherit",
-                            transform: post.bookmarked
-                              ? "scale(1.08)"
-                              : "scale(1)",
-                          }}
-                          aria-label={
-                            post.bookmarked ? "Remove bookmark" : "Bookmark"
-                          }
-                          aria-pressed={post.bookmarked}
+                          aria-label="Bookmark"
                         >
                           <Icon name="bookmark" size={18} />
                         </button>
@@ -3345,11 +3188,9 @@ MAIN RETURN
           </button>
 
           <div className="current-user-card">
-            <Avatar
-              value={currentUser.avatar}
-              name={currentUser.name}
-              className="avatar"
-            />
+            <div className="avatar">
+              {currentUser.avatar || currentUser.name.charAt(0)}
+            </div>
 
             <div className="current-user-info">
               <strong>{currentUser.name}</strong>
@@ -3374,7 +3215,7 @@ MAIN RETURN
         {/* CENTER */}
 
         <main className="feed">
-          {activePage === "profile" && renderProfilePage()}
+          {activePage === "profile" && <ProfilePage />}
 
           {activePage === "notifications" && <NotificationsPage />}
 
@@ -3452,16 +3293,19 @@ MAIN RETURN
           <div className="sidebar-card">
             <h3>Who to follow</h3>
 
-            {suggestedUsers.map((user) => {
-              const isFollowed = followedUsers.includes(user.username);
+            {messageUsers.map((user) => {
+              const isFollowed =
+                Boolean(user.isFollowing) ||
+                followedUsers.some(
+                  (name) =>
+                    String(name).toLowerCase() ===
+                    String(user.username).toLowerCase(),
+                );
+              const isFollowedBy = Boolean(user.isFollowedBy);
 
               return (
                 <div className="follow-user" key={user.username}>
-                  <Avatar
-                    value={user.avatar}
-                    name={user.name}
-                    className="small-avatar"
-                  />
+                  <div className="small-avatar">{user.avatar}</div>
 
                   <div className="follow-info">
                     <strong>{user.name}</strong>
@@ -3469,8 +3313,12 @@ MAIN RETURN
                     <span>@{user.username}</span>
                   </div>
 
-                  <button onClick={() => handleFollow(user.username)}>
-                    {isFollowed ? "Following" : "Follow"}
+                  <button onClick={() => handleFollow(user)}>
+                    {isFollowed
+                      ? "Following"
+                      : isFollowedBy
+                        ? "Follow Back"
+                        : "Follow"}
                   </button>
                 </div>
               );
