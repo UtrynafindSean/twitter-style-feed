@@ -874,10 +874,6 @@ LOCAL STORAGE
   }, [comments]);
 
   useEffect(() => {
-    localStorage.setItem("followedUsers", JSON.stringify(followedUsers));
-  }, [followedUsers]);
-
-  useEffect(() => {
     localStorage.setItem("notifications", JSON.stringify(notifications));
   }, [notifications]);
 
