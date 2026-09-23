@@ -1270,7 +1270,7 @@ LOCAL STORAGE
 
     const socket = io(SOCKET_URL, {
       auth: { userId: currentUser.id },
-      transports: ["websocket", "polling"],
+      transports: ["polling"],
       reconnection: true,
       reconnectionAttempts: Infinity,
       reconnectionDelay: 1000,
