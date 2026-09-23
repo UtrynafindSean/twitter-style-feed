@@ -1,52 +1,239 @@
 import { useEffect, useRef, useState } from "react";
 
-const DEFAULT_POSTS = [
-  {
-    id: "sample-1",
-    authorName: "John Smith",
-    username: "johnsmith",
-    avatar: "J",
-    text: "Just finished working on an exciting new project! 🚀",
-    image: "",
-    time: "2h",
-    likeCount: 24,
-    liked: false,
-    repostCount: 5,
-    reposted: false,
-    bookmarked: false,
-    isUserPost: false,
-  },
-  {
-    id: "sample-2",
-    authorName: "Sarah Williams",
-    username: "sarahw",
-    avatar: "S",
-    text: "Learning React has been challenging, but I'm finally starting to understand how everything works. 💻",
-    image: "",
-    time: "4h",
-    likeCount: 41,
-    liked: false,
-    repostCount: 8,
-    reposted: false,
-    bookmarked: false,
-    isUserPost: false,
-  },
-  {
-    id: "sample-3",
-    authorName: "Michael Brown",
-    username: "michaelb",
-    avatar: "M",
-    text: "Beautiful day to build something amazing.",
-    image: "",
-    time: "6h",
-    likeCount: 17,
-    liked: false,
-    repostCount: 3,
-    reposted: false,
-    bookmarked: false,
-    isUserPost: false,
-  },
+const FEED_VARIANTS = [
+  [
+    {
+      id: "seed-1-1",
+      authorName: "Daniel Okafor",
+      username: "danokafor",
+      avatar: "D",
+      text: "Spent the afternoon building something I've been thinking about for weeks. Finally seeing it come together. 🚀",
+      image: "",
+      time: "1h",
+      likeCount: 32,
+      liked: false,
+      repostCount: 7,
+      reposted: false,
+      bookmarked: false,
+      isUserPost: false,
+    },
+    {
+      id: "seed-1-2",
+      authorName: "Amara Nwosu",
+      username: "amaranwosu",
+      avatar: "A",
+      text: "Sometimes the smallest progress is still progress. Keep showing up. ✨",
+      image: "",
+      time: "3h",
+      likeCount: 56,
+      liked: false,
+      repostCount: 12,
+      reposted: false,
+      bookmarked: false,
+      isUserPost: false,
+    },
+    {
+      id: "seed-1-3",
+      authorName: "Tobi Adeyemi",
+      username: "tobiadeyemi",
+      avatar: "T",
+      text: "Coffee, headphones and a few hours of coding. That's basically my whole day. ☕💻",
+      image: "",
+      time: "5h",
+      likeCount: 21,
+      liked: false,
+      repostCount: 4,
+      reposted: false,
+      bookmarked: false,
+      isUserPost: false,
+    },
+  ],
+  [
+    {
+      id: "seed-2-1",
+      authorName: "Chisom Eze",
+      username: "chisomeze",
+      avatar: "C",
+      text: "New week, new ideas. I've got a lot planned and I'm ready to get started. 🔥",
+      image: "",
+      time: "2h",
+      likeCount: 44,
+      liked: false,
+      repostCount: 9,
+      reposted: false,
+      bookmarked: false,
+      isUserPost: false,
+    },
+    {
+      id: "seed-2-2",
+      authorName: "Favour James",
+      username: "favourjames",
+      avatar: "F",
+      text: "Just discovered a really interesting way to approach a problem I've been stuck on.",
+      image: "",
+      time: "4h",
+      likeCount: 29,
+      liked: false,
+      repostCount: 6,
+      reposted: false,
+      bookmarked: false,
+      isUserPost: false,
+    },
+    {
+      id: "seed-2-3",
+      authorName: "Emeka Obi",
+      username: "emekaobi",
+      avatar: "E",
+      text: "Building, learning and trying new things. One step at a time. 🚀",
+      image: "",
+      time: "7h",
+      likeCount: 63,
+      liked: false,
+      repostCount: 11,
+      reposted: false,
+      bookmarked: false,
+      isUserPost: false,
+    },
+  ],
+  [
+    {
+      id: "seed-3-1",
+      authorName: "Maya Bello",
+      username: "mayabello",
+      avatar: "M",
+      text: "A quiet morning, a fresh playlist and a long list of ideas. Let's see where today goes. 🎧",
+      image: "",
+      time: "1h",
+      likeCount: 38,
+      liked: false,
+      repostCount: 5,
+      reposted: false,
+      bookmarked: false,
+      isUserPost: false,
+    },
+    {
+      id: "seed-3-2",
+      authorName: "Kelechi Udo",
+      username: "kelechiudo",
+      avatar: "K",
+      text: "Learning something new every day makes the process worth it. 💡",
+      image: "",
+      time: "3h",
+      likeCount: 47,
+      liked: false,
+      repostCount: 8,
+      reposted: false,
+      bookmarked: false,
+      isUserPost: false,
+    },
+    {
+      id: "seed-3-3",
+      authorName: "Nneka David",
+      username: "nnekadavid",
+      avatar: "N",
+      text: "Small wins deserve to be celebrated too. Today was a good one. 🙌",
+      image: "",
+      time: "6h",
+      likeCount: 25,
+      liked: false,
+      repostCount: 3,
+      reposted: false,
+      bookmarked: false,
+      isUserPost: false,
+    },
+  ],
+  [
+    {
+      id: "seed-4-1",
+      authorName: "Ifeanyi Cole",
+      username: "ifeanyicole",
+      avatar: "I",
+      text: "Trying a different approach today. Sometimes changing the process changes everything. ⚡",
+      image: "",
+      time: "2h",
+      likeCount: 35,
+      liked: false,
+      repostCount: 6,
+      reposted: false,
+      bookmarked: false,
+      isUserPost: false,
+    },
+    {
+      id: "seed-4-2",
+      authorName: "Zara Ahmed",
+      username: "zaraahmed",
+      avatar: "Z",
+      text: "Good conversations always leave you with something new to think about.",
+      image: "",
+      time: "4h",
+      likeCount: 52,
+      liked: false,
+      repostCount: 10,
+      reposted: false,
+      bookmarked: false,
+      isUserPost: false,
+    },
+    {
+      id: "seed-4-3",
+      authorName: "David Mensah",
+      username: "davidmensah",
+      avatar: "D",
+      text: "One task at a time. One improvement at a time. That's the plan. 💻",
+      image: "",
+      time: "8h",
+      likeCount: 19,
+      liked: false,
+      repostCount: 2,
+      reposted: false,
+      bookmarked: false,
+      isUserPost: false,
+    },
+  ],
 ];
+
+const DEFAULT_POSTS = FEED_VARIANTS[0];
+
+function getAccountPosts(user) {
+  if (!user?.id) return DEFAULT_POSTS.map((post) => ({ ...post }));
+
+  const storageKey = `posts_${user.id}`;
+  const saved = getStoredData(storageKey, null);
+
+  if (Array.isArray(saved) && saved.length > 0) {
+    return normalizePosts(saved);
+  }
+
+  const variantKey = `feedVariant_${user.id}`;
+  let variant = Number(getStoredData(variantKey, NaN));
+
+  if (
+    !Number.isInteger(variant) ||
+    variant < 0 ||
+    variant >= FEED_VARIANTS.length
+  ) {
+    const usedVariants = Object.keys(localStorage)
+      .filter((key) => key.startsWith("feedVariant_"))
+      .map((key) => Number(getStoredData(key, NaN)))
+      .filter((value) => Number.isInteger(value));
+
+    const nextVariant = usedVariants.length
+      ? (Math.max(...usedVariants) + 1) % FEED_VARIANTS.length
+      : 0;
+
+    variant = nextVariant;
+    localStorage.setItem(variantKey, JSON.stringify(variant));
+  }
+
+  const freshPosts = FEED_VARIANTS[variant].map((post) => ({
+    ...post,
+    liked: false,
+    reposted: false,
+    bookmarked: false,
+  }));
+
+  localStorage.setItem(storageKey, JSON.stringify(freshPosts));
+  return freshPosts;
+}
 
 function getStoredData(key, fallback) {
   try {
@@ -783,9 +970,7 @@ function Icon({ name, size = 20, strokeWidth = 1.8, className = "" }) {
 function App() {
   const [currentUser, setCurrentUser] = useState(getStoredUser);
 
-  const [posts, setPosts] = useState(() =>
-    normalizePosts(getStoredData("posts", DEFAULT_POSTS)),
-  );
+  const [posts, setPosts] = useState(() => getAccountPosts(getStoredUser()));
 
   const [postText, setPostText] = useState("");
 
@@ -795,25 +980,35 @@ function App() {
 
   const [searchText, setSearchText] = useState("");
 
-  const [comments, setComments] = useState(() => getStoredData("comments", {}));
+  const [comments, setComments] = useState(() => {
+    const user = getStoredUser();
+    return user?.id ? getStoredData(`comments_${user.id}`, {}) : {};
+  });
 
   const [commentText, setCommentText] = useState({});
   const [activePost, setActivePost] = useState(null);
 
   const [followedUsers, setFollowedUsers] = useState(() => {
-    const stored = getStoredData("followedUsers", []);
+    const user = getStoredUser();
+    const stored = user?.id
+      ? getStoredData(`followedUsers_${user.id}`, [])
+      : [];
     return Array.isArray(stored) ? stored : [];
   });
 
-  const [notifications, setNotifications] = useState(() =>
-    getStoredData("notifications", []),
-  );
+  const [notifications, setNotifications] = useState(() => {
+    const user = getStoredUser();
+    return user?.id ? getStoredData(`notifications_${user.id}`, []) : [];
+  });
 
   /* =========================
 MESSAGES
 ========================= */
 
-  const [messages, setMessages] = useState(() => getStoredData("messages", {}));
+  const [messages, setMessages] = useState(() => {
+    const user = getStoredUser();
+    return user?.id ? getStoredData(`messages_${user.id}`, {}) : {};
+  });
 
   const [selectedChat, setSelectedChat] = useState(null);
 
@@ -866,20 +1061,41 @@ LOCAL STORAGE
 ========================= */
 
   useEffect(() => {
-    localStorage.setItem("posts", JSON.stringify(posts));
-  }, [posts]);
+    if (!currentUser?.id) return;
+    localStorage.setItem(`posts_${currentUser.id}`, JSON.stringify(posts));
+  }, [posts, currentUser]);
 
   useEffect(() => {
-    localStorage.setItem("comments", JSON.stringify(comments));
-  }, [comments]);
+    if (!currentUser?.id) return;
+    localStorage.setItem(
+      `comments_${currentUser.id}`,
+      JSON.stringify(comments),
+    );
+  }, [comments, currentUser]);
 
   useEffect(() => {
-    localStorage.setItem("notifications", JSON.stringify(notifications));
-  }, [notifications]);
+    if (!currentUser?.id) return;
+    localStorage.setItem(
+      `followedUsers_${currentUser.id}`,
+      JSON.stringify(followedUsers),
+    );
+  }, [followedUsers, currentUser]);
 
   useEffect(() => {
-    localStorage.setItem("messages", JSON.stringify(messages));
-  }, [messages]);
+    if (!currentUser?.id) return;
+    localStorage.setItem(
+      `notifications_${currentUser.id}`,
+      JSON.stringify(notifications),
+    );
+  }, [notifications, currentUser]);
+
+  useEffect(() => {
+    if (!currentUser?.id) return;
+    localStorage.setItem(
+      `messages_${currentUser.id}`,
+      JSON.stringify(messages),
+    );
+  }, [messages, currentUser]);
 
   useEffect(() => {
     localStorage.setItem("darkMode", JSON.stringify(darkMode));
@@ -927,13 +1143,31 @@ LOCAL STORAGE
           isUserPost: post.username === currentUser.username,
         }));
 
-        setPosts(mongoPosts);
+        const accountPosts = getAccountPosts(currentUser);
+        const userPosts = mongoPosts.filter(
+          (post) => post.username === currentUser.username,
+        );
 
-        const nextComments = {};
-        mongoPosts.forEach((post) => {
-          nextComments[post.id] = Array.isArray(post.comments)
-            ? post.comments
-            : [];
+        const combinedPosts = [
+          ...userPosts,
+          ...accountPosts.filter(
+            (seedPost) =>
+              !userPosts.some(
+                (userPost) => String(userPost.id) === String(seedPost.id),
+              ),
+          ),
+        ];
+
+        setPosts(combinedPosts);
+
+        const savedComments = getStoredData(`comments_${currentUser.id}`, {});
+        const nextComments = { ...savedComments };
+        userPosts.forEach((post) => {
+          if (!nextComments[post.id]) {
+            nextComments[post.id] = Array.isArray(post.comments)
+              ? post.comments
+              : [];
+          }
         });
         setComments(nextComments);
       } catch (error) {
@@ -955,7 +1189,10 @@ LOCAL STORAGE
 
         if (Array.isArray(data.following)) {
           setFollowedUsers(data.following);
-          localStorage.setItem("followedUsers", JSON.stringify(data.following));
+          localStorage.setItem(
+            `followedUsers_${currentUser.id}`,
+            JSON.stringify(data.following),
+          );
         }
       } catch (error) {
         console.error("Load following error:", error);
@@ -973,7 +1210,29 @@ LOGIN / LOGOUT
   const handleLogin = (user) => {
     localStorage.setItem("currentUser", JSON.stringify(user));
 
+    const accountPosts = getAccountPosts(user);
+    const savedComments = getStoredData(`comments_${user.id}`, {});
+    const savedFollowing = getStoredData(`followedUsers_${user.id}`, []);
+    const savedNotifications = getStoredData(`notifications_${user.id}`, []);
+    const savedMessages = getStoredData(`messages_${user.id}`, {});
+
     setCurrentUser(user);
+    setPosts(accountPosts);
+    setComments(savedComments);
+    setFollowedUsers(Array.isArray(savedFollowing) ? savedFollowing : []);
+    setNotifications(
+      Array.isArray(savedNotifications) ? savedNotifications : [],
+    );
+    setMessages(
+      savedMessages && typeof savedMessages === "object" ? savedMessages : {},
+    );
+    setCommentText({});
+    setActivePost(null);
+    setSelectedChat(null);
+    setMessageText("");
+    setPostText("");
+    setPostImage("");
+    setSearchText("");
     setActivePage("home");
     setIsEditingProfile(false);
     setProfileError("");
@@ -988,6 +1247,13 @@ LOGIN / LOGOUT
     setProfileError("");
     setSelectedChat(null);
     setMessageText("");
+    setPosts([]);
+    setComments({});
+    setFollowedUsers([]);
+    setNotifications([]);
+    setMessages({});
+    setCommentText({});
+    setActivePost(null);
   };
 
   /* =========================
@@ -1330,7 +1596,29 @@ POSTS
     }
   };
 
+  const isLocalPost = (postId) => String(postId).startsWith("seed-");
+
+  const updateLocalPost = (postId, updater) => {
+    setPosts((prev) =>
+      prev.map((post) =>
+        String(post.id) === String(postId) ? updater(post) : post,
+      ),
+    );
+  };
+
   const handleDeletePost = async (postId) => {
+    if (isLocalPost(postId)) {
+      setPosts((prev) =>
+        prev.filter((post) => String(post.id) !== String(postId)),
+      );
+      setComments((prev) => {
+        const updated = { ...prev };
+        delete updated[postId];
+        return updated;
+      });
+      return;
+    }
+
     try {
       const response = await fetch(
         `http://localhost:5000/api/posts/${postId}`,
@@ -1363,6 +1651,22 @@ POSTS
 
   const handleLike = async (postId) => {
     if (!currentUser?.id) return;
+
+    if (isLocalPost(postId)) {
+      const targetPost = posts.find(
+        (post) => String(post.id) === String(postId),
+      );
+      if (!targetPost) return;
+
+      updateLocalPost(postId, (post) => ({
+        ...post,
+        liked: !post.liked,
+        likeCount: post.liked
+          ? Math.max(0, Number(post.likeCount) - 1)
+          : Number(post.likeCount) + 1,
+      }));
+      return;
+    }
 
     try {
       const response = await fetch(
@@ -1424,6 +1728,17 @@ POSTS
 
   const handleRepost = async (postId) => {
     if (!currentUser?.id) return;
+
+    if (isLocalPost(postId)) {
+      updateLocalPost(postId, (post) => ({
+        ...post,
+        reposted: !post.reposted,
+        repostCount: post.reposted
+          ? Math.max(0, Number(post.repostCount) - 1)
+          : Number(post.repostCount) + 1,
+      }));
+      return;
+    }
 
     try {
       const response = await fetch(
@@ -1487,6 +1802,15 @@ POSTS
     if (!currentUser?.id) return;
 
     const targetPost = posts.find((post) => String(post.id) === String(postId));
+
+    if (isLocalPost(postId)) {
+      if (!targetPost) return;
+      updateLocalPost(postId, (post) => ({
+        ...post,
+        bookmarked: !post.bookmarked,
+      }));
+      return;
+    }
 
     if (!targetPost) return;
 
@@ -1575,10 +1899,6 @@ POSTS
 USERS / FOLLOW
 ========================= */
 
-  /* =========================
-USERS / FOLLOW
-========================= */
-
   const suggestedUsers = [
     {
       name: "John Smith",
@@ -1595,61 +1915,35 @@ USERS / FOLLOW
       username: "michaelb",
       avatar: "M",
     },
-
-    // Add your previous account here
-    {
-      name: "Idienumah Sokombie",
-      username: "sokombie",
-      avatar: "I",
-    },
   ];
 
   const handleFollow = async (username) => {
     if (!currentUser?.id || !username) return;
 
-    // Don't allow following yourself
-    if (
-      String(currentUser.username).toLowerCase() ===
-      String(username).toLowerCase()
-    ) {
-      return;
-    }
-
     const followedUser = suggestedUsers.find(
-      (user) =>
-        String(user.username).toLowerCase() === String(username).toLowerCase(),
+      (user) => user.username === username,
     );
 
-    const normalizedUsername = username.trim().replace(/^@/, "").toLowerCase();
-
-    const currentlyFollowing = followedUsers.some(
-      (item) => String(item).toLowerCase() === normalizedUsername,
-    );
-
-    const previousFollowing = [...followedUsers];
+    const currentlyFollowing = followedUsers.includes(username);
 
     const optimisticFollowing = currentlyFollowing
-      ? followedUsers.filter(
-          (item) => String(item).toLowerCase() !== normalizedUsername,
-        )
-      : [...followedUsers, normalizedUsername];
+      ? followedUsers.filter((item) => item !== username)
+      : [...followedUsers, username];
 
-    // Update UI immediately
+    // Update the interface immediately.
     setFollowedUsers(optimisticFollowing);
+    localStorage.setItem(
+      `followedUsers_${currentUser.id}`,
+      JSON.stringify(optimisticFollowing),
+    );
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/users/${encodeURIComponent(
-          currentUser.id,
-        )}/follow`,
+        `http://localhost:5000/api/users/${currentUser.id}/follow`,
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            username: normalizedUsername,
-          }),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username }),
         },
       );
 
@@ -1657,16 +1951,22 @@ USERS / FOLLOW
 
       if (!response.ok) {
         console.error("Follow failed:", data.message);
-
-        // Restore previous state
-        setFollowedUsers(previousFollowing);
-
+        setFollowedUsers(
+          currentlyFollowing ? [...followedUsers] : [...followedUsers],
+        );
+        localStorage.setItem(
+          `followedUsers_${currentUser.id}`,
+          JSON.stringify(followedUsers),
+        );
         return;
       }
 
-      // MongoDB is the source of truth
       if (Array.isArray(data.following)) {
         setFollowedUsers(data.following);
+        localStorage.setItem(
+          `followedUsers_${currentUser.id}`,
+          JSON.stringify(data.following),
+        );
       }
 
       if (data.isFollowing && followedUser) {
@@ -1677,11 +1977,9 @@ USERS / FOLLOW
       }
     } catch (error) {
       console.error("Follow error:", error);
-
-      // Restore previous state if request completely fails
-      setFollowedUsers(previousFollowing);
     }
   };
+
   /* =========================
 COMMENTS
 ========================= */
@@ -1690,8 +1988,33 @@ COMMENTS
     const text = commentText[postId]?.trim();
     if (!text) return;
 
-    const post = posts.find((item) => item.id === postId);
+    const post = posts.find((item) => String(item.id) === String(postId));
     if (!post) return;
+
+    if (isLocalPost(postId)) {
+      const newComment = {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        authorName: currentUser.name,
+        username: currentUser.username,
+        avatar:
+          currentUser.avatar ||
+          currentUser.name?.charAt(0)?.toUpperCase() ||
+          "U",
+        text,
+        time: "now",
+      };
+
+      setComments((prev) => ({
+        ...prev,
+        [postId]: [...(prev[postId] || []), newComment],
+      }));
+
+      setCommentText((prev) => ({
+        ...prev,
+        [postId]: "",
+      }));
+      return;
+    }
 
     try {
       const response = await fetch(
