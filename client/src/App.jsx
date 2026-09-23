@@ -1579,6 +1579,10 @@ POSTS
 USERS / FOLLOW
 ========================= */
 
+  /* =========================
+USERS / FOLLOW
+========================= */
+
   const suggestedUsers = [
     {
       name: "John Smith",
@@ -1595,32 +1599,61 @@ USERS / FOLLOW
       username: "michaelb",
       avatar: "M",
     },
+
+    // Add your previous account here
+    {
+      name: "Idienumah Sokombie",
+      username: "sokombie",
+      avatar: "I",
+    },
   ];
 
   const handleFollow = async (username) => {
     if (!currentUser?.id || !username) return;
 
+    // Don't allow following yourself
+    if (
+      String(currentUser.username).toLowerCase() ===
+      String(username).toLowerCase()
+    ) {
+      return;
+    }
+
     const followedUser = suggestedUsers.find(
-      (user) => user.username === username,
+      (user) =>
+        String(user.username).toLowerCase() === String(username).toLowerCase(),
     );
 
-    const currentlyFollowing = followedUsers.includes(username);
+    const normalizedUsername = username.trim().replace(/^@/, "").toLowerCase();
+
+    const currentlyFollowing = followedUsers.some(
+      (item) => String(item).toLowerCase() === normalizedUsername,
+    );
+
+    const previousFollowing = [...followedUsers];
 
     const optimisticFollowing = currentlyFollowing
-      ? followedUsers.filter((item) => item !== username)
-      : [...followedUsers, username];
+      ? followedUsers.filter(
+          (item) => String(item).toLowerCase() !== normalizedUsername,
+        )
+      : [...followedUsers, normalizedUsername];
 
-    // Update the interface immediately.
+    // Update UI immediately
     setFollowedUsers(optimisticFollowing);
-    localStorage.setItem("followedUsers", JSON.stringify(optimisticFollowing));
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/users/${currentUser.id}/follow`,
+        `http://localhost:5000/api/users/${encodeURIComponent(
+          currentUser.id,
+        )}/follow`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            username: normalizedUsername,
+          }),
         },
       );
 
@@ -1628,12 +1661,16 @@ USERS / FOLLOW
 
       if (!response.ok) {
         console.error("Follow failed:", data.message);
+
+        // Restore previous state
+        setFollowedUsers(previousFollowing);
+
         return;
       }
 
+      // MongoDB is the source of truth
       if (Array.isArray(data.following)) {
         setFollowedUsers(data.following);
-        localStorage.setItem("followedUsers", JSON.stringify(data.following));
       }
 
       if (data.isFollowing && followedUser) {
@@ -1644,9 +1681,11 @@ USERS / FOLLOW
       }
     } catch (error) {
       console.error("Follow error:", error);
+
+      // Restore previous state if request completely fails
+      setFollowedUsers(previousFollowing);
     }
   };
-
   /* =========================
 COMMENTS
 ========================= */
