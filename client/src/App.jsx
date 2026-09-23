@@ -124,6 +124,33 @@ function PostImage({ image }) {
 }
 
 /* =========================
+AVATAR COMPONENT
+========================= */
+
+function Avatar({ value, name, className = "avatar" }) {
+  const fallback = name?.charAt(0)?.toUpperCase() || "U";
+  const image =
+    typeof value === "string" &&
+    (value.startsWith("data:image/") ||
+      value.startsWith("http://") ||
+      value.startsWith("https://"));
+
+  if (!image) {
+    return <div className={className}>{value || fallback}</div>;
+  }
+
+  return (
+    <div className={`${className} avatar-image-wrapper`}>
+      <img
+        src={value}
+        alt={`${name || "User"} profile`}
+        className="avatar-image"
+      />
+    </div>
+  );
+}
+
+/* =========================
 AUTH
 ========================= */
 
@@ -375,9 +402,11 @@ function HomePage({
       </header>
 
       <div className="compose">
-        <div className="avatar">
-          {currentUser.avatar || currentUser.name.charAt(0)}
-        </div>
+        <Avatar
+          value={currentUser.avatar}
+          name={currentUser.name}
+          className="avatar"
+        />
 
         <div className="compose-content">
           <textarea
@@ -492,7 +521,11 @@ function HomePage({
 
           return (
             <article className="post" key={post.id}>
-              <div className="avatar">{post.avatar}</div>
+              <Avatar
+                value={post.avatar}
+                name={post.authorName}
+                className="avatar"
+              />
 
               <div className="post-content">
                 <div className="post-header">
@@ -559,9 +592,11 @@ function HomePage({
 
                 {activePost === post.id && (
                   <div className="comments-box">
-                    <div className="small-avatar">
-                      {currentUser.avatar || currentUser.name.charAt(0)}
-                    </div>
+                    <Avatar
+                      value={currentUser.avatar}
+                      name={currentUser.name}
+                      className="small-avatar"
+                    />
 
                     <input
                       type="text"
@@ -593,7 +628,11 @@ function HomePage({
                   <div className="comments-list">
                     {postComments.map((comment) => (
                       <div className="comment" key={comment.id}>
-                        <div className="small-avatar">{comment.avatar}</div>
+                        <Avatar
+                          value={comment.avatar}
+                          name={comment.authorName}
+                          className="small-avatar"
+                        />
 
                         <div>
                           <strong>{comment.authorName}</strong>
@@ -991,7 +1030,7 @@ PROFILE
     setIsEditingProfile(true);
   };
 
-  const handleSaveProfile = () => {
+  const handleSaveProfile = async () => {
     const newName = editName.trim();
 
     const newUsername = editUsername
@@ -1002,9 +1041,7 @@ PROFILE
 
     const newBio = editBio.trim();
 
-    const newAvatar =
-      editAvatar.trim().charAt(0).toUpperCase() ||
-      newName.charAt(0).toUpperCase();
+    const newAvatar = editAvatar?.trim() || newName.charAt(0).toUpperCase();
 
     if (!newName) {
       setProfileError("Please enter your name.");
@@ -1023,55 +1060,145 @@ PROFILE
       return;
     }
 
-    const users = getStoredData("users", []);
-
-    const usernameTaken = users.some(
-      (user) =>
-        user.id !== currentUser.id &&
-        user.username?.toLowerCase() === newUsername,
-    );
-
-    if (usernameTaken) {
-      setProfileError("That username is already taken.");
+    if (!currentUser?.id) {
+      setProfileError("Your account could not be found.");
       return;
     }
 
-    const oldUsername = currentUser.username;
+    try {
+      setProfileError("");
 
-    const updatedUser = {
-      ...currentUser,
-      name: newName,
-      username: newUsername,
-      bio: newBio,
-      avatar: newAvatar,
+      const response = await fetch(
+        `http://localhost:5000/api/users/${encodeURIComponent(
+          currentUser.id,
+        )}/profile`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: newName,
+            username: newUsername,
+            bio: newBio,
+            avatar: newAvatar,
+          }),
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setProfileError(data.message || "Unable to update your profile.");
+        return;
+      }
+
+      const updatedUser = {
+        ...currentUser,
+        ...data.user,
+        id: data.user?.id || currentUser.id,
+      };
+
+      const oldUsername = currentUser.username;
+
+      localStorage.setItem("currentUser", JSON.stringify(updatedUser));
+
+      setPosts((prev) =>
+        prev.map((post) =>
+          post.username === oldUsername
+            ? {
+                ...post,
+                authorName: updatedUser.name,
+                username: updatedUser.username,
+                avatar: updatedUser.avatar,
+              }
+            : post,
+        ),
+      );
+
+      setCurrentUser(updatedUser);
+      setIsEditingProfile(false);
+      setProfileError("");
+    } catch (error) {
+      console.error("Profile update error:", error);
+      setProfileError(
+        "Unable to connect to the server. Make sure the backend is running on port 5000.",
+      );
+    }
+  };
+
+  /* =========================
+PROFILE IMAGE UPLOAD
+========================= */
+
+  const handleProfileImageSelect = (e) => {
+    const file = e.target.files?.[0];
+
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      setProfileError("Please select a valid image file.");
+      e.target.value = "";
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      setProfileError("Please choose an image smaller than 10MB.");
+      e.target.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = (event) => {
+      const originalImage = event.target?.result;
+
+      if (!originalImage) return;
+
+      const img = new Image();
+
+      img.onload = () => {
+        const maxSize = 600;
+
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height && width > maxSize) {
+          height = Math.round((height * maxSize) / width);
+          width = maxSize;
+        } else if (height >= width && height > maxSize) {
+          width = Math.round((width * maxSize) / height);
+          height = maxSize;
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+
+        const context = canvas.getContext("2d");
+
+        if (!context) {
+          setProfileError("Unable to process this image.");
+          return;
+        }
+
+        context.drawImage(img, 0, 0, width, height);
+
+        const compressedImage = canvas.toDataURL("image/jpeg", 0.72);
+
+        setEditAvatar(compressedImage);
+        setProfileError("");
+      };
+
+      img.onerror = () => {
+        setProfileError("Unable to process this image.");
+      };
+
+      img.src = originalImage;
     };
 
-    const updatedUsers = users.map((user) =>
-      user.id === currentUser.id ? updatedUser : user,
-    );
-
-    localStorage.setItem("users", JSON.stringify(updatedUsers));
-
-    localStorage.setItem("currentUser", JSON.stringify(updatedUser));
-
-    setPosts((prev) =>
-      prev.map((post) =>
-        post.username === oldUsername
-          ? {
-              ...post,
-              authorName: newName,
-              username: newUsername,
-              avatar: newAvatar,
-            }
-          : post,
-      ),
-    );
-
-    setCurrentUser(updatedUser);
-
-    setIsEditingProfile(false);
-
-    setProfileError("");
+    reader.readAsDataURL(file);
+    e.target.value = "";
   };
 
   /* =========================
@@ -1894,7 +2021,11 @@ EXPLORE PAGE
 
             return (
               <div className="explore-user" key={user.username}>
-                <div className="small-avatar">{user.avatar}</div>
+                <Avatar
+                  value={user.avatar}
+                  name={user.name}
+                  className="small-avatar"
+                />
 
                 <div className="explore-user-info">
                   <strong>{user.name}</strong>
@@ -1938,7 +2069,11 @@ EXPLORE PAGE
           ) : (
             explorePosts.map((post) => (
               <article className="post" key={post.id}>
-                <div className="avatar">{post.avatar}</div>
+                <Avatar
+                  value={post.avatar}
+                  name={post.authorName}
+                  className="avatar"
+                />
 
                 <div className="post-content">
                   <div className="post-header">
@@ -2060,7 +2195,11 @@ MESSAGES PAGE
                     key={user.username}
                     onClick={() => openChat(user.username)}
                   >
-                    <div className="small-avatar">{user.avatar}</div>
+                    <Avatar
+                      value={user.avatar}
+                      name={user.name}
+                      className="small-avatar"
+                    />
 
                     <div className="conversation-info">
                       <strong>{user.name}</strong>
@@ -2091,7 +2230,11 @@ MESSAGES PAGE
             ) : (
               <>
                 <div className="chat-header">
-                  <div className="small-avatar">{activeUser.avatar}</div>
+                  <Avatar
+                    value={activeUser.avatar}
+                    name={activeUser.name}
+                    className="small-avatar"
+                  />
 
                   <div>
                     <strong>{activeUser.name}</strong>
@@ -2103,7 +2246,11 @@ MESSAGES PAGE
                 <div className="chat-messages">
                   {getChatMessages(activeUser.username).length === 0 ? (
                     <div className="empty-chat">
-                      <div className="small-avatar">{activeUser.avatar}</div>
+                      <Avatar
+                        value={activeUser.avatar}
+                        name={activeUser.name}
+                        className="small-avatar"
+                      />
 
                       <h3>Say hello to {activeUser.name}</h3>
 
@@ -2182,7 +2329,11 @@ BOOKMARKS PAGE
         ) : (
           bookmarkedPosts.map((post) => (
             <article className="post" key={post.id}>
-              <div className="avatar">{post.avatar}</div>
+              <Avatar
+                value={post.avatar}
+                name={post.authorName}
+                className="avatar"
+              />
 
               <div className="post-content">
                 <div className="post-header">
@@ -2263,9 +2414,11 @@ PROFILE PAGE
             Edit profile
           </button>
 
-          <div className="profile-avatar">
-            {currentUser.avatar || currentUser.name.charAt(0).toUpperCase()}
-          </div>
+          <Avatar
+            value={currentUser.avatar}
+            name={currentUser.name}
+            className="profile-avatar"
+          />
 
           <h2>{currentUser.name}</h2>
 
@@ -2338,13 +2491,19 @@ PROFILE PAGE
                 </label>
 
                 <label>
-                  Avatar initial
+                  Profile picture
                   <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleProfileImageSelect}
+                  />
+                  <span className="profile-picture-help">
+                    Choose a JPG, PNG, WEBP, or other image file. Maximum 10MB.
+                  </span>
+                  <Avatar
                     value={editAvatar}
-                    onChange={(e) =>
-                      setEditAvatar(e.target.value.charAt(0).toUpperCase())
-                    }
-                    maxLength={1}
+                    name={editName}
+                    className="edit-profile-avatar-preview"
                   />
                 </label>
               </div>
@@ -2417,7 +2576,11 @@ PROFILE PAGE
               ) : (
                 myPosts.map((post) => (
                   <article className="post" key={post.id}>
-                    <div className="avatar">{post.avatar}</div>
+                    <Avatar
+                      value={post.avatar}
+                      name={post.authorName}
+                      className="avatar"
+                    />
 
                     <div className="post-content">
                       <div className="post-header">
@@ -2514,7 +2677,11 @@ PROFILE PAGE
               ) : (
                 myLikedPosts.map((post) => (
                   <article className="post" key={post.id}>
-                    <div className="avatar">{post.avatar}</div>
+                    <Avatar
+                      value={post.avatar}
+                      name={post.authorName}
+                      className="avatar"
+                    />
 
                     <div className="post-content">
                       <div className="post-header">
@@ -2820,9 +2987,11 @@ MAIN RETURN
           </button>
 
           <div className="current-user-card">
-            <div className="avatar">
-              {currentUser.avatar || currentUser.name.charAt(0)}
-            </div>
+            <Avatar
+              value={currentUser.avatar}
+              name={currentUser.name}
+              className="avatar"
+            />
 
             <div className="current-user-info">
               <strong>{currentUser.name}</strong>
@@ -2930,7 +3099,11 @@ MAIN RETURN
 
               return (
                 <div className="follow-user" key={user.username}>
-                  <div className="small-avatar">{user.avatar}</div>
+                  <Avatar
+                    value={user.avatar}
+                    name={user.name}
+                    className="small-avatar"
+                  />
 
                   <div className="follow-info">
                     <strong>{user.name}</strong>
