@@ -199,7 +199,7 @@ router.put("/:userId/profile", async (req, res) => {
     user.name = name.trim();
     user.username = cleanUsername;
     user.bio = bio?.trim() || "";
-    user.avatar = avatar?.trim()?.trim() || user.name.charAt(0).toUpperCase();
+    user.avatar = avatar?.trim() || user.name.charAt(0).toUpperCase();
 
     await user.save();
 
