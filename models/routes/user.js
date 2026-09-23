@@ -53,6 +53,47 @@ router.get("/:userId/following", async (req, res) => {
     });
   }
 });
+/* =========================
+GET FOLLOWERS COUNT
+========================= */
+
+router.get("/:userId/followers-count", async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!validObjectId(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid user ID",
+      });
+    }
+
+    const user = await User.findById(userId).select("username");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const followersCount = await User.countDocuments({
+      following: user.username,
+    });
+
+    res.json({
+      success: true,
+      followersCount,
+    });
+  } catch (error) {
+    console.error("Get followers count error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+});
 
 /* =========================
 FOLLOW / UNFOLLOW
