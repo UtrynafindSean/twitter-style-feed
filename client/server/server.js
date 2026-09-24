@@ -18,26 +18,31 @@ const server = http.createServer(app);
 const PORT = process.env.PORT || 5000;
 
 /* =========================
+   CORS
+========================= */
+
+const corsOptions = {
+  origin: "http://localhost:5173",
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
+app.use(express.json());
+
+/* =========================
    SOCKET.IO
 ========================= */
 
 const io = new Server(server, {
   cors: {
-    origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST"],
+    credentials: true,
   },
+
+  transports: ["polling", "websocket"],
 });
-/* =========================
-   MIDDLEWARE
-========================= */
-
-app.use(
-  cors({
-    origin: "*",
-  }),
-);
-
-app.use(express.json());
 
 /* =========================
    HEALTH CHECK
@@ -51,38 +56,23 @@ app.get("/api/health", (req, res) => {
 });
 
 /* =========================
-   SOCKET USERS
+   SOCKET CONNECTIONS
 ========================= */
 
 const onlineUsers = new Map();
 
-/* =========================
-   SOCKET CONNECTION
-========================= */
-
 io.on("connection", (socket) => {
   console.log("Socket connected:", socket.id);
 
-  /* =========================
-     JOIN USER
-  ========================= */
-
-  socket.on("join_user", ({ userId }) => {
-    if (!userId) {
-      console.log("join_user called without userId");
-      return;
-    }
+  socket.on("user-online", (userId) => {
+    if (!userId) return;
 
     const id = String(userId);
 
+    onlineUsers.set(id, socket.id);
     socket.userId = id;
 
-    // Put this user's socket into their own private room
-    socket.join(`user:${id}`);
-
-    onlineUsers.set(id, socket.id);
-
-    console.log(`User ${id} joined Socket.IO`);
+    console.log("User online:", id);
 
     io.emit("user-status", {
       userId: id,
@@ -90,97 +80,37 @@ io.on("connection", (socket) => {
     });
   });
 
-  /* =========================
-     SEND MESSAGE
-  ========================= */
-
-  socket.on("send_message", async (message, callback) => {
+  socket.on("send-message", (message) => {
     try {
-      if (!socket.userId) {
-        if (callback) {
-          callback({
-            success: false,
-            message: "Socket is not connected to a user.",
-          });
-        }
+      if (!message) return;
 
-        return;
+      console.log("Message received:", message);
+
+      const receiverId = String(message.receiverId);
+
+      const receiverSocket = onlineUsers.get(receiverId);
+
+      if (receiverSocket) {
+        io.to(receiverSocket).emit("receive-message", message);
       }
 
-      const receiverId = message?.receiverId;
-      const body = message?.body;
-
-      if (!receiverId || !body?.trim()) {
-        if (callback) {
-          callback({
-            success: false,
-            message: "Receiver and message are required.",
-          });
-        }
-
-        return;
-      }
-
-      const normalizedMessage = {
-        id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
-        senderId: String(socket.userId),
-        receiverId: String(receiverId),
-        body: body.trim(),
-        createdAt: new Date().toISOString(),
-      };
-
-      console.log(`Message: ${socket.userId} -> ${receiverId}: ${body.trim()}`);
-
-      /* Send to receiver */
-      io.to(`user:${String(receiverId)}`).emit(
-        "new_message",
-        normalizedMessage,
-      );
-
-      /* Send back to sender */
-      io.to(`user:${String(socket.userId)}`).emit(
-        "new_message",
-        normalizedMessage,
-      );
-
-      if (callback) {
-        callback({
-          success: true,
-          message: normalizedMessage,
-        });
-      }
+      socket.emit("message-sent", message);
     } catch (error) {
       console.error("Socket message error:", error);
-
-      if (callback) {
-        callback({
-          success: false,
-          message: "Failed to send message.",
-        });
-      }
     }
   });
 
-  /* =========================
-     DISCONNECT
-  ========================= */
-
   socket.on("disconnect", () => {
-    if (socket.userId) {
-      const userId = String(socket.userId);
-
-      // Only remove the user if this is still their active socket
-      if (onlineUsers.get(userId) === socket.id) {
-        onlineUsers.delete(userId);
-
-        io.emit("user-status", {
-          userId,
-          online: false,
-        });
-      }
-    }
-
     console.log("Socket disconnected:", socket.id);
+
+    if (socket.userId) {
+      onlineUsers.delete(socket.userId);
+
+      io.emit("user-status", {
+        userId: socket.userId,
+        online: false,
+      });
+    }
   });
 });
 
