@@ -2176,16 +2176,26 @@ MESSAGES
       return;
     }
 
-    socketRef.current.emit("send-message", {
-      senderId: currentUser.id,
-      senderUsername: currentUser.username,
-      receiverId: selectedChat,
-      body: text,
-    });
+    socketRef.current.emit(
+      "send-message",
+      {
+        senderId: currentUser.id,
+        senderUsername: currentUser.username,
+        receiverId: selectedChat,
+        body: text,
+      },
+      (response) => {
+        if (response?.success) {
+          setMessageText("");
+        } else {
+          console.error(
+            "Send message failed:",
+            response?.message || "Unknown error",
+          );
+        }
+      },
+    );
   };
-  if (response?.success) setMessageText("");
-  else
-    console.error("Send message failed:", response?.message || "Unknown error");
 
   const getLastMessage = (userId) => {
     const chat = messages[String(userId)] || [];
