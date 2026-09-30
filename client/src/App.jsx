@@ -1265,39 +1265,58 @@ LOCAL STORAGE
   REAL-TIME MESSAGING
   ========================= */
 
+  /* =========================
+   REAL-TIME MESSAGING
+========================= */
+
   useEffect(() => {
     if (!currentUser?.id) return;
 
     const socket = io(SOCKET_URL, {
       auth: { userId: currentUser.id },
-      transports: ["polling"],
+      transports: ["polling", "websocket"],
       reconnection: true,
       reconnectionAttempts: Infinity,
       reconnectionDelay: 1000,
     });
 
     socketRef.current = socket;
+
     socket.on("connect", () => {
       setSocketConnected(true);
-      console.log("Socket.io ready — connected as", currentUser.username);
-      socket.emit("join_user", { userId: currentUser.id });
+
+      console.log(
+        "Socket.IO connected:",
+        socket.id,
+        "as",
+        currentUser.username,
+      );
+
+      socket.emit("user-online", currentUser.id);
     });
+
     socket.on("disconnect", (reason) => {
       setSocketConnected(false);
-      console.log("Socket.io disconnected:", reason);
+      console.log("Socket.IO disconnected:", reason);
     });
+
     socket.on("connect_error", (error) => {
       setSocketConnected(false);
-      console.error("Messaging connection error:", error.message);
+      console.error("Socket.IO connection error:", error.message);
     });
-    socket.on("new_message", (incoming) => {
-      if (!incoming?.id || !incoming?.senderId || !incoming?.receiverId) return;
+
+    socket.on("receive-message", (incoming) => {
+      if (!incoming?.id || !incoming?.senderId || !incoming?.receiverId) {
+        return;
+      }
+
       const otherUserId =
         String(incoming.senderId) === String(currentUser.id)
           ? String(incoming.receiverId)
           : String(incoming.senderId);
+
       const normalizedMessage = {
-        id: String(incoming.id || incoming._id),
+        id: String(incoming.id),
         senderId: String(incoming.senderId),
         receiverId: String(incoming.receiverId),
         sender: incoming.senderUsername || incoming.sender || "user",
@@ -1313,17 +1332,66 @@ LOCAL STORAGE
             ? selectedChatRef.current === otherUserId
             : true,
       };
+
       setMessages((prev) => {
         const existing = prev[otherUserId] || [];
+
         if (
           existing.some(
             (message) => String(message.id) === String(normalizedMessage.id),
           )
-        )
+        ) {
           return prev;
-        return { ...prev, [otherUserId]: [...existing, normalizedMessage] };
+        }
+
+        return {
+          ...prev,
+          [otherUserId]: [...existing, normalizedMessage],
+        };
       });
     });
+
+    socket.on("message-sent", (message) => {
+      if (!message?.id || !message?.receiverId) return;
+
+      const otherUserId = String(message.receiverId);
+
+      const normalizedMessage = {
+        id: String(message.id),
+        senderId: String(message.senderId),
+        receiverId: String(message.receiverId),
+        sender:
+          message.senderUsername || message.sender || currentUser.username,
+        text: message.body || message.text || "",
+        time: message.createdAt
+          ? new Date(message.createdAt).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          : "now",
+        read: true,
+      };
+
+      setMessages((prev) => {
+        const existing = prev[otherUserId] || [];
+
+        if (
+          existing.some(
+            (item) => String(item.id) === String(normalizedMessage.id),
+          )
+        ) {
+          return prev;
+        }
+
+        return {
+          ...prev,
+          [otherUserId]: [...existing, normalizedMessage],
+        };
+      });
+
+      setMessageText("");
+    });
+
     return () => {
       socket.removeAllListeners();
       socket.disconnect();
@@ -2103,21 +2171,21 @@ MESSAGES
 
   const sendMessage = () => {
     const text = messageText.trim();
-    if (!text || !selectedChat || !socketRef.current || !socketConnected)
+
+    if (!text || !selectedChat || !socketRef.current || !socketConnected) {
       return;
-    socketRef.current.emit(
-      "send_message",
-      { receiverId: selectedChat, body: text },
-      (response) => {
-        if (response?.success) setMessageText("");
-        else
-          console.error(
-            "Send message failed:",
-            response?.message || "Unknown error",
-          );
-      },
-    );
+    }
+
+    socketRef.current.emit("send-message", {
+      senderId: currentUser.id,
+      senderUsername: currentUser.username,
+      receiverId: selectedChat,
+      body: text,
+    });
   };
+  if (response?.success) setMessageText("");
+  else
+    console.error("Send message failed:", response?.message || "Unknown error");
 
   const getLastMessage = (userId) => {
     const chat = messages[String(userId)] || [];
