@@ -7,7 +7,7 @@ const Post = require("../post");
 const router = express.Router();
 
 /* =========================
-HELPER
+   HELPER
 ========================= */
 
 function validObjectId(value) {
@@ -15,47 +15,7 @@ function validObjectId(value) {
 }
 
 /* =========================
-GET FOLLOWING
-========================= */
-
-router.get("/:userId/following", async (req, res) => {
-  try {
-    const { userId } = req.params;
-
-    if (!validObjectId(userId)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid user ID",
-      });
-    }
-
-    const user = await User.findById(userId).select("following");
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
-
-    const following = Array.isArray(user.following) ? user.following : [];
-
-    res.json({
-      success: true,
-      following,
-    });
-  } catch (error) {
-    console.error("Get following error:", error);
-
-    res.status(500).json({
-      success: false,
-      message: "Server error",
-    });
-  }
-});
-
-/* =========================
-GET ALL USERS
+   GET ALL USERS
 ========================= */
 
 router.get("/", async (req, res) => {
@@ -66,9 +26,11 @@ router.get("/", async (req, res) => {
       .select("name username avatar bio following")
       .sort({ createdAt: -1 });
 
-    const viewer = viewerId && validObjectId(viewerId)
-      ? await User.findById(viewerId).select("username following")
-      : null;
+    let viewer = null;
+
+    if (viewerId && validObjectId(viewerId)) {
+      viewer = await User.findById(viewerId).select("username following");
+    }
 
     const viewerFollowing = Array.isArray(viewer?.following)
       ? viewer.following.map((username) => String(username).toLowerCase())
@@ -82,8 +44,8 @@ router.get("/", async (req, res) => {
       const isFollowedBy = viewer
         ? Array.isArray(user.following) &&
           user.following.some(
-            (username) =>
-              String(username).toLowerCase() ===
+            (followingUsername) =>
+              String(followingUsername).toLowerCase() ===
               String(viewer.username).toLowerCase(),
           )
         : false;
@@ -125,7 +87,45 @@ router.get("/", async (req, res) => {
 });
 
 /* =========================
-GET FOLLOWERS COUNT
+   GET FOLLOWING
+========================= */
+
+router.get("/:userId/following", async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!validObjectId(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid user ID",
+      });
+    }
+
+    const user = await User.findById(userId).select("following");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      following: Array.isArray(user.following) ? user.following : [],
+    });
+  } catch (error) {
+    console.error("Get following error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+});
+
+/* =========================
+   GET FOLLOWERS COUNT
 ========================= */
 
 router.get("/:userId/followers-count", async (req, res) => {
@@ -167,7 +167,7 @@ router.get("/:userId/followers-count", async (req, res) => {
 });
 
 /* =========================
-FOLLOW / UNFOLLOW
+   FOLLOW / UNFOLLOW
 ========================= */
 
 router.post("/:userId/follow", async (req, res) => {
@@ -182,7 +182,7 @@ router.post("/:userId/follow", async (req, res) => {
       });
     }
 
-    if (!username || !username.trim()) {
+    if (!username?.trim()) {
       return res.status(400).json({
         success: false,
         message: "Username is required",
@@ -190,6 +190,17 @@ router.post("/:userId/follow", async (req, res) => {
     }
 
     const cleanUsername = username.trim().replace(/^@/, "").toLowerCase();
+
+    const targetUser = await User.findOne({
+      username: cleanUsername,
+    });
+
+    if (!targetUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User to follow was not found",
+      });
+    }
 
     const user = await User.findById(userId);
 
@@ -200,9 +211,7 @@ router.post("/:userId/follow", async (req, res) => {
       });
     }
 
-    const ownUsername = String(user.username).toLowerCase();
-
-    if (cleanUsername === ownUsername) {
+    if (String(user.username).toLowerCase() === cleanUsername) {
       return res.status(400).json({
         success: false,
         message: "You cannot follow yourself",
@@ -213,27 +222,24 @@ router.post("/:userId/follow", async (req, res) => {
       user.following = [];
     }
 
-    const existingIndex = user.following.findIndex(
+    const index = user.following.findIndex(
       (item) => String(item).toLowerCase() === cleanUsername,
     );
 
     let isFollowing;
 
-    if (existingIndex >= 0) {
-      user.following.splice(existingIndex, 1);
-      isFollowing = false;
-    } else {
+    if (index === -1) {
       user.following.push(cleanUsername);
       isFollowing = true;
+    } else {
+      user.following.splice(index, 1);
+      isFollowing = false;
     }
 
     await user.save();
 
     res.json({
       success: true,
-      message: isFollowing
-        ? "User followed successfully"
-        : "User unfollowed successfully",
       isFollowing,
       following: user.following,
       followingCount: user.following.length,
@@ -249,7 +255,7 @@ router.post("/:userId/follow", async (req, res) => {
 });
 
 /* =========================
-UPDATE PROFILE
+   UPDATE PROFILE
 ========================= */
 
 router.put("/:userId/profile", async (req, res) => {
@@ -273,15 +279,24 @@ router.put("/:userId/profile", async (req, res) => {
 
     const cleanUsername = username
       .trim()
-      .replace(/\s+/g, "")
       .replace(/^@/, "")
+      .replace(/\s+/g, "")
       .toLowerCase();
 
     if (!/^[a-zA-Z0-9._-]+$/.test(cleanUsername)) {
       return res.status(400).json({
         success: false,
         message:
-          "Username can only contain letters, numbers, dots, underscores, and hyphens.",
+          "Username can only contain letters, numbers, dots, underscores and hyphens.",
+      });
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
       });
     }
 
@@ -297,15 +312,6 @@ router.put("/:userId/profile", async (req, res) => {
       });
     }
 
-    const user = await User.findById(userId);
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
-
     const oldUsername = user.username;
 
     user.name = name.trim();
@@ -313,14 +319,11 @@ router.put("/:userId/profile", async (req, res) => {
     user.bio = bio?.trim() || "";
     user.avatar =
       avatar?.trim()?.charAt(0)?.toUpperCase() ||
-      user.name.charAt(0).toUpperCase();
+      user.name.charAt(0).toUpperCase() ||
+      "U";
 
     await user.save();
 
-    /*
-      Update existing posts so the profile changes
-      appear throughout the application.
-    */
     await Post.updateMany(
       { authorId: userId },
       {
@@ -332,13 +335,13 @@ router.put("/:userId/profile", async (req, res) => {
       },
     );
 
-    /*
-      If the username changed, update follow lists
-      that contain the old username.
-    */
-    if (oldUsername !== user.username) {
+    if (
+      String(oldUsername).toLowerCase() !== String(user.username).toLowerCase()
+    ) {
       await User.updateMany(
-        { following: oldUsername },
+        {
+          following: oldUsername,
+        },
         {
           $set: {
             "following.$": user.username,
