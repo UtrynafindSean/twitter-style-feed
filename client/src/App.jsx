@@ -1986,44 +1986,91 @@ USERS / FOLLOW
 
   const handleFollow = async (userOrUsername) => {
     if (!currentUser?.id) return;
+
     const target =
       typeof userOrUsername === "object"
         ? userOrUsername
-        : users.find((user) => user.username === userOrUsername);
-    if (!target?.username) return;
+        : users.find(
+            (user) =>
+              String(user.username).toLowerCase() ===
+              String(userOrUsername).toLowerCase(),
+          );
+
+    if (!target?.id || !target?.username) return;
+
     try {
       const response = await fetch(
         `${API_BASE}/users/${encodeURIComponent(currentUser.id)}/follow`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username: target.username }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            username: target.username,
+          }),
         },
       );
+
       const data = await response.json();
-      if (!response.ok) return console.error("Follow failed:", data.message);
-      setFollowedUsers(Array.isArray(data.following) ? data.following : []);
-      setUsers((prev) =>
-        prev.map((user) =>
-          String(user.id) === String(target.id)
-            ? {
-                ...user,
-                isFollowing: Boolean(data.isFollowing),
-                isFollowedBy: data.isFollowedBy ?? user.isFollowedBy,
-                followersCount: Number(
-                  data.targetFollowersCount ?? user.followersCount ?? 0,
-                ),
-              }
-            : user,
-        ),
+
+      if (!response.ok) {
+        console.error("Follow failed:", data.message);
+        return;
+      }
+
+      /*
+      Update the logged-in user's following list immediately.
+    */
+      const updatedFollowing = Array.isArray(data.following)
+        ? data.following
+        : [];
+
+      setFollowedUsers(updatedFollowing);
+
+      /*
+      Ask MongoDB for the latest relationship data.
+
+      This is important because the target user's follower count
+      belongs to the TARGET account, not the logged-in account.
+    */
+      const usersResponse = await fetch(
+        `${API_BASE}/users?viewerId=${encodeURIComponent(currentUser.id)}`,
       );
-      if (data.isFollowing)
+
+      const usersData = await usersResponse.json();
+
+      if (usersResponse.ok && Array.isArray(usersData.users)) {
+        const allUsers = usersData.users;
+
+        const updatedUsers = allUsers.filter(
+          (user) => String(user.id) !== String(currentUser.id),
+        );
+
+        setUsers(updatedUsers);
+
+        /*
+        Refresh the logged-in user's own follower count.
+      */
+        const me = allUsers.find(
+          (user) => String(user.id) === String(currentUser.id),
+        );
+
+        if (me) {
+          setFollowersCount(Number(me.followersCount || 0));
+          setFollowedUsers(
+            Array.isArray(me.following) ? me.following : updatedFollowing,
+          );
+        }
+      }
+
+      if (data.isFollowing) {
         addNotification(`You are now following ${target.name}.`, "follow");
+      }
     } catch (error) {
       console.error("Follow error:", error);
     }
   };
-
   /* =========================
 COMMENTS
 ========================= */
