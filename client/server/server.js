@@ -47,7 +47,31 @@ app.use(express.json());
    MODELS
 ========================= */
 
-const Message = require("../../models/Message");
+// Your actual model files are:
+// models/user.js
+// models/post.js
+// models/message.js
+
+const Message = require("../../models/message");
+const userRoutes = require("../../models/routes/user");
+const postRoutes = require("../../models/routes/post");
+
+/* =========================
+   API ROUTES
+========================= */
+
+// USER ROUTES
+// Handles:
+// GET    /api/users
+// GET    /api/users/:userId/following
+// GET    /api/users/:userId/followers-count
+// POST   /api/users/:userId/follow
+// PUT    /api/users/:userId/profile
+
+app.use("/api/users", userRoutes);
+
+// POST ROUTES
+app.use("/api/posts", postRoutes);
 
 /* =========================
    HEALTH CHECK
@@ -66,6 +90,7 @@ app.get("/api/health", (req, res) => {
 
 /*
 GET CONVERSATION
+
 /api/messages/:userId/:otherUserId
 */
 
@@ -112,6 +137,7 @@ app.get("/api/messages/:userId/:otherUserId", async (req, res) => {
 
 /*
 MARK CONVERSATION AS READ
+
 /api/messages/:userId/:otherUserId/read
 */
 
