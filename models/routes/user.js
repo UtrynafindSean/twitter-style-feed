@@ -53,6 +53,77 @@ router.get("/:userId/following", async (req, res) => {
     });
   }
 });
+
+/* =========================
+GET ALL USERS
+========================= */
+
+router.get("/", async (req, res) => {
+  try {
+    const { viewerId } = req.query;
+
+    const users = await User.find({})
+      .select("name username avatar bio following")
+      .sort({ createdAt: -1 });
+
+    const viewer = viewerId && validObjectId(viewerId)
+      ? await User.findById(viewerId).select("username following")
+      : null;
+
+    const viewerFollowing = Array.isArray(viewer?.following)
+      ? viewer.following.map((username) => String(username).toLowerCase())
+      : [];
+
+    const formattedUsers = users.map((user) => {
+      const username = String(user.username).toLowerCase();
+
+      const isFollowing = viewerFollowing.includes(username);
+
+      const isFollowedBy = viewer
+        ? Array.isArray(user.following) &&
+          user.following.some(
+            (username) =>
+              String(username).toLowerCase() ===
+              String(viewer.username).toLowerCase(),
+          )
+        : false;
+
+      const followersCount = users.filter(
+        (otherUser) =>
+          Array.isArray(otherUser.following) &&
+          otherUser.following.some(
+            (followingUsername) =>
+              String(followingUsername).toLowerCase() === username,
+          ),
+      ).length;
+
+      return {
+        id: String(user._id),
+        name: user.name,
+        username: user.username,
+        avatar: user.avatar,
+        bio: user.bio,
+        following: user.following || [],
+        isFollowing,
+        isFollowedBy,
+        followersCount,
+      };
+    });
+
+    res.json({
+      success: true,
+      users: formattedUsers,
+    });
+  } catch (error) {
+    console.error("Get users error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+});
+
 /* =========================
 GET FOLLOWERS COUNT
 ========================= */
