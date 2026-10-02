@@ -1,8 +1,17 @@
-```js
 const express = require("express");
+const mongoose = require("mongoose");
+
 const User = require("../user");
 
 const router = express.Router();
+
+/* =========================
+   HELPER
+========================= */
+
+function validObjectId(value) {
+  return mongoose.Types.ObjectId.isValid(value);
+}
 
 /* =========================
    SIGN UP
@@ -12,10 +21,10 @@ router.post("/signup", async (req, res) => {
   try {
     const { name, username, email, password } = req.body;
 
-    if (!name || !username || !email || !password) {
+    if (!name?.trim() || !username?.trim() || !email?.trim() || !password) {
       return res.status(400).json({
         success: false,
-        message: "All fields are required",
+        message: "Name, username, email and password are required",
       });
     }
 
@@ -26,25 +35,50 @@ router.post("/signup", async (req, res) => {
       });
     }
 
+    const cleanName = name.trim();
+
+    const cleanUsername = username
+      .trim()
+      .replace(/^@/, "")
+      .replace(/\s+/g, "")
+      .toLowerCase();
+
+    const cleanEmail = email.trim().toLowerCase();
+
+    if (!/^[a-zA-Z0-9._-]+$/.test(cleanUsername)) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Username can only contain letters, numbers, dots, underscores and hyphens",
+      });
+    }
+
     const existingUser = await User.findOne({
-      $or: [
-        { email: email.toLowerCase().trim() },
-        { username: username.trim() },
-      ],
+      $or: [{ email: cleanEmail }, { username: cleanUsername }],
     });
 
     if (existingUser) {
-      return res.status(400).json({
+      if (String(existingUser.email).toLowerCase() === cleanEmail) {
+        return res.status(409).json({
+          success: false,
+          message: "Email is already registered",
+        });
+      }
+
+      return res.status(409).json({
         success: false,
-        message: "Email or username already exists",
+        message: "Username is already taken",
       });
     }
 
     const user = await User.create({
-      name: name.trim(),
-      username: username.trim(),
-      email: email.toLowerCase().trim(),
+      name: cleanName,
+      username: cleanUsername,
+      email: cleanEmail,
       password,
+      following: [],
+      bio: "",
+      avatar: cleanName.charAt(0).toUpperCase() || "U",
     });
 
     res.status(201).json({
@@ -55,9 +89,8 @@ router.post("/signup", async (req, res) => {
         name: user.name,
         username: user.username,
         email: user.email,
-        bio: user.bio,
         avatar: user.avatar,
-        following: user.following,
+        bio: user.bio,
       },
     });
   } catch (error) {
@@ -65,7 +98,7 @@ router.post("/signup", async (req, res) => {
 
     res.status(500).json({
       success: false,
-      message: "Unable to create account",
+      message: "Server error",
     });
   }
 });
@@ -78,18 +111,27 @@ router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    if (!email || !password) {
+    if (!email?.trim() || !password) {
       return res.status(400).json({
         success: false,
         message: "Email and password are required",
       });
     }
 
+    const cleanEmail = email.trim().toLowerCase();
+
     const user = await User.findOne({
-      email: email.toLowerCase().trim(),
+      email: cleanEmail,
     });
 
-    if (!user || user.password !== password) {
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid email or password",
+      });
+    }
+
+    if (user.password !== password) {
       return res.status(401).json({
         success: false,
         message: "Invalid email or password",
@@ -104,9 +146,8 @@ router.post("/login", async (req, res) => {
         name: user.name,
         username: user.username,
         email: user.email,
-        bio: user.bio,
         avatar: user.avatar,
-        following: user.following,
+        bio: user.bio,
       },
     });
   } catch (error) {
@@ -114,10 +155,58 @@ router.post("/login", async (req, res) => {
 
     res.status(500).json({
       success: false,
-      message: "Unable to login",
+      message: "Server error",
+    });
+  }
+});
+
+/* =========================
+   GET CURRENT USER
+========================= */
+
+router.get("/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!validObjectId(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid user ID",
+      });
+    }
+
+    const user = await User.findById(userId).select(
+      "name username email avatar bio following createdAt",
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.json({
+      success: true,
+      user: {
+        id: String(user._id),
+        name: user.name,
+        username: user.username,
+        email: user.email,
+        avatar: user.avatar,
+        bio: user.bio,
+        following: user.following || [],
+        createdAt: user.createdAt,
+      },
+    });
+  } catch (error) {
+    console.error("Get user error:", error);
+
+    res.status(500).json({
+      success: false,
+      message: "Server error",
     });
   }
 });
 
 module.exports = router;
-```;
