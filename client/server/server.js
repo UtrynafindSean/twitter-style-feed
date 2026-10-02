@@ -47,7 +47,7 @@ app.use(express.json());
    MODELS
 ========================= */
 
-const Message = require("./models/Message");
+const Message = require("../../models/Message");
 
 /* =========================
    HEALTH CHECK
